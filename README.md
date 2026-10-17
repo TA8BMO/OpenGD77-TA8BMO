@@ -4,8 +4,8 @@ My own build of the OpenGD77 firmware for the **TYT MD-UV390 Plus 10W**.
 
 *Türkçe · Español · Русский: see below.*
 
-> The radio speaks English, Turkish, Spanish (since v0.2.0) and Russian (since v0.3.0,
-> with Cyrillic letters I drew for its fonts).
+> The radio speaks English, Turkish, Spanish and Russian (with Cyrillic letters I
+> drew for its fonts) - all four in the same firmware, picked in Menu > Language.
 
 It started with one question: can this radio decode a 5-Tone (CCIR) call by
 itself? Everyone, me included, thought the received FM audio never reaches the
@@ -77,7 +77,7 @@ The result is `OpenMDUV380.bin`.
 OpenGD77 build, the firmware loader adds it from the official TYT firmware when
 the radio is flashed. Without it DMR voice does not work.
 
-Ready-made binaries, when I publish them, are on the Releases page.
+Ready-made binaries are on the Releases page.
 
 ## Credits
 
@@ -177,7 +177,7 @@ convirtió en varios. No hace falta ningún hardware adicional, todo es software
 - Buscador de tonos CTCSS/DCS, caza del zorro, barrido de espectro que se detiene con la voz
 - Reloj por GPS, volumen muy bajo para la noche, brillo con SK1 + mando de volumen
 - Canales, zonas y contraseña de encendido gestionados desde la radio
-- Menús y manual de usuario en español (desde v0.2.0), además de turco, inglés y ruso, y algunos juegos
+- Menús y manual de usuario en español, además de turco, inglés y ruso, y algunos juegos
 
 **Importante**
 - Solo lo he probado en el MD-UV390 Plus 10W. No he probado otros modelos.
@@ -218,7 +218,7 @@ compra: no incluye licencia, soporte ni garantía.
 - Поиск тона CTCSS/DCS, «охота на лис», сканирование спектра с остановкой на речи
 - Часы по GPS, очень тихая громкость для ночи, яркость через SK1 + ручку громкости
 - Каналы, зоны и пароль включения настраиваются на самой радиостанции
-- Меню и руководство на русском (с версии v0.3.0, с кириллицей в шрифтах рации), а также на турецком, английском и испанском, и несколько игр
+- Меню и руководство на русском (с кириллицей в шрифтах рации), а также на турецком, английском и испанском, и несколько игр
 
 **Важно**
 - Проверено только на MD-UV390 Plus 10W. Другие модели я не проверял.
