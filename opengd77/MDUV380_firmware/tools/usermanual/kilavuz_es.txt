@@ -1,0 +1,495 @@
+@@ Resumen
+Esta radio lleva un firmware OpenGD77 especial (Special Edition) desarrollado por TA8BMO.
+
+Su punto fuerte es que decodifica el audio FM analógico dentro de la propia radio. Lo hace solo con software, sin añadir hardware, y es una primicia mundial para esta radio.
+
+Gracias a eso la radio:
+- recibe y envía llamadas de 5 tonos (CCIR)
+- recibe y envía Morse (CW), y tiene un modo de práctica
+- recibe paquetes APRS y envía mensajes APRS
+- envía mensajes de WhatsApp y correo por APRS
+
+Además tiene ayuda para la caza del zorro, un barrido de espectro que se detiene con la voz, reloj ajustado por GPS, un volumen muy bajo para la noche, atajo de brillo de pantalla, crear canales y zonas y borrar canales desde la radio, y juegos.
+
+Las funciones de 5 tonos, Morse y APRS funcionan solo en canales FM analógicos.
+
+Si es la primera vez, lee primero "Cómo leer" y "Teclas".
+
+@@ Cómo leer
+En la lista de temas:
+- Flecha Arriba/Abajo o mando de canal: elegir tema
+- Verde: abrir el tema
+- Rojo: volver al menú principal
+
+Dentro de un tema:
+- Flecha Arriba/Abajo: avanzar línea a línea. Mantener pulsada para ir rápido.
+- Girar el mando de canal: avanzar una pantalla
+- Verde: ir al tema siguiente
+- Rojo: volver a la lista de temas
+
+La barra fina de la derecha indica en qué parte del texto estás.
+
+El manual siempre está en Menú > Manual.
+
+@@ Teclas
+Nombres de teclas usados en este manual:
+- Verde: tecla de menú, confirmar y enviar
+- Rojo: tecla de volver, borrar y cancelar
+- Flecha Arriba/Abajo: las flechas de la fila superior del teclado
+- SK1, SK2: las dos teclas pequeñas del lateral
+- PTT: la tecla para transmitir
+- Mando de canal: el selector de canal de arriba. En los menús se gira para cambiar valores.
+- Mando de volumen: el mando de encendido y volumen de arriba
+
+Pulsación corta: pulsar y soltar. Pulsación larga: mantener un segundo.
+
+[ESCRIBIR]
+En las pantallas de texto las teclas funcionan como en un móvil: pulsa la misma tecla varias veces para elegir la letra.
+- 2: a b c 2 A B C
+- 3: d e f 3 D E F (las demás teclas igual)
+- 0: 0 y espacio
+- 1: 1 . ! , @ - : ? y más símbolos
+Espera un momento y la letra queda aceptada; luego pasa a la siguiente.
+
+@@ Pantalla canal
+En la pantalla de canal o VFO, en un canal FM analógico:
+- 0 corta: buscador de tonos (muestra el CTCSS/DCS de la estación)
+- 0 larga: pantalla de llamada selectiva de 5 tonos
+- * corta: pantalla de envío Morse
+- * larga: pantalla de caza del zorro
+- Mantener SK1 + girar el mando de volumen: brillo de pantalla
+- # larga (en VFO): barrido de espectro
+
+Lo que puedes ver en la pantalla:
+- Bajo el nombre del canal: el código de la última llamada de 5 tonos recibida
+- Un "CW" rojo sobre el nombre del canal: hay un mensaje Morse nuevo decodificado
+- Reloj (HH:MM): ajustado solo por GPS
+- Barra de intensidad de señal
+
+Nota: estos atajos solo funcionan en canales analógicos. En un canal digital (DMR) la tecla * cambia el timeslot (TS).
+
+@@ Envío 5 tonos
+5 tonos es el sistema de llamada selectiva CCIR, que también usan las radios Aselsan. Cada canal puede tener un código de identidad de 5 cifras (ANI).
+
+[PONER EL CÓDIGO]
+En Menú > Detalles Canal, ve a la fila "5T:" y escribe las 5 cifras con el teclado. Los ceros a la izquierda se conservan (ejemplo: 03310). Al escribir la quinta cifra el código se guarda y el envío pasa al modo "St". Mientras escribes, Verde guarda y Rojo cancela.
+
+Cambia el modo de envío con el mando de canal:
+- St: enviar al pulsar PTT
+- En: enviar al soltar PTT
+- St+En: enviar en ambos
+- Off: no enviar
+
+[CÓMO FUNCIONA]
+Al pulsar PTT la radio espera unos 0,25 segundos y envía los 5 tonos, de 100 milisegundos cada uno. Tras el último tono se mantienen 100 ms de portadora en silencio. Así, aunque solo toques el PTT, la última cifra llega completa a la otra radio.
+
+Al hablar normalmente, la transmisión se corta en cuanto sueltas el PTT.
+
+Si la misma cifra aparece dos veces seguidas, la segunda se envía como tono de repetición CCIR, como exige la norma. El código en pantalla no cambia.
+
+@@ 5 tonos: recibir
+Las llamadas de 5 tonos en un canal FM analógico se decodifican solas. El código de quien llama aparece bajo el nombre del canal y se queda hasta que cambias de canal, apagas la radio o llega otra llamada.
+
+[NOMBRES]
+Puedes ver el nombre de quien llama en lugar del código: 5T Ahmet en vez de 5T 12345. Guarda a la persona como contacto en la radio, con su nombre y su código de 5 tonos o DTMF (por ejemplo 12345). Lo mismo vale para los códigos DTMF. Los contactos se añaden en la propia radio (Menú > Contactos > Contactos 5T) o en la lista DTMF del CPS; las dos son la misma lista.
+
+[MENÚ CONTACTOS 5T]
+Menú > Contactos > Contactos 5T. La lista muestra el nombre y el código de cada contacto.
+- "+ Nuevo contacto" añade uno; Verde sobre un contacto lo edita.
+- Nombre: se escribe con el teclado. Rojo borra el último carácter.
+- Código: escribe las cifras; también valen * y #. Para A-D, el mando de canal o las flechas Izquierda/Derecha recorren el último carácter por 0-9, A-D, *, #. Rojo borra el último carácter.
+- GUARDAR lo guarda. Un segundo contacto con el mismo código se rechaza.
+- BORRAR (solo en un contacto existente): aparece la pregunta de borrar, empezando en NO.
+- Una pulsación larga de Rojo vuelve a la lista sin guardar.
+Se pueden guardar hasta 63 contactos. También aparecen en Contactos > DTMF y desde ahí se pueden enviar como DTMF.
+- Primero se busca el código exacto.
+- Si no, también cuenta un código de contacto de 4 o más cifras que esté dentro de lo recibido (por ejemplo 1234 dentro de *1234#).
+- Un código sin contacto se muestra como número.
+
+[REGISTRO DE LLAMADAS]
+Menú > Registros > Llamadas. Cada llamada de 5 tonos y cada secuencia DTMF recibida se guarda con la hora y la frecuencia, y se conserva al apagar. La más nueva arriba; se guardan hasta 32 (al llenarse, se sobrescribe la más antigua).
+- Cada fila muestra la hora, el tipo (5T o DT) y el nombre (si hay contacto) o el código.
+- Verde: la llamada completa: tipo, frecuencia, código, nombre, fecha y hora. Arriba/Abajo pasan a la llamada más nueva o más vieja.
+- Mantener # borra el registro.
+Un DTMF de una sola cifra no se guarda (pudo salir de la voz); una secuencia DTMF se guarda tras 2 segundos de silencio. Si el reloj no estaba en hora, la hora sale como --:--.
+
+[RESPUESTA AUTOMÁTICA]
+En Menú > Detalles Canal, pon la fila "5T Resp." en On con el mando de canal. El canal también necesita un código ANI.
+
+Cuando alguien te llama, la radio:
+- espera unos 1,2 segundos,
+- envía una vez su propio código ANI,
+- pita tres veces (para que lo oigas si estás lejos de la radio).
+
+Para que dos radios no se respondan sin fin, solo se envían unas pocas respuestas seguidas. Las llamadas reales y separadas se siguen respondiendo.
+
+@@ Recepción DTMF
+Los tonos DTMF en un canal FM analógico también se decodifican solos y aparecen con "DT" en la línea del código de 5 tonos, por ejemplo: DT 1234*#. Se muestra lo último que llegó, 5 tonos o DTMF.
+
+Las cifras se añaden según llegan. Una cifra tras una pausa de más de 2 segundos empieza una secuencia nueva. Se muestran como mucho los últimos 16 caracteres. El código se queda en pantalla hasta cambiar de canal o hasta que llegue otra secuencia.
+
+[DTMF RÁPIDO]
+Algunas radios envían su identidad (PTT-ID, ANI) como DTMF muy rápido. El código entero dura menos de medio segundo y suena como un solo "bip". Este decodificador también los capta: siempre a partir de 40 ms por cifra, y casi siempre entre 30 y 40 ms.
+
+La voz puede tomarse de vez en cuando por una cifra DTMF; por eso a veces aparece una cifra suelta.
+
+Un sonido "brrrt" no es DTMF sino una ráfaga de datos (MDC-1200, FleetSync y similares). Este decodificador no lo decodifica.
+
+Mientras suena DTMF, los decodificadores de 5 tonos y Morse esperan, para que el DTMF no deje un código de 5 tonos o un Morse falso.
+
+@@ Grabador RX
+Graba solo cada transmisión que oyes en FM, para escucharla después. Las grabaciones se conservan al apagar.
+
+Para abrir: Menú > Registros > Grabador RX. La fila de arriba es "Grabar: Sí/No"; Verde la cambia. Empieza apagado.
+
+[CÓMO GRABA]
+- La grabación empieza al abrirse el squelch y acaba al cerrarse; cada transmisión es una grabación.
+- Lo que dura menos de 1 segundo (un repetidor que se activa) no se graba.
+- Si durante una transmisión se decodifica un código de 5 tonos o DTMF, la grabación también dice quién hablaba.
+- Con el grabador encendido aparece un REC rojo a la izquierda de la barra de señal en las pantallas de canal y VFO, con un punto rojo al lado mientras se graba. Sigue rojo también en el modo de pantalla invertida (negro).
+- Mientras graba, los decodificadores APRS y Morse esperan; 5 tonos y DTMF siguen.
+- No se graba en la frecuencia APRS (144.800) ni en DMR.
+- No se graba con un ordenador conectado por USB.
+
+[CARPETAS]
+Las grabaciones se ordenan en carpetas por canal: una por canal, con su nombre, o con la frecuencia si se grabó en VFO. La carpeta con la grabación más reciente va arriba. Ejemplo: "14:32 KATRAD (12)": la hora de su grabación más nueva, la carpeta y cuántas tiene.
+- Arriba/Abajo: moverse entre carpetas
+- Verde: abrir la carpeta. Al abrir, ya está elegida la carpeta más reciente.
+- #: borrar todas las grabaciones de la carpeta (pregunta antes). En la fila de arriba: borrar todas las grabaciones (pregunta antes).
+- Rojo: volver
+
+[DENTRO DE UNA CARPETA]
+Las grabaciones de ese canal, la más nueva arriba: hora, duración, y quién hablaba si se oyó un código. Ejemplo: "14:32 12s 5T Ahmet".
+- Arriba/Abajo: moverse entre grabaciones
+- Verde: reproducir o parar la grabación elegida. Al abrir una carpeta, está elegida su grabación más nueva.
+- #: borrar la grabación elegida (al momento)
+- Rojo: volver a las carpetas
+
+Si el canal se abre mientras escuchas (alguien habla), la reproducción se para: oyes la transmisión en directo, y también se graba.
+
+[CAPACIDAD]
+Las grabaciones se guardan comprimidas en los 2MB superiores de la flash externa: alrededor de 1 hora en total. Al llenarse se sobrescriben las más antiguas. La lista muestra las 96 últimas. El audio se comprime como en DMR: limpio con señal fuerte, puede sonar robótico con señal débil y ruidosa.
+
+[SEGURIDAD]
+En cada encendido la radio comprueba que la flash es de 16MB y que la base de datos DMR ID no llega al espacio de grabación. Si no, la grabación sigue apagada, la fila de arriba dice el motivo ("Flash no apta" o "BD DMR ID grande") y no se borra nada.
+
+@@ Buscador tonos
+Averigua con qué tono CTCSS o DCS transmite una estación. Útil al configurar un repetidor o un canal nuevo.
+
+Para abrir: en la pantalla de canal o VFO, en FM analógico, pulsa 0 (corta). Si lo pulsas otra vez, la búsqueda se para.
+- Durante la búsqueda el avance se ve en la línea de 5 tonos, por ejemplo "Tono CTCSS 40%".
+- Primero se prueban los 50 tonos CTCSS, luego los 83 códigos DCS y luego los DCS invertidos.
+- Al encontrar un tono la radio pita y lo muestra, como "Tono 88.5Hz" o "Tono D023N".
+- Si no encuentra ninguno muestra "Sin tono".
+
+Un tono solo se puede encontrar mientras la estación transmite. Cuando deja de transmitir la búsqueda espera ("Tono: sin señal") y sigue cuando vuelve. El CTCSS se encuentra en unos 10 segundos, el DCS en menos de un minuto.
+
+La estación se sigue oyendo durante la búsqueda. El ajuste de tono del canal o del VFO no cambia; el resultado solo se muestra. Cambiar de canal o de frecuencia lo borra; pulsar PTT para la búsqueda.
+
+@@ Llamada select.
+Sirve para enviar el código de 5 tonos de cualquier estación, sin cambiar el código guardado en el canal.
+
+Para abrir: 0 larga en un canal analógico.
+- Teclas numéricas: escribir las 5 cifras
+- Verde: enviar los 5 tonos una vez. No se envía nada hasta tener las 5 cifras; oirás un pitido de aviso.
+- Rojo: borrar la última cifra. Si está vacío, sale de la pantalla.
+
+Después de enviar sigues en la pantalla, para enviar el mismo código otra vez o corregirlo.
+
+@@ Envío Morse
+Para abrir: * corta en un canal analógico.
+
+Escribe el mensaje con el teclado (20 caracteres como máximo). Pulsa Verde y el mensaje se transmite en Morse (tono de 700 Hz). Después de enviar sigues en la pantalla para enviarlo otra vez o corregirlo.
+- Flecha Arriba/Abajo: velocidad, de 5 a 30 WPM, empezando en 12.
+- Rojo corta: borrar la última letra. Si está vacío, salir.
+- Rojo larga: borrar todo y salir.
+- *: ir a la pantalla del registro Morse (también en Menú > Registros > Registro Morse).
+
+[ESCRIBIR CON EL PTT]
+En esta pantalla el PTT funciona como manipulador. Cuando manipulas Morse con el PTT la radio NO TRANSMITE: decodifica tu manipulación y la añade al mensaje como letras. Cuando el mensaje esté listo, transmítelo con Verde.
+
+El ajuste de velocidad vale para el Morse transmitido y para la pantalla de práctica.
+
+@@ Morse: recibir
+El Morse (CW) que se oye en un canal FM analógico se decodifica solo; no hay que encender nada. Se detectan solos los tonos de 400 a 900 Hz y las distintas velocidades. También funciona en VFO.
+
+Cuando hay un mensaje nuevo decodificado, aparece un "CW" rojo sobre el nombre del canal.
+
+[REGISTRO MORSE]
+Para abrir: abre la pantalla de envío Morse con * y pulsa * otra vez.
+- Flecha Arriba/Abajo: moverse entre entradas
+- #: pregunta si borrar todo el registro. Pulsa # otra vez para confirmar, Rojo para cancelar.
+- *: ir a la práctica Morse
+- Rojo: volver
+
+Las decodificaciones sin sentido, hechas casi solo de caracteres no reconocidos, no se guardan. El registro se conserva aunque se apague la radio.
+
+@@ Práctica Morse
+Para abrir: pulsa * en la pantalla del registro Morse. En resumen: * > * > * en el canal.
+
+En esta pantalla NO se TRANSMITE nada. Solo oyes el tono local por el altavoz de la radio. El PTT se usa como manipulador.
+
+Hay dos modos, que se cambian con SK2:
+- Libre: manipula lo que quieras y míralo en letras en la pantalla.
+- Seguir: escribe una palabra objetivo con el teclado. Debajo aparecen sus puntos y rayas. Manipúlala con el PTT y mira cuánto acertaste.
+
+Teclas:
+- SK1 corta: borrar la última letra del objetivo (Seguir)
+- SK1 larga: borrar el objetivo (Seguir)
+- Verde corta: borrar la última letra manipulada
+- Verde larga: borrar lo manipulado e intentarlo otra vez
+- Flecha Arriba/Abajo: velocidad (WPM)
+- Rojo: salir
+
+@@ Recepción APRS
+La radio decodifica sola los paquetes APRS que oye en 144.800 MHz en un canal FM analógico. En esta frecuencia el ahorro de energía (eco) se apaga solo, para no perder paquetes cortos.
+
+Para abrir: Menú > Registros > Registro APRS.
+
+Se guardan las últimas 16 estaciones. Una estación que se oye otra vez sustituye a su entrada anterior y sube arriba, así una estación que baliza mucho no puede echar a las demás. Los mensajes para ti nunca se quitan así. La estación que estás mirando sigue elegida mientras la lista se actualiza. La pantalla tiene dos vistas.
+
+[LISTA]
+Lo primero que se abre. Cada fila tiene el dibujo del símbolo de la estación, el indicativo, la distancia hasta ti y una flechita hacia ella. La más nueva va arriba. Una estación sin posición muestra "--" como distancia; un mensaje para ti muestra "Msj".
+- Flecha Arriba/Abajo o mando de canal: moverse entre estaciones
+- Verde: abrir la estación elegida (ficha)
+- Rojo: volver a Registros
+
+[FICHA]
+Una estación al completo: el símbolo grande, el indicativo, qué es (coche, casa, repetidor...) y hace cuánto se oyó; debajo, la distancia y el rumbo en letra grande, y una brújula a la derecha. El norte está arriba en la brújula y la flecha gira hacia la estación: apunta la antena hacia allí. Abajo, las coordenadas y el comentario de la estación.
+El título dice qué estación es y cómo llegó el paquete: "3/16 vía TA8XX-1" significa que se oyó a través de ese digi, "3/16 Directo" directamente de la estación. También muestra qué digi repitió tu propia baliza.
+- Flecha Arriba/Abajo o mando de canal: estación anterior/siguiente
+- Rojo: volver a la lista
+En las dos vistas:
+- *: escribir un mensaje. Si la estación elegida te envió un mensaje, la dirección ya está puesta, así que responder es una tecla.
+- #: borrar la lista
+
+[DISTANCIA Y RUMBO]
+El rumbo es la dirección de brújula desde ti hasta la estación: N, NE, E, SE, S, SO, O, NO; el número va en grados (0 = norte, 90 = este).
+- Tu posición: la posición GPS en directo si hay fix, si no la última que guardó la radio. Si la radio nunca tuvo posición, la ficha dice "No sé tu posición".
+- Un paquete en 0,0 (una estación que baliza sin fix GPS) se muestra como "Sin posición" y no se calcula distancia.
+- Por debajo de 10 km se muestra con 100 metros de precisión, por encima en kilómetros enteros.
+- También se decodifican las posiciones en formato Mic-E, que usan la mayoría de radios Kenwood y Yaesu.
+
+[LETRAS ESPECIALES]
+Los acentos en los comentarios se muestran bien con la fuente de la radio. Si tu propio comentario sale con letras raras, la causa es el CPS: guarda el comentario en una codificación sin esos caracteres. Escribe el comentario otra vez en Menú > Config. radio > Ajustes APRS > Comentario.
+
+[PRUEBA]
+SK2 decodifica un paquete de prueba fijo con varios niveles de ruido; el resultado sale abajo en la pantalla. Sirve para comparar cambios de firmware y no mide la recepción real. Sin paquetes la pantalla muestra "Señal %": por encima de 90 está bien.
+
+@@ Mensaje APRS
+Para abrir: pulsa * en la pantalla del registro APRS.
+
+Hay dos campos: Para (el indicativo de la otra estación, 9 caracteres como máximo) y Mensaje (60 caracteres como máximo). Muévete entre campos con la flecha Arriba/Abajo.
+- Verde: enviar el mensaje
+- SK2: añadir tu posición al mensaje o quitarla. Sin posición GPS oirás un pitido de aviso.
+- Rojo corta: borrar el último carácter. Si el campo está vacío pasa al otro; si los dos están vacíos, sale.
+- Rojo larga: borrar los dos campos
+- * o SK1: ir a la pantalla de WhatsApp
+
+Al final del mensaje se añade un número de secuencia, para que la otra estación pueda confirmarlo.
+
+@@ WhatsApp
+Envía un mensaje de WhatsApp a un número de teléfono por APRS. El mensaje lo pasa la pasarela WTSAPP de la red APRS. Para eso debe haber en tu zona una estación que una APRS con internet (un iGate).
+
+Para abrir: * o SK1 en la pantalla de mensaje APRS.
+
+[NÚMERO]
+Solo se pueden escribir cifras. El número se escribe como 05xx; la radio lo pasa sola a formato internacional de Turquía. Ejemplo: escribir 05551234567 envía @905551234567. Hacen falta al menos 10 cifras.
+
+Para otro país, pulsa la tecla 1 dos veces con el número vacío: aparece un +. Luego escribe el prefijo del país y el número (ejemplo: +34612345678, +5215512345678). Un número escrito con + se envía tal cual, sin el 90 de Turquía. Hacen falta al menos 7 cifras.
+
+[MENSAJE]
+50 caracteres como máximo. Las letras se escriben con pulsaciones repetidas.
+
+Teclas:
+- Flecha Arriba/Abajo: cambiar de campo
+- Verde: enviar
+- Rojo corta: borrar; si el campo está vacío ir al otro; si los dos están vacíos, salir
+- Rojo larga: borrar todo
+- *: ir a la pantalla de correo
+
+El contador de abajo muestra cuántos mensajes has enviado.
+
+@@ Correo
+Envía un mensaje a una dirección de correo por APRS (pasarela EMAIL-2). Como en WhatsApp, hace falta un iGate en tu zona.
+
+Para abrir: pulsa * en la pantalla de WhatsApp.
+
+En los dos campos se escriben letras. Los caracteres especiales están en la tecla 1:
+- @: pulsa 1 cinco veces
+- . (punto): pulsa 1 dos veces
+- - (guion): pulsa 1 seis veces
+
+Lo largo que puede ser el mensaje depende de la longitud de la dirección, hasta 50 caracteres. El "x/y caract." de la pantalla muestra cuánto espacio queda.
+
+Si la dirección está incompleta (sin @, o sin punto después de la @) el mensaje no se envía y oirás un pitido de aviso.
+
+Las teclas son las mismas que en la pantalla de WhatsApp: Arriba/Abajo cambia de campo, Verde envía, Rojo borra o sale, Rojo larga borra todo.
+
+@@ Baliza APRS
+La baliza envía tu posición a la red APRS cada cierto tiempo. Ajustes: Menú > Opciones > APRS options.
+
+La posición enviada se elige en este orden: la posición fija del ajuste APRS (si hay una), si no el fix GPS. Si eso da 0,0 (la posición fija se dejó en cero, o el GPS aún no tiene fix) la radio no envía 0,0: envía el fix GPS actual, o si no, la última posición que guardó la radio (el último fix GPS, o una escrita a mano). Esto importa porque aprs.fi trata 0,0 como no válido y te deja fuera del mapa. Si la radio nunca tuvo posición, la baliza sale igualmente con 0,0; consigue un fix GPS una vez, o pon una posición fija, para salir en el mapa.
+
+El ajuste APRS que usa la baliza se elige por canal: Menú > Detalles Canal > la fila APRS.
+
+[AJUSTES APRS]
+Menú > Config. radio > Ajustes APRS. Los ajustes APRS se añaden y editan sin el CPS (hasta 8). "+ Nuevo ajuste APRS" está arriba; un ajuste nuevo empieza con SSID 7, WIDE1-1, WIDE2-1 y el símbolo de persona.
+- Nombre: el nombre del ajuste (hasta 8). Se edita con Verde.
+- SSID: 0-15 con Izquierda/Derecha. La fila muestra cómo quedará, por ejemplo TA8BMO-7.
+- Ruta 1 / Ruta 2: se editan con Verde, por ejemplo WIDE1-1. Ruta 2 puede quedar vacía; Ruta 1 es necesaria.
+- Icono: con Izquierda/Derecha: persona, coche, casa, moto, bicicleta, camión, autobús, barco, avión, repetidor, I-Gate y más.
+- Comentario: se edita con Verde, hasta 23 caracteres.
+- Pos: GPS o posición fija con Izquierda/Derecha. Verde toma como fija la posición actual de la radio (el último fix GPS). Se muestra con 2 decimales y se guarda con 4.
+- GUARDAR: el ajuste solo se escribe con GUARDAR; Rojo sale sin guardar. Tras guardar, la baliza usa el ajuste nuevo al momento.
+- BORRAR: aparece al final del formulario al abrir un ajuste existente; pregunta sí/no (empezando en no). Los canales que lo usaban se quedan sin APRS; los ajustes siguientes suben un puesto, y los canales que los usan siguen con el mismo ajuste.
+Al editar texto, Rojo borra el último carácter y, si está vacío, vuelve sin cambios. Las rutas y el indicativo pasan a mayúsculas.
+
+[INDICATIVO]
+Menú > Config. radio > Indicativo. Cambia el indicativo de la radio (letras y cifras, hasta 8). APRS usa sus 6 primeros caracteres. Tiene efecto al momento.
+
+Enviar mensajes, WhatsApp y correo no necesita posición.
+
+@@ Caza del zorro
+Un medidor de señal que ayuda a encontrar un transmisor oculto (el zorro).
+
+Para abrir: * larga en un canal analógico.
+
+En la pantalla: frecuencia, intensidad de señal en directo (dBm y unidades S), T: el valor más alto medido (pico), una flecha que indica si la señal sube o baja, y una distancia estimada.
+
+[CÓMO USARLO]
+Gira despacio una antena directiva. Sin esa antena, sujeta la radio contra el pecho y date la vuelta; tu cuerpo tapa la señal. La dirección donde la señal es más fuerte es la dirección del zorro.
+
+[AJUSTES]
+Elige un ajuste con la flecha Arriba/Abajo:
+- Frecuencia: escríbela en kHz (145500 para 145.500 MHz), aplícala con Verde. De 130 a 470 MHz.
+- Potencia: escribe en vatios la potencia del zorro, aplícala con Verde. La distancia estimada se basa en ella.
+- Sonido: enciende o apaga la guía de audio (pitidos) con Verde.
+
+Otras teclas:
+- #: poner a cero el pico
+- Rojo: borrar un valor a medio escribir; si está vacío, salir. Al salir se recupera la frecuencia del canal.
+
+La distancia es solo una estimación aproximada; el terreno y los obstáculos influyen mucho. Se muestran dos valores: terreno normal y campo abierto (el mejor caso).
+
+@@ Barrido espectro
+# larga en la pantalla VFO: empieza el barrido de espectro y las señales de la banda se muestran en una gráfica.
+
+En este firmware el barrido se para solo al encontrar voz:
+- Al encontrar una señal se para al menos 15 segundos y deja oír el audio
+- Muestra la frecuencia y, si lo hay, el tono CTCSS
+- Sigue 3 segundos después de que acabe el audio (espera como mucho 60 segundos)
+
+Mientras está parado, pulsa * para saltar esa frecuencia y seguir. Es útil, por ejemplo, para saltar la salida de un repetidor y encontrar la frecuencia de la estación que de verdad habla.
+
+La lista de frecuencias saltadas se borra al salir de la pantalla de barrido y volver.
+
+@@ Volumen/pantalla
+[VOLUMEN MUY BAJO]
+En la mitad inferior del mando de volumen, el audio FM baja mucho más de lo normal. En una habitación tranquila de noche puedes dejarlo para que solo lo oigas tú. En la mitad superior el volumen sube como siempre. Con el mando del todo abajo el audio se apaga. Este ajuste es para FM analógico.
+
+[BRILLO]
+Mantén SK1 y gira el mando de volumen: no cambia el volumen sino el brillo de la pantalla (un 3% por paso). Al soltar SK1 el volumen sigue donde estaba. El brillo se guarda.
+
+@@ Reloj y GPS
+El reloj (HH:MM) se muestra en las pantallas de canal y VFO.
+
+Si el GPS está encendido, el reloj se pone en hora solo en cuanto hay fix de satélites. Basta un fix 2D. Aunque la radio haya estado apagada mucho tiempo, o se quitara la batería y se borrara el reloj, se corrige en cuanto el GPS consigue un fix.
+
+Si no se ha puesto zona horaria, se usa la hora de Turquía (UTC+3). Para otra zona horaria: Menú > Opciones > Opciones Display > Zona Horaria.
+
+Para conseguir un fix GPS, espera unos minutos en un sitio abierto con vista al cielo. Dentro de casa puede no haber fix.
+
+El modo "Log" (registro de ruta) del ajuste GPS está apagado en este firmware; su espacio en la flash es para el Grabador RX.
+
+@@ Canales/zonas
+Menú > Config. radio. Los canales y zonas se crean, las zonas se editan, y el indicativo, los ajustes APRS (ver Baliza APRS) y la clave de encendido se ponen en la propia radio, sin ordenador ni CPS. Las listas de este menú empiezan arriba.
+
+[ZONA NUEVA]
+Elige "Zona nueva" y pulsa Verde. Escribe el nombre de la zona con el teclado (hasta 16 caracteres). Rojo borra el último carácter; con el nombre vacío, Rojo vuelve. Verde crea la zona. Una segunda zona con el mismo nombre se rechaza. La zona nueva se ofrece primero para el siguiente canal nuevo.
+
+[CANAL NUEVO]
+Elige "Canal nuevo" y pulsa Verde. Muévete entre filas con las flechas Arriba/Abajo. Verde pasa a la fila siguiente:
+- Nombre: escribe el nombre del canal (hasta 16 caracteres). Rojo borra el último carácter.
+- RX: escribe la frecuencia de recepción en cifras. Ejemplo: 14550000 para 145.500 MHz. Con 8 cifras se acepta sola. Si escribes menos y pulsas Verde, el resto es 0 (145 + Verde = 145.00000). Rojo borra la última cifra. Una frecuencia que la radio no puede usar se rechaza.
+- TX: la frecuencia de transmisión. Vacía, es la misma que RX (símplex). Para un repetidor, escribe también TX.
+- Tono RX / Tono TX: se eligen con el mando de canal o las flechas Izquierda/Derecha. El orden es: Ninguno, los tonos CTCSS, los códigos DCS, los DCS invertidos.
+- BW: 25 kHz o 12,5 kHz con Izquierda/Derecha.
+- Zona: la zona donde va el canal (Izquierda/Derecha). Con "All Channels" el canal no se añade a ninguna zona y solo aparece en All Channels.
+- GUARDAR: Verde guarda el canal.
+
+El canal nuevo es FM analógico. La potencia y el squelch siguen los ajustes generales de la radio, y 5 tonos y APRS están apagados. Todo eso se puede cambiar después en Detalles Canal. Una pulsación larga de Rojo cierra el formulario sin guardar. Si la zona está llena (80 canales) el canal no se guarda.
+
+[BORRAR UN CANAL]
+Ve al canal que quieres borrar. En Menú > Detalles Canal, baja a la fila "Borrar canal" al final de la lista y pulsa Verde.
+- Si la radio tiene clave de encendido (puesta en el CPS), primero se pide. Escribe las cifras y confirma con Verde. Rojo borra la última cifra y, sin nada escrito, vuelve.
+- Luego aparece la pregunta de borrar el canal, con NO elegido. Las flechas Izquierda/Derecha o el mando de canal cambian entre SÍ y NO; Verde confirma.
+- SÍ: el canal se borra y se quita de todas las zonas. La radio vuelve a la pantalla de canal, en el canal siguiente.
+- NO, o Rojo: no se borra nada.
+En modo VFO, y en una zona vacía, no hay canal que borrar, así que la fila no hace nada.
+
+Importante: un borrado no se puede deshacer. Guarda copia de los canales importantes en el ordenador con el CPS.
+
+[EDITAR ZONAS]
+Config. radio > Editar zonas. Elige primero una zona, luego:
+- Renombrar: escribe el nombre nuevo y guarda con Verde. Dos zonas no pueden tener el mismo nombre.
+- Canales: se listan todos los canales de la radio. Los que están en la zona empiezan con [*]. Verde añade a la zona el canal del cursor, o lo quita. Un canal añadido va al final de la zona. No se borra nada: el canal solo sale de la zona. Una zona tiene hasta 80 canales.
+- Borrar zona: primero se pide la clave si la hay, luego la pregunta de borrar la zona (empezando en NO). Los canales de la zona no se borran; siguen en All Channels y en cualquier otra zona. Si la radio estaba en la zona borrada pasa a All Channels.
+All Channels no se puede editar y no está en la lista.
+
+[CLAVE DE ENCENDIDO]
+Config. radio > Clave de encendido. Pone, cambia o quita la clave que se pide al encender la radio.
+- Si ya hay una, primero se pide.
+- Luego escribe la clave nueva (hasta 6 cifras) y pulsa Verde, escríbela otra vez y pulsa Verde. Si las dos coinciden, se guarda.
+- Pulsar Verde dos veces sin escribir cifras quita la clave.
+No olvides una clave nueva: la radio la pide al encender. La misma clave se pide al borrar canales y zonas.
+
+@@ Juegos
+Menú > Juegos. Elige con la flecha Arriba/Abajo y empieza con Verde, o abre un juego directamente con las teclas 1 a 5. Los récords se guardan para siempre.
+
+En todos los juegos:
+- Verde: empezar, seguir, jugar otra vez
+- *: pausa / seguir
+- Rojo: pregunta si salir (Verde sí, Rojo no)
+- Rojo larga: salir al momento
+
+Si alguien habla en el canal mientras juegas, el audio sale por el altavoz.
+
+[SERPIENTE]
+2/8/4/6: arriba, abajo, izquierda, derecha.
+
+[TETRIS]
+4/6: izquierda/derecha, 2: girar, 8 o 0: soltar del todo. El mando de canal también mueve la pieza. Si cierras el juego, sigue donde lo dejaste.
+
+[LADRILLOS]
+Verde: lanzar la bola. Mantén 4/6: mover la pala. El mando de canal da control fino.
+
+[2048]
+2/8/4/6: deslizar las fichas. #: deshacer un movimiento.
+
+[DINO]
+Verde o 2: saltar. Mantén 8: agacharse.
+
+@@ Info firmware
+Menú > Info Firmware. Pasa de página con la flecha Abajo:
+- Página 1: versión del firmware, fecha de compilación y procesador
+- Página 2: "Developed by TA8BMO - Special Edition" y la bandera turca
+- Página 3: un mensaje que se desplaza contando la historia de este firmware, que acaba con la foto de TA8BMO
+
+Con la radio en español, el mensaje se muestra en español.
+
+@@ Problemas
+[APRS DECODIFICA POCO]
+Mira el valor T% en la pantalla del registro APRS. Si está por debajo de 90 el problema es la calidad de la señal: prueba una antena mejor o más larga, o un sitio más despejado. Deja el ancho de banda del canal en 12,5 kHz.
+
+[EL RELOJ VA MAL]
+Comprueba que el GPS está encendido y tiene fix al aire libre. Si el reloj va mal por horas enteras, revisa el ajuste de Zona Horaria.
+
+[POSICIÓN DE BALIZA MAL]
+La radio nunca tuvo posición: consigue un fix GPS una vez, o pon una posición fija en el ajuste APRS. Una posición fija mal escrita se envía tal cual. Ver el tema "Baliza APRS".
+
+[UNA FUNCIÓN NO VA]
+5 tonos, Morse y APRS funcionan solo en canales FM analógicos; no funcionan en canales DMR.
+
+[SEGURIDAD]
+No transmitas (TX) con el cable de programación conectado.

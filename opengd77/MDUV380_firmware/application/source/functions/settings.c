@@ -187,6 +187,7 @@ bool settingsLoadSettings(bool reset)
 	if (settingsIsOptionBitSet(BIT_SECONDARY_LANGUAGE) && (languagesGetCount() < 2))
 	{
 		settingsSetOptionBit(BIT_SECONDARY_LANGUAGE, false);
+		settingsSetOptionBit(BIT_LANGUAGE_SPANISH, false);
 		settingsSetDirty();
 	}
 	else
@@ -194,7 +195,7 @@ bool settingsLoadSettings(bool reset)
 		settingsDirty = false;
 	}
 
-	currentLanguage = &languages[(settingsIsOptionBitSet(BIT_SECONDARY_LANGUAGE) ? 1 : 0)];
+	currentLanguage = &languages[languageGetSavedIndex()];
 
 	soundBeepVolumeDivider = nonVolatileSettings.beepVolumeDivider;
 

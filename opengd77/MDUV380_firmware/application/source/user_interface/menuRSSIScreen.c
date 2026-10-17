@@ -448,7 +448,7 @@ static void foxDistanceString(char *buf, int len, int dbm)
 {
 	if ((foxPowerW <= 0) || (dbm <= -125))
 	{
-		snprintf(buf, len, "%dW: sinyal zayif", foxPowerW);
+		snprintf(buf, len, LANG3("%dW: sinyal zayif", "%dW: signal weak", "%dW: se\xF1""al d\xE9""bil"), foxPowerW);
 		return;
 	}
 
@@ -469,7 +469,7 @@ static void foxDistanceString(char *buf, int len, int dbm)
 		dFree = 999.0f;
 	}
 
-	snprintf(buf, len, "%dW ~%dkm (ac %d)", foxPowerW, (int)(dTyp + 0.5f), (int)(dFree + 0.5f));
+	snprintf(buf, len, LANG3("%dW ~%dkm (ac %d)", "%dW ~%dkm (open %d)", "%dW ~%dkm (lib. %d)"), foxPowerW, (int)(dTyp + 0.5f), (int)(dFree + 0.5f));
 }
 
 static void foxDrawScreen(int dbm)
@@ -512,22 +512,22 @@ static void foxDrawScreen(int dbm)
 
 		if ((dbm > -120) && ((foxPeakDbm - dbm) <= 2))
 		{
-			txt = "TEPE!";
+			txt = LANG3("TEPE!", "PEAK!", "PICO!");
 			displayFillRect((cx - 8), (ty + 4), 16, 9, false);                          // solid = on the peak
 		}
 		else if (foxTrend > 0)
 		{
-			txt = "GUCLENIYOR";
+			txt = LANG3("GUCLENIYOR", "RISING", "SUBIENDO");
 			displayFillTriangle(cx, ty, (cx - 9), (ty + 14), (cx + 9), (ty + 14), false); // up
 		}
 		else if (foxTrend < 0)
 		{
-			txt = "ZAYIFLIYOR";
+			txt = LANG3("ZAYIFLIYOR", "FALLING", "BAJANDO");
 			displayFillTriangle(cx, (ty + 14), (cx - 9), ty, (cx + 9), ty, false);        // down
 		}
 		else
 		{
-			txt = "SABIT";
+			txt = LANG3("SABIT", "STEADY", "ESTABLE");
 			displayFillRect((cx - 9), (ty + 6), 18, 3, false);
 		}
 		displayPrintAt(36, (ty + 3), txt, FONT_SIZE_2);
@@ -542,33 +542,33 @@ static void foxDrawScreen(int dbm)
 		case FOX_SET_FREQ:
 			if (foxEntryLen > 0)
 			{
-				snprintf(buf, sizeof(buf), ">Frek %s_ kHz", foxEntryBuf);
+				snprintf(buf, sizeof(buf), LANG3(">Frek %s_ kHz", ">Freq %s_ kHz", ">Frec %s_ kHz"), foxEntryBuf);
 			}
 			else
 			{
-				snprintf(buf, sizeof(buf), ">Frek %u kHz", (unsigned)(foxFreq / 100));
+				snprintf(buf, sizeof(buf), LANG3(">Frek %u kHz", ">Freq %u kHz", ">Frec %u kHz"), (unsigned)(foxFreq / 100));
 			}
 			break;
 
 		case FOX_SET_POWER:
 			if (foxEntryLen > 0)
 			{
-				snprintf(buf, sizeof(buf), ">Guc %s_ W", foxEntryBuf);
+				snprintf(buf, sizeof(buf), LANG3(">Guc %s_ W", ">Power %s_ W", ">Pot. %s_ W"), foxEntryBuf);
 			}
 			else
 			{
-				snprintf(buf, sizeof(buf), ">Guc %d W", foxPowerW);
+				snprintf(buf, sizeof(buf), LANG3(">Guc %d W", ">Power %d W", ">Pot. %d W"), foxPowerW);
 			}
 			break;
 
 		default:
-			snprintf(buf, sizeof(buf), ">Ses %s", (foxSoundOn ? "Acik" : "Kapali"));
+			snprintf(buf, sizeof(buf), LANG3(">Ses %s", ">Sound %s", ">Sonido %s"), (foxSoundOn ? LANG3("Acik", "On", "S\xED") : LANG3("Kapali", "Off", "No")));
 			break;
 	}
 	displayPrintCentered(80, buf, FONT_SIZE_2);
 
-	displayPrintCentered(97, "YUK/ASA=Ayar  0-9=Yaz", FONT_SIZE_1);
-	displayPrintCentered(109, "YESIL=OK #=Tepe R=Cik", FONT_SIZE_1);
+	displayPrintCentered(97, LANG3("YUK/ASA=Ayar  0-9=Yaz", "UP/DN=Select 0-9=Type", "ARR/AB=Ajuste 0-9=Teclear"), FONT_SIZE_1);
+	displayPrintCentered(109, LANG3("YESIL=OK #=Tepe R=Cik", "GREEN=OK #=Peak R=Exit", "VERDE=OK #=Pico R=Salir"), FONT_SIZE_1);
 
 	displayRender();
 }

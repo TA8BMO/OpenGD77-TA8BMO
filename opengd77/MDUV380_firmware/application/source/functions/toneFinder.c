@@ -80,12 +80,7 @@ static struct
 	uint8_t  carrier;        // last pass had a carrier, for repainting when that changes
 } tf;
 
-static bool tfIsTurkish(void)
-{
-	return (strcmp(currentLanguage->LANGUAGE_NAME, "T\xFC""rk\xE7""e") == 0);
-}
-
-#define TF(tr, en) (tfIsTurkish() ? (tr) : (en))
+#define TF(tr, en, es) LANG3((tr), (en), (es)) // Turkish, English, Spanish
 
 static int tfCandidateCount(void)
 {
@@ -252,7 +247,7 @@ void toneFinderTick(void)
 			tfRestore();
 
 			tfFormatTone(toneText, sizeof(toneText), candidate);
-			snprintf(message, sizeof(message), TF("Ton %s", "Tone %s"), toneText);
+			snprintf(message, sizeof(message), TF("Ton %s", "Tone %s", "Tono %s"), toneText);
 			uiNotificationShow(NOTIFICATION_TYPE_MESSAGE, NOTIFICATION_ID_MESSAGE, 2500, message, false);
 			soundSetMelody(MELODY_ACK_BEEP);
 			tfRepaint();
@@ -272,7 +267,7 @@ void toneFinderTick(void)
 		tf.state = TF_NOT_FOUND;
 		tf.resultMs = now;
 		tfRestore();
-		uiNotificationShow(NOTIFICATION_TYPE_MESSAGE, NOTIFICATION_ID_MESSAGE, 2500, TF("Ton yok", "No tone"), false);
+		uiNotificationShow(NOTIFICATION_TYPE_MESSAGE, NOTIFICATION_ID_MESSAGE, 2500, TF("Ton yok", "No tone", "Sin tono"), false);
 		tfRepaint();
 		return;
 	}
@@ -305,11 +300,11 @@ bool toneFinderGetText(char *buf, size_t len, uint32_t *ageMs, bool *active)
 		case TF_CONFIRMING:
 			if (tf.carrier == 0)
 			{
-				snprintf(buf, len, "%s", TF("Ton: sinyal yok", "Tone: no signal"));
+				snprintf(buf, len, "%s", TF("Ton: sinyal yok", "Tone: no signal", "Tono: sin se\xF1""al"));
 			}
 			else
 			{
-				snprintf(buf, len, "%s %s %d%%", TF("Ton", "Tone"), ((tf.index < TRX_NUM_CTCSS) ? "CTCSS" : "DCS"),
+				snprintf(buf, len, "%s %s %d%%", TF("Ton", "Tone", "Tono"), ((tf.index < TRX_NUM_CTCSS) ? "CTCSS" : "DCS"),
 						((tf.index * 100) / tfCandidateCount()));
 			}
 			return true;
@@ -319,12 +314,12 @@ bool toneFinderGetText(char *buf, size_t len, uint32_t *ageMs, bool *active)
 			char toneText[12];
 
 			tfFormatTone(toneText, sizeof(toneText), tf.result);
-			snprintf(buf, len, "%s %s", TF("Ton", "Tone"), toneText);
+			snprintf(buf, len, "%s %s", TF("Ton", "Tone", "Tono"), toneText);
 		}
 			return true;
 
 		case TF_NOT_FOUND:
-			snprintf(buf, len, "%s", TF("Ton yok", "No tone"));
+			snprintf(buf, len, "%s", TF("Ton yok", "No tone", "Sin tono"));
 			return true;
 
 		default:

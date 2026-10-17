@@ -136,6 +136,7 @@ typedef enum
 	BIT_FORCE_10W_RADIO             = (1 << 24),
 #endif
 	BIT_RX_RECORDER                 = (1 << 25), // receive recorder on (voiceRecorder.c); a bit never used before, so off on every existing radio
+	BIT_LANGUAGE_SPANISH            = (1 << 26), // third built-in language; wins over BIT_SECONDARY_LANGUAGE. Never set before, so nobody's radio changes language
 } bitfieldOptions_t;
 
 #if defined(PLATFORM_MD9600)

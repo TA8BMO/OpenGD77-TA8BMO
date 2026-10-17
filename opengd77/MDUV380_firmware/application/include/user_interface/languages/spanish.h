@@ -47,7 +47,7 @@ __attribute__((section(".upper_text")))
 const stringsTable_t spanishLanguage =
 {
 .magicNumber                            = { LANGUAGE_TAG_MAGIC_NUMBER, LANGUAGE_TAG_VERSION },
-.LANGUAGE_NAME 			= "Spanish", // MaxLen: 16
+.LANGUAGE_NAME 			= "Español", // MaxLen: 16 - shown in its own language, like "Türkçe"
 .menu					= "Menú", // MaxLen: 16
 .credits				= "Créditos", // MaxLen: 16
 .zone					= "Zona", // MaxLen: 16
@@ -321,6 +321,11 @@ const stringsTable_t spanishLanguage =
 .auto_lock				= "Auto lock", // MaxLen 16 (with ':' + .off or 0.5..15 (.5 step) + 'min')
 .trackball				= "Trackball", // MaxLen 16 (with ':' + .on or .off)
 .dmr_force_dmo				= "Force DMO", // MaxLen 16 (with ':' + .n_a or .on or .off)
+.games					= "Juegos", // MaxLen 16
+.aprsLog				= "Registros", // MaxLen 16 - APRS, call and Morse logs
+.userManual				= "Manual", // MaxLen 16 ("Manual de usuario" is 17)
+.channelZone			= "Config. radio", // MaxLen 16
+.fiveToneContacts		= "Contactos 5T", // MaxLen 16
 };
 /********************************************************************
  *

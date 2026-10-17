@@ -34,6 +34,8 @@
 #endif
 #if ! defined(LANGUAGE_BUILD_JAPANESE)
 #include "user_interface/languages/turkish.h" // built-in Turkish (TA8BMO Special Edition)
+#include "user_interface/languages/spanish.h" // built-in Spanish, added in v0.2.0
+#include "functions/settings.h"
 #endif
 
 #if ! defined(LANGUAGE_BUILD_JAPANESE)
@@ -58,7 +60,8 @@ const stringsTable_t languages[]=
 #if defined(LANGUAGE_BUILD_JAPANESE)
 		japaneseLanguage       // japaneseLanguageName
 #else
-		turkishLanguage // built-in Turkish (replaces the CPS "User" slot)
+		turkishLanguage, // built-in Turkish (replaces the CPS "User" slot)
+		spanishLanguage  // built-in Spanish - always last, so English and Turkish keep their places
 #endif
 };
 const stringsTable_t *currentLanguage;
@@ -69,11 +72,52 @@ uint8_t languagesGetCount(void)
 #if ! defined(LANGUAGE_BUILD_JAPANESE)
 	uint8_t magic[3][4] = { LANGUAGE_TAG_MAGIC_NUMBER, LANGUAGE_TAG_VERSION };
 
-	return ((memcmp(languages[1].magicNumber, magic, sizeof(magic)) == 0) ? 2 : 1);
+	return ((memcmp(languages[1].magicNumber, magic, sizeof(magic)) == 0) ? 3 : 1);
 #else
 	return 2;
 #endif
 }
+
+#if ! defined(LANGUAGE_BUILD_JAPANESE)
+int languageGetSavedIndex(void)
+{
+	int index = LANGUAGE_INDEX_ENGLISH;
+
+	if (settingsIsOptionBitSet(BIT_LANGUAGE_SPANISH))
+	{
+		index = LANGUAGE_INDEX_SPANISH;
+	}
+	else if (settingsIsOptionBitSet(BIT_SECONDARY_LANGUAGE))
+	{
+		index = LANGUAGE_INDEX_TURKISH;
+	}
+
+	return ((index < languagesGetCount()) ? index : LANGUAGE_INDEX_ENGLISH);
+}
+
+void languageSetIndex(int index)
+{
+	if ((index < 0) || (index >= languagesGetCount()))
+	{
+		index = LANGUAGE_INDEX_ENGLISH;
+	}
+
+	settingsSetOptionBit(BIT_SECONDARY_LANGUAGE, (index == LANGUAGE_INDEX_TURKISH));
+	settingsSetOptionBit(BIT_LANGUAGE_SPANISH, (index == LANGUAGE_INDEX_SPANISH));
+	currentLanguage = &languages[index];
+}
+
+// Pointer compares, not string compares: these are asked many times per redraw.
+bool languageIsTurkish(void)
+{
+	return (currentLanguage == &languages[LANGUAGE_INDEX_TURKISH]);
+}
+
+bool languageIsSpanish(void)
+{
+	return (currentLanguage == &languages[LANGUAGE_INDEX_SPANISH]);
+}
+#endif
 
 char currentLanguageGetSymbol(LanguageSymbol_t s)
 {

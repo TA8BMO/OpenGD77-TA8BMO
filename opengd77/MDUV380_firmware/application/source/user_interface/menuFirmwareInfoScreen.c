@@ -114,8 +114,37 @@ static const char * const heartfeltEN[] =
 		"TA8BMO",
 };
 
+static const char * const heartfeltES[] =
+{
+		"Este firmware es fruto de",
+		"meses de pasi\xF3n, noches",
+		"sin dormir y de no",
+		"rendirse nunca.",
+		"",
+		"Logramos lo que todos",
+		"dec\xED""an imposible en el",
+		"hardware de esta radio:",
+		"ahora decodifica sola el",
+		"audio FM: 5 tonos, Morse",
+		"y APRS, sin hardware",
+		"extra, solo con software.",
+		"",
+		"Una primicia mundial.",
+		"Nadie lo hab\xED""a logrado",
+		"antes en esta radio.",
+		"",
+		"Un sue\xF1o hecho realidad,",
+		"l\xEDnea a l\xEDnea, a base de",
+		"pura constancia.",
+		"",
+		"Con cari\xF1o por la",
+		"radioafici\xF3n,",
+		"TA8BMO",
+};
+
 static const int heartfeltTRLines = (sizeof(heartfeltTR) / sizeof(heartfeltTR[0]));
 static const int heartfeltENLines = (sizeof(heartfeltEN) / sizeof(heartfeltEN[0]));
+static const int heartfeltESLines = (sizeof(heartfeltES) / sizeof(heartfeltES[0]));
 
 // Top of the scrolling column, in pixels. Reset to the bottom of the screen when
 // the page is entered so the text always starts from the bottom.
@@ -402,9 +431,8 @@ static void displayCredits(bool playVP, uint32_t pageNumber)
 		// Page 2: my little message, rolling up like film credits, with my photo
 		// at the very end. No title bar here, so the text gets the whole screen
 		// and reads as one piece.
-		bool isTurkish = (strcmp(currentLanguage->LANGUAGE_NAME, "T\xFC""rk\xE7""e") == 0);
-		const char * const *lines = (isTurkish ? heartfeltTR : heartfeltEN);
-		int nLines = (isTurkish ? heartfeltTRLines : heartfeltENLines);
+		const char * const *lines = LANG3(heartfeltTR, heartfeltEN, heartfeltES);
+		int nLines = LANG3(heartfeltTRLines, heartfeltENLines, heartfeltESLines);
 		const int lineH = 9;
 		const int photoGap = 12;                          // blank space between text and photo
 		int photoTop = (heartfeltScrollY + (nLines * lineH) + photoGap);
