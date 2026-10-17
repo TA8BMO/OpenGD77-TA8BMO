@@ -1393,8 +1393,11 @@ void themeInitToDefaultValues(DayTime_t daytime, bool invert)
 	themeItems[daytime][THEME_ITEM_FG_OPTIONS_VALUE] = foregroundColour;
 	themeItems[daytime][THEME_ITEM_FG_HEADER_TEXT] = foregroundColour;
 	themeItems[daytime][THEME_ITEM_BG_HEADER_TEXT] = backgroundColour;
-	themeItems[daytime][THEME_ITEM_FG_RSSI_BAR] = foregroundColour;
-	themeItems[daytime][THEME_ITEM_FG_RSSI_BAR_S9P] = foregroundColour;
+	// Coloured S-meter: green up to S9, red above S9 (S9+). The RSSI bar in the
+	// header uses THEME_ITEM_FG_RSSI_BAR_S9P for the part beyond S9 (see
+	// uiUtilityDrawRSSIBarGraph), so a strong signal (e.g. S9+40) shows red.
+	themeItems[daytime][THEME_ITEM_FG_RSSI_BAR] = PLATFORM_COLOUR_FORMAT_SWAP_BYTES(RGB888_TO_PLATFORM_COLOUR_FORMAT(0x00C000U));     // green (<= S9)
+	themeItems[daytime][THEME_ITEM_FG_RSSI_BAR_S9P] = PLATFORM_COLOUR_FORMAT_SWAP_BYTES(RGB888_TO_PLATFORM_COLOUR_FORMAT(0xFF0000U)); // red   (> S9)
 	themeItems[daytime][THEME_ITEM_FG_CHANNEL_NAME] = foregroundColour;
 	themeItems[daytime][THEME_ITEM_FG_CHANNEL_CONTACT] = foregroundColour;
 	themeItems[daytime][THEME_ITEM_FG_CHANNEL_CONTACT_INFO] = foregroundColour;

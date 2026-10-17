@@ -198,6 +198,7 @@ int32_t getFirstSpacePos(char *str);
 void dmrIDCacheInit(void);
 void dmrIDCacheClear(void);
 uint32_t dmrIDCacheGetCount(void);
+uint32_t dmrIDDatabaseEndAddress(void); // first flash address past the DMR ID database, 0 if none
 bool dmrIDLookup(uint32_t targetId, dmrIdDataStruct_t *foundRecord);
 bool contactIDLookup(uint32_t id, uint32_t calltype, char *buffer);
 void uiUtilityRenderQSOData(void);
@@ -289,6 +290,7 @@ time_t getEpochTime(RTC_TimeTypeDef *rtcTime, RTC_DateTypeDef *rtcDate);
 #endif
 
 struct tm *gmtime_r_Custom(const time_t_custom *__restrict tim_p, struct tm *__restrict res);
+
 time_t_custom mktime_custom(const struct tm * tb);
 
 #if defined(PLATFORM_MD9600) || defined(PLATFORM_MDUV380) || defined(PLATFORM_MD380) || defined(PLATFORM_RT84_DM1701) || defined(PLATFORM_MD2017)

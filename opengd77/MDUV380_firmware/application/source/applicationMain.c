@@ -38,6 +38,7 @@
 #include "hardware/SPI_Flash.h"
 #include "interfaces/adc.h"
 #include "hardware/radioHardwareInterface.h"
+#include "hardware/AT1846S.h" // radioSetFMRxAudioGain, for the quiet-FM attenuation
 
 #include "io/buttons.h"
 #include "usb/usb_com.h"
@@ -51,6 +52,11 @@
 #include "interfaces/settingsStorage.h"
 #include "interfaces/adc.h"
 #include "functions/rxPowerSaving.h"
+#include "functions/fiveToneDecode.h"
+#include "functions/toneFinder.h"
+#include "functions/voiceRecorder.h"
+#include "functions/morseDecode.h"
+#include "functions/aprsDecode.h"
 
 #if defined(USING_EXTERNAL_DEBUGGER)
 #include "SeggerRTT/RTT/SEGGER_RTT.h"
@@ -301,11 +307,25 @@ static void updateVolumeGain(int menuScreen)
 {
 	HRC6000SetDmrRxGain(lastVolume);
 
+	// In FM, stack the AT1846S's own attenuation under the line-out gain so the
+	// quietest setting is genuinely low - low enough to listen to at night without
+	// the whole room hearing. Skipped when muted (the line-out is already off) and
+	// in DMR, where the AT1846S is not in the audio path.
+	if ((trxGetMode() == RADIO_MODE_ANALOG) && (lastVolume != -99))
+	{
+		radioSetFMRxAudioGain(lastVolume);
+	}
+
 #if defined(HAS_SOFT_VOLUME)
 	if (settingsIsOptionBitSet(BIT_VISUAL_VOLUME) &&
 			(menuScreen != UI_SPLASH_SCREEN) && (menuScreen != UI_MESSAGE_BOX))
 	{
 		lastDisplayedVolume = lastVolume;
+
+		// Wake the backlight as well. The notification was being rendered onto a
+		// dark panel: with the display asleep the volume knob appeared to do
+		// nothing, and there was no way to wake the screen from it.
+		displayLightTrigger(false);
 
 		uiNotificationShow(NOTIFICATION_TYPE_VOLUME, NOTIFICATION_ID_VOLUME, 1000, NULL, true);
 	}
@@ -507,7 +527,7 @@ void applicationMainTask(void)
 #if defined(HAS_GPS)
 	gpsInit();
 
-#if defined(LOG_GPS_DATA)
+#if defined(LOG_GPS_DATA) && GPS_TRACK_LOG_TO_FLASH // off, it would erase the receive recordings (settings.h)
 	if (((buttons & BUTTON_SK1) == BUTTON_SK1) && (keyboardRead() == KEY_5))
 	{
 		uiNotificationShow(NOTIFICATION_TYPE_MESSAGE, NOTIFICATION_ID_MESSAGE, 1500, "NMEA Clearing", true);
@@ -938,6 +958,14 @@ void applicationMainTask(void)
 			}
 		}
 
+		// Five-tone receive decoding. Only takes over the C6000 codec while the
+		// squelch is open, and hands it straight back otherwise.
+		fiveToneDecodeTick(hasSignal);
+		voiceRecorderTick(hasSignal); // FM receive recorder: records while the squelch is open
+		toneFinderTick(); // 0 on the channel or VFO screen: the station's CTCSS/DCS
+		morseDecodeTick(hasSignal);
+		aprsDecodeTick(hasSignal);
+
 		if (!trxTransmissionEnabled && (updateLastHeard == true))
 		{
 			lastHeardListUpdate((uint8_t *)DMR_frame_buffer, false);
@@ -1000,6 +1028,8 @@ void applicationMainTask(void)
 						(currentMenu != UI_POWER_OFF) &&
 						(currentMenu != UI_SPLASH_SCREEN) &&
 						(currentMenu != UI_TX_SCREEN)&&
+						(currentMenu < MENU_GAMES) && // no accidental TX from any game screen
+						(currentMenu != UI_MORSE) && // PTT is the straight key there, not TX
 						(currentMenu != MENU_CALIBRATION))
 				{
 					bool wasScanning = false;
@@ -1372,7 +1402,27 @@ void applicationMainTask(void)
 		}
 
 		int8_t latestVolume = getVolumeControl();
-		if (latestVolume != lastVolume)
+
+		// Holding SK1 turns the volume knob into a brightness control. The knob is
+		// an absolute pot, so brightness follows how far it moves while SK1 is held,
+		// and the audio volume is left where it was - lastVolume is kept in step
+		// with the knob so letting SK1 go does not make the volume lurch to the new
+		// knob position. Muted (-99) is skipped: there is no movement to read there.
+		if ((buttons & BUTTON_SK1) && (latestVolume != -99) && (lastVolume != -99))
+		{
+			if (latestVolume != lastVolume)
+			{
+				int b = ((int) nonVolatileSettings.displayBacklightPercentage[DAY]) + ((latestVolume - lastVolume) * 3);
+
+				b = CLAMP(b, 0, 100);
+				settingsSet(nonVolatileSettings.displayBacklightPercentage[DAY], (int8_t) b);
+				gpioSetDisplayBacklightIntensityPercentage((uint8_t) b);
+				displayLightTrigger(false); // keep the panel awake while adjusting
+
+				lastVolume = latestVolume; // consume the move without touching the audio gain
+			}
+		}
+		else if (latestVolume != lastVolume)
 		{
 			volumeIsStillChanging = true;
 
@@ -1389,6 +1439,49 @@ void applicationMainTask(void)
 		{
 			volumeIsStillChanging = false;
 			updateVolumeGain(currentMenu);
+		}
+
+		// Keep the clock moving. dateTimeSecs was loaded from the RTC only once, at
+		// boot, and then left alone - so the on-screen clock froze at the boot time
+		// and fell further behind as real time passed, which is the "clock is
+		// behind" fault. The RTC itself keeps ticking and GPS corrects it, so this
+		// refreshes dateTimeSecs from the RTC about once a second on the screens
+		// that show the clock. The satellite screen is left out because it drives
+		// dateTimeSecs itself to step through pass predictions.
+		{
+			static uint32_t lastClockRtcRead = 0;
+
+			if (((currentMenu == UI_CHANNEL_MODE) || (currentMenu == UI_VFO_MODE)) &&
+					((ticksGetMillis() - lastClockRtcRead) >= 1000))
+			{
+				lastClockRtcRead = ticksGetMillis();
+				uiDataGlobal.dateTimeSecs = getRtcTime_custom();
+			}
+		}
+
+		// Repaint the channel/VFO screen when the minute rolls over, so the
+		// on-screen clock stays right - these screens otherwise only redraw on
+		// events. Restricted to the resting screen: never over caller data,
+		// channel settings, frequency entry, a sweep, or a transmission.
+		{
+			static uint32_t lastClockMinute = 0;
+			uint32_t nowMinute = (uiDataGlobal.dateTimeSecs / 60U);
+
+			if (nowMinute != lastClockMinute)
+			{
+				lastClockMinute = nowMinute;
+
+				if (((currentMenu == UI_CHANNEL_MODE) || (currentMenu == UI_VFO_MODE)) &&
+						(uiDataGlobal.displayQSOState == QSO_DISPLAY_IDLE) &&
+						(uiDataGlobal.displayQSOStatePrev == QSO_DISPLAY_DEFAULT_SCREEN) &&
+						(uiDataGlobal.displayChannelSettings == false) &&
+						(uiDataGlobal.FreqEnter.index == 0) &&
+						(trxTransmissionEnabled == false) && (trxIsTransmitting == false) &&
+						(uiVFOModeSweepScanning(true) == false))
+				{
+					uiDataGlobal.displayQSOState = QSO_DISPLAY_DEFAULT_SCREEN;
+				}
+			}
 		}
 
 		while(ticksGetMillis() < startTime + 1)				// ensure this Task runs at 1ms intervals. Regardless of clock speed.

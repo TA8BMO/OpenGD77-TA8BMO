@@ -34,6 +34,12 @@ volatile bool isReceiving = false;
 
 volatile bool stopOnNextI2SDMAInterrupt = false;
 
+// Optional listener on the receive stream. Set it to have a half-buffer of
+// freshly captured samples handed over as soon as the DMA finishes it, without
+// disturbing what the sound system does with the same data. Runs in interrupt
+// context - keep whatever it points at short.
+void (*i2sRxTapCallback)(uint32_t bufNum) = NULL;
+
 uint16_t i2s_Tx_Buffer[NUM_I2S_BUFFERS][2][WAV_BUFFER_SIZE];
 uint16_t i2s_Rx_Buffer[NUM_I2S_BUFFERS][2][WAV_BUFFER_SIZE];
 
@@ -62,6 +68,11 @@ void HAL_I2SEx_TxRxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 		{
 			soundReceiveRefillData(0);
 		}
+
+		if (i2sRxTapCallback != NULL)
+		{
+			i2sRxTapCallback(0);
+		}
 	}
 	else
 	{
@@ -80,6 +91,11 @@ void HAL_I2SEx_TxRxCpltCallback(I2S_HandleTypeDef *hi2s)
 		else if(isReceiving)
 		{
 			soundReceiveRefillData(1);
+		}
+
+		if (i2sRxTapCallback != NULL)
+		{
+			i2sRxTapCallback(1);
 		}
 	}
 	else

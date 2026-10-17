@@ -94,6 +94,7 @@ const int CODEPLUG_ADDR_DEVICE_INFO_READ_SIZE = 96;// (sizeof struct_codeplugDev
 const int CODEPLUG_ADDR_BOOT_PASSWORD_PIN = 0x7518;
 
 const uint16_t APRS_MAGIC_VERSION = 0x4152;
+const uint16_t APRS_MAGIC_VERSION_2 = 0x4153; // newer OpenGD77 CPS writes this APRS format marker
 
 
 static uint16_t allChannelsTotalNumOfChannels = 0;
@@ -277,7 +278,40 @@ void codeplugUtilConvertStringToBuf(char *inBuf, char *outBuf, int len)
 
 void codeplugZonesInitCache(void)
 {
+	int count;
+
 	EEPROM_Read(CODEPLUG_ADDR_EX_ZONE_INUSE_PACKED_DATA, (uint8_t *)&codeplugZonesInUseCache, CODEPLUG_EX_ZONE_INUSE_PACKED_DATA_SIZE);
+
+	// Some codeplugs arrive with every in-use bit set - the whole table 0xFF -
+	// however few zones were actually written. Mine did, straight out of the
+	// CPS: every bit counted as a zone, the radio showed 256 of them, mostly
+	// nameless, and refused to make a new one because there was "no room". So a
+	// slot only counts as in use if it is one the firmware can
+	// use (below CODEPLUG_ZONES_MAX) and a zone with a name is in it. Real zones
+	// keep their slots and numbers. Only this cache is cleaned; the codeplug is
+	// left as it was written (a zone made on the radio writes its own byte).
+	for (int s = 0; s < (CODEPLUG_EX_ZONE_INUSE_PACKED_DATA_SIZE * 8); s++)
+	{
+		if ((codeplugZonesInUseCache[s / 8] >> (s % 8)) & 0x01)
+		{
+			uint8_t first = 0xFF;
+
+			if ((s >= (int)CODEPLUG_ZONES_MAX) ||
+					(EEPROM_Read((CODEPLUG_ADDR_EX_ZONE_LIST + (s * (16 + (sizeof(uint16_t) * codeplugChannelsPerZone)))), &first, 1) == false) ||
+					(first == 0xFF) || (first == 0x00))
+			{
+				codeplugZonesInUseCache[s / 8] &= (uint8_t)~(1 << (s % 8));
+			}
+		}
+	}
+
+	// A zone number saved against the old count - All Channels was "zone 256" -
+	// would now point past the end: fall back to All Channels, always the last.
+	count = codeplugZonesGetCount();
+	if (nonVolatileSettings.currentZone >= count)
+	{
+		nonVolatileSettings.currentZone = (int16_t)(count - 1);
+	}
 }
 
 int codeplugZonesGetCount(void)
@@ -379,6 +413,402 @@ bool codeplugZoneAddChannelToZoneAndSave(int channelIndex, struct_codeplugZone_t
 	}
 
 	return false;
+}
+
+// ---------------------------------------------------------------------------
+// Creating zones and deleting channels from the radio itself (TA8BMO).
+//
+// A zone lives in a numbered slot of the zone list, and a bit per slot in the
+// in-use table says which slots hold one. Zones are numbered by counting the
+// in-use bits, so the number of a zone is not its slot.
+// ---------------------------------------------------------------------------
+#define CODEPLUG_ZONE_SLOT_COUNT     (CODEPLUG_EX_ZONE_INUSE_PACKED_DATA_SIZE * 8)
+#define CODEPLUG_ZONE_SLOT_ADDR(s)   (CODEPLUG_ADDR_EX_ZONE_LIST + ((s) * (16 + (sizeof(uint16_t) * codeplugChannelsPerZone))))
+#define CODEPLUG_ZONE_SLOT_SIZE      ((codeplugChannelsPerZone == 16) ? CODEPLUG_ZONE_DATA_ORIGINAL_STRUCT_SIZE : CODEPLUG_ZONE_DATA_OPENGD77_STRUCT_SIZE)
+
+static bool codeplugZoneSlotIsInUse(int slot)
+{
+	return (((codeplugZonesInUseCache[slot / 8] >> (slot % 8)) & 0x01) != 0);
+}
+
+// Creates an empty zone and returns its number in the zone list, or -1 when there
+// is no free slot or a write fails.
+//
+// The zone goes in the slot after the highest one in use, so every zone already
+// there keeps its number. Only when that runs off the end is a gap lower down
+// used, which moves the zones above it up by one, and then the selected zone
+// number is moved with them so the radio stays on the same zone.
+//
+// Slots stop at CODEPLUG_ZONES_MAX whatever the codeplug format allows: the
+// last-used-channel table has one byte per slot up to there and folds every
+// higher slot onto the All Channels entry, which a new zone would then corrupt.
+int codeplugZoneCreate(const char *name)
+{
+	struct_codeplugZone_t zoneBuf;
+	int oldCount = codeplugZonesGetCount();
+	int currentSlot = -1;
+	int highest = -1;
+	int slot = -1;
+	int number = 0;
+
+	for (int s = 0, n = 0; s < CODEPLUG_ZONE_SLOT_COUNT; s++)
+	{
+		if (codeplugZoneSlotIsInUse(s))
+		{
+			if (n == nonVolatileSettings.currentZone)
+			{
+				currentSlot = s;
+			}
+			highest = s;
+			n++;
+		}
+	}
+
+	if ((highest + 1) < (int)CODEPLUG_ZONES_MAX)
+	{
+		slot = (highest + 1);
+	}
+	else
+	{
+		for (int s = 0; s < (int)CODEPLUG_ZONES_MAX; s++)
+		{
+			if (codeplugZoneSlotIsInUse(s) == false)
+			{
+				slot = s;
+				break;
+			}
+		}
+	}
+
+	if (slot < 0)
+	{
+		return -1;
+	}
+
+	// The zone data first and the in-use bit last, so a failed write leaves the
+	// slot still marked free rather than a zone of garbage.
+	memset(&zoneBuf, 0, sizeof(zoneBuf));
+	codeplugUtilConvertStringToBuf((char *)name, zoneBuf.name, 16);
+
+	if (EEPROM_Write(CODEPLUG_ZONE_SLOT_ADDR(slot), (uint8_t *)&zoneBuf, CODEPLUG_ZONE_SLOT_SIZE) == false)
+	{
+		return -1;
+	}
+
+	codeplugZonesInUseCache[slot / 8] |= (1 << (slot % 8));
+
+	if (EEPROM_Write(CODEPLUG_ADDR_EX_ZONE_INUSE_PACKED_DATA + (slot / 8), &codeplugZonesInUseCache[slot / 8], 1) == false)
+	{
+		codeplugZonesInUseCache[slot / 8] &= ~(1 << (slot % 8));
+		return -1;
+	}
+
+	codeplugSetLastUsedChannelInZone(slot, 0); // the slot may have belonged to a deleted zone
+
+	// All Channels is always the last zone, so it moves up by one; a real zone
+	// moves only if the new one went into a gap below it.
+	if ((nonVolatileSettings.currentZone >= (oldCount - 1)) || (currentSlot < 0))
+	{
+		settingsSet(nonVolatileSettings.currentZone, (int16_t) oldCount);
+	}
+	else if (slot < currentSlot)
+	{
+		settingsSet(nonVolatileSettings.currentZone, (int16_t) (nonVolatileSettings.currentZone + 1));
+	}
+
+	codeplugSaveLastUsedChannelInZone();
+
+	for (int s = 0; s < slot; s++)
+	{
+		if (codeplugZoneSlotIsInUse(s))
+		{
+			number++;
+		}
+	}
+
+	return number;
+}
+
+static bool codeplugAllChannelsIndexSetUnused(int index)
+{
+	if ((index >= CODEPLUG_CHANNELS_MIN) && (index <= CODEPLUG_CHANNELS_MAX))
+	{
+		index--;
+		int channelBank = (index / CODEPLUG_CHANNELS_PER_BANK);
+		int byteno = (index % CODEPLUG_CHANNELS_PER_BANK) / 8;
+		int cacheOffset = index / 8;
+
+		codeplugAllChannelsCache[cacheOffset] &= ~(1 << (index % 8));
+
+		if (channelBank == 0)
+		{
+			return EEPROM_Write(CODEPLUG_ADDR_CHANNEL_HEADER_EEPROM + byteno, &codeplugAllChannelsCache[cacheOffset], 1);
+		}
+
+		return SPI_Flash_write(FLASH_ADDRESS_OFFSET + (CODEPLUG_ADDR_CHANNEL_HEADER_FLASH + ((channelBank - 1) *
+				(CODEPLUG_CHANNELS_PER_BANK * CODEPLUG_CHANNEL_DATA_STRUCT_SIZE + 16))) + byteno, &codeplugAllChannelsCache[cacheOffset], 1);
+	}
+
+	return false;
+}
+
+// Takes a channel out of the zone in one slot, closing the gap, and moves the
+// zone's last-used position to follow the channels that shifted down - so no
+// zone is left pointing past its end, which would load channel 0, which does
+// not exist. Returns 1 if it was there, 0 if not, -1 if a read or write failed.
+static int codeplugZoneSlotRemoveChannel(int slot, int channelIndex, struct_codeplugZone_t *zoneBuf)
+{
+	if (EEPROM_Read(CODEPLUG_ZONE_SLOT_ADDR(slot), (uint8_t *)zoneBuf, CODEPLUG_ZONE_SLOT_SIZE) == false)
+	{
+		return -1;
+	}
+
+	int lastUsed = ((slot < (int)CODEPLUG_ZONES_MAX) ? codeplugGetLastUsedChannelInZone(slot) : 0);
+	int newLastUsed = lastUsed;
+	int kept = 0;
+	bool found = false;
+
+	for (int i = 0; i < codeplugChannelsPerZone; i++)
+	{
+		uint16_t ch = zoneBuf->channels[i];
+
+		if (ch == 0)
+		{
+			break;
+		}
+
+		if (ch == channelIndex)
+		{
+			found = true;
+			if (i < lastUsed)
+			{
+				newLastUsed--;
+			}
+			continue;
+		}
+
+		zoneBuf->channels[kept++] = ch;
+	}
+
+	if (found == false)
+	{
+		return 0;
+	}
+
+	for (int i = kept; i < codeplugChannelsPerZone; i++)
+	{
+		zoneBuf->channels[i] = 0;
+	}
+
+	if (EEPROM_Write(CODEPLUG_ZONE_SLOT_ADDR(slot), (uint8_t *)zoneBuf, CODEPLUG_ZONE_SLOT_SIZE) == false)
+	{
+		return -1;
+	}
+
+	if (slot < (int)CODEPLUG_ZONES_MAX)
+	{
+		if (newLastUsed >= kept)
+		{
+			newLastUsed = (kept - 1);
+		}
+		if (newLastUsed < 0)
+		{
+			newLastUsed = 0;
+		}
+		if (newLastUsed != lastUsed)
+		{
+			codeplugSetLastUsedChannelInZone(slot, (int16_t) newLastUsed);
+		}
+	}
+
+	return 1;
+}
+
+// The slot holding zone number zoneNum, or -1 (All Channels has no slot).
+static int codeplugZoneSlotForNumber(int zoneNum)
+{
+	for (int s = 0, n = 0; s < CODEPLUG_ZONE_SLOT_COUNT; s++)
+	{
+		if (codeplugZoneSlotIsInUse(s))
+		{
+			if (n == zoneNum)
+			{
+				return s;
+			}
+			n++;
+		}
+	}
+
+	return -1;
+}
+
+// Takes a channel out of one zone. The channel itself stays, in All Channels.
+bool codeplugZoneRemoveChannel(int zoneNum, int channelIndex)
+{
+	struct_codeplugZone_t zoneBuf;
+	int slot = codeplugZoneSlotForNumber(zoneNum);
+
+	if (slot < 0)
+	{
+		return false;
+	}
+
+	if (codeplugZoneSlotRemoveChannel(slot, channelIndex, &zoneBuf) < 0)
+	{
+		return false;
+	}
+
+	codeplugSaveLastUsedChannelInZone();
+	return true;
+}
+
+bool codeplugZoneRename(int zoneNum, const char *name)
+{
+	struct_codeplugZone_t zoneBuf;
+	int slot = codeplugZoneSlotForNumber(zoneNum);
+
+	if ((slot < 0) || (EEPROM_Read(CODEPLUG_ZONE_SLOT_ADDR(slot), (uint8_t *)&zoneBuf, CODEPLUG_ZONE_SLOT_SIZE) == false))
+	{
+		return false;
+	}
+
+	codeplugUtilConvertStringToBuf((char *)name, zoneBuf.name, 16);
+
+	return EEPROM_Write(CODEPLUG_ZONE_SLOT_ADDR(slot), (uint8_t *)&zoneBuf, CODEPLUG_ZONE_SLOT_SIZE);
+}
+
+// Deletes a zone: clears its in-use bit. Its channels are not touched - they
+// stay in All Channels and in any other zone. The zones above it move down one
+// number, so the selected zone number is moved with them; if the selected zone
+// is the one deleted, the radio goes to All Channels.
+bool codeplugZoneDelete(int zoneNum)
+{
+	int oldCount = codeplugZonesGetCount();
+	int slot = codeplugZoneSlotForNumber(zoneNum);
+	int current = nonVolatileSettings.currentZone;
+	int currentSlot = (((current >= 0) && (current < (oldCount - 1))) ? codeplugZoneSlotForNumber(current) : -1);
+
+	if (slot < 0)
+	{
+		return false;
+	}
+
+	codeplugZonesInUseCache[slot / 8] &= ~(1 << (slot % 8));
+
+	if (EEPROM_Write(CODEPLUG_ADDR_EX_ZONE_INUSE_PACKED_DATA + (slot / 8), &codeplugZonesInUseCache[slot / 8], 1) == false)
+	{
+		codeplugZonesInUseCache[slot / 8] |= (1 << (slot % 8));
+		return false;
+	}
+
+	if ((currentSlot < 0) || (currentSlot == slot))
+	{
+		settingsSet(nonVolatileSettings.currentZone, (int16_t) (oldCount - 2)); // All Channels, now one lower
+	}
+	else if (slot < currentSlot)
+	{
+		settingsSet(nonVolatileSettings.currentZone, (int16_t) (current - 1));
+	}
+
+	return true;
+}
+
+// Sets the power-on password: the first len digits of pin, len 1 to 6, kept
+// with any leading zeros (0012 and 12 are different passwords). len 0 turns the
+// password off. Stored as codeplugGetPasswordPin() reads it: bit 0 of the byte
+// after CODEPLUG_ADDR_BOOT_PASSWORD_PIN enables it, and three bytes further on
+// hold the digits as nibbles, high nibble first, 0xF after the last.
+bool codeplugSetPasswordPin(int32_t pin, int len)
+{
+	uint8_t buf[6];
+	char digits[8];
+
+	if ((len < 0) || (len > 6) || (EEPROM_Read(CODEPLUG_ADDR_BOOT_PASSWORD_PIN + 1, buf, 6) == false))
+	{
+		return false;
+	}
+
+	buf[3] = 0xFF;
+	buf[4] = 0xFF;
+	buf[5] = 0xFF;
+
+	if (len > 0)
+	{
+		snprintf(digits, sizeof(digits), "%0*ld", len, (long) pin);
+
+		for (int i = 0; i < len; i++)
+		{
+			uint8_t n = (uint8_t) (digits[i] - '0');
+			uint8_t *b = &buf[3 + (i / 2)];
+
+			*b = (((i % 2) == 0) ? ((uint8_t) ((*b & 0x0F) | (n << 4))) : ((uint8_t) ((*b & 0xF0) | n)));
+		}
+		buf[0] |= 0x01;
+	}
+	else
+	{
+		buf[0] &= (uint8_t) ~0x01;
+	}
+
+	return EEPROM_Write(CODEPLUG_ADDR_BOOT_PASSWORD_PIN + 1, buf, 6);
+}
+
+// Deletes a channel: takes it out of every zone that lists it, then frees its
+// slot. Each zone's last-used position is moved to follow the channels that
+// shifted down, so no zone is left pointing past its end - that would load
+// channel 0, which does not exist.
+//
+// The zones go first. If something fails part way, the channel is still there
+// and can be deleted again, rather than gone while zones still refer to it.
+bool codeplugChannelDelete(int channelIndex)
+{
+	struct_codeplugZone_t zoneBuf;
+
+	if (codeplugAllChannelsIndexIsInUse(channelIndex) == false)
+	{
+		return false;
+	}
+
+	for (int slot = 0; slot < CODEPLUG_ZONE_SLOT_COUNT; slot++)
+	{
+		if (codeplugZoneSlotIsInUse(slot) && (codeplugZoneSlotRemoveChannel(slot, channelIndex, &zoneBuf) < 0))
+		{
+			return false;
+		}
+	}
+
+	if (codeplugAllChannelsIndexSetUnused(channelIndex) == false)
+	{
+		return false;
+	}
+
+	codeplugAllChannelsInitCache(); // recounts the channels and finds the new highest one
+
+	// All Channels remembers a channel number rather than a position. If it was
+	// on this one, move it to the next channel that exists, wrapping round.
+	int allLast = codeplugGetLastUsedChannelInZone(-1);
+
+	if (codeplugAllChannelsIndexIsInUse(allLast) == false)
+	{
+		int next = CODEPLUG_CHANNELS_MIN;
+
+		for (int i = 1; i <= CODEPLUG_CHANNELS_MAX; i++)
+		{
+			int candidate = (((channelIndex - 1 + i) % CODEPLUG_CHANNELS_MAX) + 1);
+
+			if (codeplugAllChannelsIndexIsInUse(candidate))
+			{
+				next = candidate;
+				break;
+			}
+		}
+
+		codeplugSetLastUsedChannelInZone(-1, (int16_t) next);
+	}
+
+	codeplugSaveLastUsedChannelInZone();
+
+	return true;
 }
 
 static uint16_t codeplugAllChannelsGetCount(void)
@@ -582,6 +1012,69 @@ uint8_t codeplugChannelSetFlag(struct_codeplugChannel_t *channelBuf, ChannelFlag
 // ----------------------------------------
 // -- END: Codeplug channel flag helpers --
 // ----------------------------------------
+
+// -------------------------------------------------
+// -- 5-Tone ANI per-channel storage (see header) --
+// -------------------------------------------------
+aniTxMode_t codeplugChannelGetFiveTone(struct_codeplugChannel_t *channelBuf, uint8_t digitsOut[5])
+{
+	uint16_t packed = channelBuf->VFOoffsetFreq;
+	uint8_t  extra  = channelBuf->_UNUSED_1;
+
+	digitsOut[0] = (packed >> 12) & 0x0F;
+	digitsOut[1] = (packed >> 8)  & 0x0F;
+	digitsOut[2] = (packed >> 4)  & 0x0F;
+	digitsOut[3] = (packed)       & 0x0F;
+	digitsOut[4] = (extra  >> 4)  & 0x0F;
+
+	// Clamp any out-of-range nibble (e.g. stale/garbage codeplug bytes) to 0
+	for (int i = 0; i < 5; i++)
+	{
+		if (digitsOut[i] > 9)
+		{
+			digitsOut[i] = 0;
+		}
+	}
+
+	aniTxMode_t mode = (aniTxMode_t)(extra & 0x0F);
+	if (mode >= ANI_MODE_MAX)
+	{
+		mode = ANI_MODE_OFF;
+	}
+	return mode;
+}
+
+void codeplugChannelSetFiveTone(struct_codeplugChannel_t *channelBuf, const uint8_t digits[5], aniTxMode_t mode)
+{
+	uint8_t d[5];
+	for (int i = 0; i < 5; i++)
+	{
+		d[i] = (digits[i] <= 9) ? digits[i] : 0;
+	}
+
+	channelBuf->VFOoffsetFreq = ((uint16_t)d[0] << 12) | ((uint16_t)d[1] << 8) | ((uint16_t)d[2] << 4) | d[3];
+	channelBuf->_UNUSED_1 = (uint8_t)((d[4] << 4) | ((uint8_t)mode & 0x0F));
+}
+
+#define CHANNEL_FIVETONE_REPLY_BIT 0x01
+
+bool codeplugChannelGetFiveToneReply(struct_codeplugChannel_t *channelBuf)
+{
+	return ((channelBuf->_UNUSED_2 & CHANNEL_FIVETONE_REPLY_BIT) != 0);
+}
+
+void codeplugChannelSetFiveToneReply(struct_codeplugChannel_t *channelBuf, bool enabled)
+{
+	if (enabled)
+	{
+		channelBuf->_UNUSED_2 |= CHANNEL_FIVETONE_REPLY_BIT;
+	}
+	else
+	{
+		channelBuf->_UNUSED_2 &= (uint8_t)~CHANNEL_FIVETONE_REPLY_BIT;
+	}
+}
+// -------------------------------------------------
 
 void codeplugChannelGetDataWithOffsetAndLengthForIndex(int index, struct_codeplugChannel_t *channelBuf, uint8_t offset, int length)
 {
@@ -916,7 +1409,6 @@ bool codeplugContactsContainsPC(uint32_t pc)
 static void codeplugInitContactsCache(void)
 {
 	struct_codeplugContact_t contact;
-	uint8_t                  c;
 	int                      codeplugNumContacts = 0;
 
 	codeplugContactsCache.numTGContacts = 0;
@@ -950,6 +1442,17 @@ static void codeplugInitContactsCache(void)
 			}
 		}
 	}
+
+	codeplugDTMFContactsInitCache();
+}
+
+// The DTMF half of the contacts cache on its own, so that a DTMF contact edited
+// on the radio can be picked up without re-reading all 1024 DMR contacts.
+void codeplugDTMFContactsInitCache(void)
+{
+	uint8_t c;
+
+	codeplugContactsCache.numDTMFContacts = 0;
 
 	for (int i = 0; i < CODEPLUG_DTMF_CONTACTS_MAX; i++)
 	{
@@ -1132,6 +1635,181 @@ bool codeplugDTMFContactGetDataForIndex(int index, struct_codeplugDTMFContact_t 
 
 	memset(contact, 0xff, CODEPLUG_DTMF_CONTACT_DATA_STRUCT_SIZE);
 	return false;
+}
+
+// ---------------------------------------------------------------------------
+// Caller names for received 5-Tone and DTMF codes (TA8BMO).
+//
+// The names come from the codeplug's DTMF contacts, which the CPS already
+// edits: a contact whose code is a caller's 5-Tone ANI or DTMF ID names that
+// caller. A contact code is stored one byte per digit, 0-9, 10-13 for A-D, 14
+// for '*' and 15 for '#' (the order trxDTMFfreq1[] is in), ended by 0xFF.
+//
+// The screen redraws often, and a search reads every contact, so the answer
+// for the last code is kept. It is in CCM RAM - main RAM is full - which is not
+// cleared by a reset, so the cache carries a marker that codeplugInitCaches()
+// clears: after a codeplug write the radio restarts and searches afresh.
+// ---------------------------------------------------------------------------
+#define CODE_NAME_CACHE_MAGIC  0x434E4331U // "CNC1"
+
+typedef struct
+{
+	uint32_t magic;
+	uint8_t  found;
+	char     key[17];   // the code the answer is for
+	char     name[17];
+} codeplugCodeNameCache_t;
+
+static __attribute__((section(".ccmram"))) codeplugCodeNameCache_t codeNameCache;
+
+void codeplugDTMFContactCodeToString(const uint8_t *code, char *out) // out: 17 bytes
+{
+	static const char digitChars[] = "0123456789ABCD*#";
+	int i;
+
+	for (i = 0; (i < 16) && (code[i] < 16); i++)
+	{
+		out[i] = digitChars[code[i]];
+	}
+	out[i] = 0;
+}
+
+// The name of the DTMF contact for a received code, in nameOut (17 bytes).
+// An exact match wins. Failing that, a contact code of 4 or more digits found
+// inside the received string counts - PTT-IDs often come wrapped in '*' or '#'
+// or a prefix - and the longest such code is taken.
+bool codeplugDTMFContactFindNameForCode(const char *code, char *nameOut)
+{
+	if ((code == NULL) || (code[0] == 0))
+	{
+		return false;
+	}
+
+	if ((codeNameCache.magic != CODE_NAME_CACHE_MAGIC) || (strncmp(codeNameCache.key, code, 16) != 0))
+	{
+		struct_codeplugDTMFContact_t contact;
+		char contactCode[17];
+		int count = codeplugDTMFContactsGetCount();
+		int codeLen = (int) strlen(code);
+		int best = 0; // how good the match kept so far is: its length, or 100 for exact
+
+		codeNameCache.found = 0;
+
+		for (int n = CODEPLUG_DTMF_CONTACTS_MIN; n <= count; n++)
+		{
+			if (codeplugDTMFContactGetDataForNumber(n, &contact) == 0)
+			{
+				continue;
+			}
+
+			codeplugDTMFContactCodeToString(contact.code, contactCode);
+
+			int len = (int) strlen(contactCode);
+			bool exact = ((len > 0) && (strcmp(contactCode, code) == 0));
+			bool inside = ((len >= 4) && (len < codeLen) && (strstr(code, contactCode) != NULL));
+			int score = (exact ? 100 : len);
+
+			if ((exact || inside) && (score > best))
+			{
+				best = score;
+				codeplugUtilConvertBufToString(contact.name, codeNameCache.name, 16);
+				codeNameCache.found = ((codeNameCache.name[0] != 0) ? 1 : 0);
+
+				if (exact)
+				{
+					break;
+				}
+			}
+		}
+
+		strncpy(codeNameCache.key, code, 16);
+		codeNameCache.key[16] = 0;
+		codeNameCache.magic = CODE_NAME_CACHE_MAGIC;
+	}
+
+	if (codeNameCache.found != 0)
+	{
+		memcpy(nameOut, codeNameCache.name, 17);
+		return true;
+	}
+
+	return false;
+}
+
+// Writes a DTMF contact from the radio (5T Contacts menu). index is the slot,
+// 1..CODEPLUG_DTMF_CONTACTS_MAX, or 0 for the first free one. code is text:
+// 0-9, A-D, '*' and '#'. Returns the slot written, or 0 if there was no free
+// slot, the code held something else, or the write failed.
+int codeplugDTMFContactWrite(int index, const char *name, const char *code)
+{
+	struct_codeplugDTMFContact_t contact;
+	static const char digitChars[] = "0123456789ABCD*#";
+
+	if (index == 0)
+	{
+		for (int i = CODEPLUG_DTMF_CONTACTS_MIN; i <= CODEPLUG_DTMF_CONTACTS_MAX; i++)
+		{
+			uint8_t first;
+
+			// Free is 0xFF only. 0x00 is how an old codeplug's zone data shows up in
+			// the last slot, and that is not ours to overwrite.
+			if (EEPROM_Read(CODEPLUG_ADDR_DTMF_CONTACTS + ((i - 1) * CODEPLUG_DTMF_CONTACT_DATA_STRUCT_SIZE), &first, 1) && (first == 0xFF))
+			{
+				index = i;
+				break;
+			}
+		}
+	}
+
+	if ((index < CODEPLUG_DTMF_CONTACTS_MIN) || (index > CODEPLUG_DTMF_CONTACTS_MAX))
+	{
+		return 0;
+	}
+
+	memset(&contact, 0xFF, sizeof(contact));
+	codeplugUtilConvertStringToBuf((char *) name, contact.name, 16);
+
+	for (int i = 0; (i < 16) && (code[i] != 0); i++)
+	{
+		const char *p = strchr(digitChars, code[i]);
+
+		if (p == NULL)
+		{
+			return 0;
+		}
+		contact.code[i] = (uint8_t) (p - digitChars);
+	}
+
+	if (EEPROM_Write(CODEPLUG_ADDR_DTMF_CONTACTS + ((index - 1) * CODEPLUG_DTMF_CONTACT_DATA_STRUCT_SIZE), (uint8_t *) &contact, CODEPLUG_DTMF_CONTACT_DATA_STRUCT_SIZE) == false)
+	{
+		return 0;
+	}
+
+	codeplugDTMFContactsInitCache();
+	codeNameCache.magic = 0; // names may have changed
+	return index;
+}
+
+// Empties a DTMF contact slot (all 0xFF, as the CPS leaves an unused one).
+bool codeplugDTMFContactErase(int index)
+{
+	struct_codeplugDTMFContact_t contact;
+
+	if ((index < CODEPLUG_DTMF_CONTACTS_MIN) || (index > CODEPLUG_DTMF_CONTACTS_MAX))
+	{
+		return false;
+	}
+
+	memset(&contact, 0xFF, sizeof(contact));
+
+	if (EEPROM_Write(CODEPLUG_ADDR_DTMF_CONTACTS + ((index - 1) * CODEPLUG_DTMF_CONTACT_DATA_STRUCT_SIZE), (uint8_t *) &contact, CODEPLUG_DTMF_CONTACT_DATA_STRUCT_SIZE) == false)
+	{
+		return false;
+	}
+
+	codeplugDTMFContactsInitCache();
+	codeNameCache.magic = 0;
+	return true;
 }
 
 static bool codeplugContactGetReserve1ByteForIndex(int index, struct_codeplugContact_t *contact)
@@ -1590,6 +2268,7 @@ static void codeplugAPRSInitCache(void)
 void codeplugInitCaches(void)
 {
 	codeplugInitContactsCache();
+	codeNameCache.magic = 0; // the contacts may have changed: look caller names up again
 
 	codeplugAllChannelsInitCache();
 
@@ -1756,7 +2435,118 @@ bool codeplugAPRSGetDataForIndex(int index, codeplugAPRS_Config_t *APRS_Buf)
 		memset(APRS_Buf, 0x00, sizeof(codeplugAPRS_Config_t));
 	}
 
-	return !((APRS_Buf->name[0] == 0xFF) || (APRS_Buf->magicVer != APRS_MAGIC_VERSION));
+	return !((APRS_Buf->name[0] == 0xFF) ||
+			((APRS_Buf->magicVer != APRS_MAGIC_VERSION) && (APRS_Buf->magicVer != APRS_MAGIC_VERSION_2)));
+}
+
+// Writes APRS config index (1..8) from the radio (Radio Setup > APRS Settings).
+// The configs are only counted up to the first empty one, so a new config can
+// only go straight after the last: index may be at most the count plus one.
+// A config without a valid format marker gets the older one, which every CPS
+// version reads.
+bool codeplugAPRSSetDataForIndex(int index, codeplugAPRS_Config_t *config)
+{
+	if ((index < 1) || (index > 8) || (index > (codeplugAPRSCache.numOfConfigs + 1)) || (config->name[0] == 0xFF))
+	{
+		return false;
+	}
+
+	if ((config->magicVer != APRS_MAGIC_VERSION) && (config->magicVer != APRS_MAGIC_VERSION_2))
+	{
+		config->magicVer = APRS_MAGIC_VERSION;
+	}
+
+	if (EEPROM_Write(CODEPLUG_ADDR_APRS_CONFIGS + ((index - 1) * sizeof(codeplugAPRS_Config_t)), (uint8_t *)config, sizeof(codeplugAPRS_Config_t)) == false)
+	{
+		return false;
+	}
+
+	codeplugAPRSInitCache();
+	return true;
+}
+
+// Deletes APRS config index (1..count) from the radio (Radio Setup > APRS
+// Settings). The configs are counted only up to the first empty one, so the
+// ones after it move up a place, and the whole block is written back in one go.
+// Channels point at a config by its number: one that used the deleted config is
+// left with none, and one using a later config is renumbered, so every channel
+// keeps the setting it had. The radio's own copies - the channel on screen and
+// both VFOs - are put right the same way.
+static uint8_t codeplugAPRSRenumber(uint8_t aprsIndex, int deleted)
+{
+	if (aprsIndex == deleted)
+	{
+		return 0;
+	}
+
+	return ((aprsIndex > deleted) ? (uint8_t)(aprsIndex - 1) : aprsIndex);
+}
+
+bool codeplugAPRSDeleteIndex(int index)
+{
+	codeplugAPRS_Config_t configs[8];
+	int count = codeplugAPRSCache.numOfConfigs;
+	struct_codeplugChannel_t channel;
+
+	if ((index < 1) || (index > count) || (count > 8))
+	{
+		return false;
+	}
+
+	if (EEPROM_Read(CODEPLUG_ADDR_APRS_CONFIGS, (uint8_t *) configs, sizeof(configs)) == false)
+	{
+		return false;
+	}
+
+	for (int i = (index - 1); i < (count - 1); i++)
+	{
+		configs[i] = configs[i + 1];
+	}
+	memset(&configs[count - 1], 0xFF, sizeof(codeplugAPRS_Config_t)); // empty, as the CPS leaves it
+
+	if (EEPROM_Write(CODEPLUG_ADDR_APRS_CONFIGS, (uint8_t *) configs, (int)(count * sizeof(codeplugAPRS_Config_t))) == false)
+	{
+		return false;
+	}
+
+	codeplugAPRSInitCache();
+
+	for (int c = CODEPLUG_CHANNELS_MIN; c <= CODEPLUG_CHANNELS_MAX; c++)
+	{
+		if (codeplugAllChannelsIndexIsInUse(c))
+		{
+			uint8_t renumbered;
+
+			codeplugChannelGetDataForIndex(c, &channel);
+			renumbered = codeplugAPRSRenumber(channel.aprsConfigIndex, index);
+
+			if (renumbered != channel.aprsConfigIndex)
+			{
+				channel.aprsConfigIndex = renumbered;
+				(void) codeplugChannelSaveDataForIndex(c, &channel); // only the channels that change are written
+			}
+		}
+	}
+
+	channelScreenChannelData.aprsConfigIndex = codeplugAPRSRenumber(channelScreenChannelData.aprsConfigIndex, index);
+	for (int v = 0; v < 2; v++)
+	{
+		settingsVFOChannel[v].aprsConfigIndex = codeplugAPRSRenumber(settingsVFOChannel[v].aprsConfigIndex, index);
+	}
+	settingsSetVFODirty();
+
+	return true;
+}
+
+// The radio's callsign, up to 8 characters, stored 0xFF padded as the CPS does.
+// It is read afresh wherever it is used (APRS, the APRS decoder), so a change
+// takes effect at once.
+bool codeplugSetRadioName(const char *name)
+{
+	char buf[8];
+
+	codeplugUtilConvertStringToBuf((char *)name, buf, 8);
+	return EEPROM_Write(CODEPLUG_ADDR_USER_CALLSIGN, (uint8_t *)buf, 8);
 }
 
 int codeplugAPRSGetIndexOfName(char *configName)

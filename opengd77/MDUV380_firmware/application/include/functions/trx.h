@@ -145,6 +145,7 @@ void trxSetDMRTimeSlot(int timeslot, bool resync);
 void trxSetTxCSS(uint16_t tone);
 void trxSetRxCSS(RadioDevice_t deviceId, uint16_t tone);
 bool trxCheckCSSFlag(uint16_t tone);
+void trxArmRxCSSDetector(uint16_t tone); // detector only: the squelch and audio are left as they are
 bool trxCheckFrequencyInAmateurBand(uint32_t frequency);
 uint32_t trxGetBandFromFrequency(uint32_t frequency);
 uint32_t trxGetNextOrPrevBandFromFrequency(uint32_t frequency, bool nextBand);

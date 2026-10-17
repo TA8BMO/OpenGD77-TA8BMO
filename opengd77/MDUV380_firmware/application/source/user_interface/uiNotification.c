@@ -49,7 +49,16 @@
 #if defined(PLATFORM_MD9600) || defined(PLATFORM_GD77) || defined(PLATFORM_GD77S) || defined(PLATFORM_DM1801) || defined(PLATFORM_DM1801A) || defined(PLATFORM_RD5R)
 static __attribute__((section(".data.$RAM2"))) uint8_t screenNotificationBufData[((DISPLAY_SIZE_X * DISPLAY_SIZE_Y) >> 3)];
 #else
-static  __attribute__((section(".ccmram"))) uint16_t screenNotificationBufData[DISPLAY_SIZE_X * DISPLAY_SIZE_Y];
+// Every notification - squelch, volume, power, message - is drawn inside one band
+// across the middle of the screen: the box sits two rows above YBOX and its drop
+// shadow ends at the bottom of YBOX + INNERBOX_H. Only that band, with a few rows
+// of margin either side, has to be put back afterwards, so only that band is
+// saved - 10KB rather than a copy of the whole 40KB screen.
+#define NOTIFICATION_SAVE_MARGIN  4
+#define NOTIFICATION_SAVE_Y       ((YBOX - 2) - NOTIFICATION_SAVE_MARGIN)
+#define NOTIFICATION_SAVE_ROWS    ((INNERBOX_H + 2) + (2 * NOTIFICATION_SAVE_MARGIN))
+_Static_assert((NOTIFICATION_SAVE_Y >= 0) && ((NOTIFICATION_SAVE_Y + NOTIFICATION_SAVE_ROWS) <= DISPLAY_SIZE_Y), "notification band must lie within the screen");
+static  __attribute__((section(".ccmram"))) uint16_t screenNotificationBufData[DISPLAY_SIZE_X * NOTIFICATION_SAVE_ROWS];
 #endif
 
 typedef struct
@@ -126,11 +135,13 @@ void uiNotificationRefresh(void)
 {
 	if (notificationData.visible)
 	{
+#if defined(PLATFORM_MD9600) || defined(PLATFORM_GD77) || defined(PLATFORM_GD77S) || defined(PLATFORM_DM1801) || defined(PLATFORM_DM1801A) || defined(PLATFORM_RD5R)
 		// copy the primary screen content
 		memcpy(screenNotificationBufData, displayGetPrimaryScreenBuffer(), sizeof(screenNotificationBufData));
-
-#if defined(PLATFORM_MD9600) || defined(PLATFORM_GD77) || defined(PLATFORM_GD77S) || defined(PLATFORM_DM1801) || defined(PLATFORM_DM1801A) || defined(PLATFORM_RD5R)
 		displayOverrideScreenBuffer(screenNotificationBufData);
+#else
+		// save the band the notification is about to draw over
+		memcpy(screenNotificationBufData, (displayGetPrimaryScreenBuffer() + (NOTIFICATION_SAVE_Y * DISPLAY_SIZE_X)), sizeof(screenNotificationBufData));
 #endif
 
 		// Draw whatever
@@ -175,7 +186,52 @@ void uiNotificationRefresh(void)
 				displayPrintAt(2 + ((sLen < (XBAR - 2)) ? (((XBAR - 2) - sLen) >> 1) : 0), YTEXT, buffer, FONT_SIZE_3);
 
 				displayDrawRect((XBAR - 2), YBAR, (totalBarLength + 4), (SQUELCH_BAR_H + 4), true);
-				displayFillRect(XBAR, (YBAR + 2), bargraph, SQUELCH_BAR_H, false);
+
+#if defined(HAS_SOFT_VOLUME)
+				if (notificationData.type == NOTIFICATION_TYPE_VOLUME)
+				{
+					// Green, orange then red as the level rises, using exactly the
+					// same colour handling as the S-meter on the main screen -
+					// explicit values, pre-inverted when the panel is running in
+					// inverse video so they come out the same on the glass.
+					//
+					// Nothing is drawn over the unfilled part of the bar. An
+					// earlier version filled it with THEME_ITEM_FG_DECORATION as
+					// a "dim track", but that item is the full-brightness text
+					// colour, so the bar looked permanently full.
+					uint16_t curFg, curBg;
+					const bool inv = settingsIsOptionBitSet(BIT_INVERSE_VIDEO);
+#define VOL_COLOUR(rgb) PLATFORM_COLOUR_FORMAT_SWAP_BYTES(RGB888_TO_PLATFORM_COLOUR_FORMAT(inv ? (0xFFFFFFU ^ (rgb)) : (rgb)))
+					const struct { int16_t endAt; uint16_t colour; } zone[3] =
+					{
+						{ (int16_t)((totalBarLength * 60) / 100), VOL_COLOUR(0x00C800U) },
+						{ (int16_t)((totalBarLength * 85) / 100), VOL_COLOUR(0xFF8000U) },
+						{ totalBarLength,                         VOL_COLOUR(0xFF2020U) },
+					};
+#undef VOL_COLOUR
+					int16_t from = 0;
+
+					displayGetForegroundAndBackgroundColours(&curFg, &curBg);
+
+					for (int z = 0; z < 3; z++)
+					{
+						int16_t to = ((bargraph < zone[z].endAt) ? bargraph : zone[z].endAt);
+
+						if (to > from)
+						{
+							displaySetForegroundAndBackgroundColours(zone[z].colour, curBg);
+							displayFillRect((XBAR + from), (YBAR + 2), (to - from), SQUELCH_BAR_H, false);
+						}
+						from = zone[z].endAt;
+					}
+
+					displaySetForegroundAndBackgroundColours(curFg, curBg);
+				}
+				else
+#endif
+				{
+					displayFillRect(XBAR, (YBAR + 2), bargraph, SQUELCH_BAR_H, false);
+				}
 			}
 			break;
 
@@ -208,7 +264,7 @@ void uiNotificationRefresh(void)
 #if defined(PLATFORM_MD9600) || defined(PLATFORM_GD77) || defined(PLATFORM_GD77S) || defined(PLATFORM_DM1801) || defined(PLATFORM_DM1801A) || defined(PLATFORM_RD5R)
 		displayRestorePrimaryScreenBuffer();
 #else
-		memcpy(displayGetPrimaryScreenBuffer(), screenNotificationBufData, sizeof(screenNotificationBufData));
+		memcpy((displayGetPrimaryScreenBuffer() + (NOTIFICATION_SAVE_Y * DISPLAY_SIZE_X)), screenNotificationBufData, sizeof(screenNotificationBufData));
 #endif
 	}
 }

@@ -32,6 +32,7 @@
 #endif
 #include "functions/trx.h"
 #include "functions/rxPowerSaving.h"
+#include "functions/toneFinder.h"
 #include "user_interface/menuSystem.h"
 #include "user_interface/uiUtilities.h"
 #include "user_interface/uiLocalisation.h"
@@ -69,6 +70,10 @@ static void scanning(void);
 static void scanInit(void);
 static void sweepScanInit(void);
 static void sweepScanStep(void);
+static void sweepListenTick(void);
+static void sweepListenStart(uint32_t freq);
+static void sweepListenStop(void);
+static void sweepListenDrawInfo(void);
 static void updateTrxID(void );
 static void setCurrentFreqToScanLimits(void);
 static void handleUpKey(uiEvent_t *ev);
@@ -111,6 +116,30 @@ static uint8_t vfoSweepSamples[VFO_SWEEP_NUM_SAMPLES];
 static uint8_t vfoSweepRssiNoiseFloor = VFO_SWEEP_RSSI_NOISE_FLOOR_DEFAULT;
 static uint8_t vfoSweepGain = VFO_SWEEP_GAIN_DEFAULT;
 static bool vfoSweepSavedBandwidth;
+
+// Sweep "stop & listen": when the spectrum sweep finds a signal it pauses on
+// that frequency, opens the audio, and keeps listening until the conversation
+// ends (minimum dwell 15 s), then resumes sweeping. Analog FM only.
+#define SWEEP_LISTEN_MIN_MS        15000 // minimum time to stay, even for a short transmission
+#define SWEEP_LISTEN_MAX_MS        60000 // safety cap so a constant carrier can't trap the sweep
+#define SWEEP_LISTEN_HANG_MS       3000  // keep listening this long after the audio drops
+#define SWEEP_LISTEN_CONFIRM_MS    1500  // if no audio opens by now, it was a false peak
+#define SWEEP_LISTEN_TONE_STEP_MS  180   // per CTCSS candidate (chip needs time to lock onto the tone)
+#define SWEEP_LISTEN_INFO_MS       700   // redraw the freq/tone info panel this often
+static bool sweepListenActive = false;
+static bool sweepListenConfirmed = false;
+static ticksTimer_t sweepListenMinTimer;
+static ticksTimer_t sweepListenMaxTimer;
+static ticksTimer_t sweepListenHangTimer;
+static ticksTimer_t sweepListenConfirmTimer;
+// Audio-safe CTCSS detection while listening: cycle the chip's CTCSS detector
+// through the candidates and read the flag, WITHOUT muting the audio (we never
+// call trxSetRxCSS here, so rxCSSactive stays false and the speaker keeps playing).
+static uint16_t sweepListenTone = 0;       // detected CTCSS (codeplug fmt, x10), 0 = not found yet
+static uint8_t  sweepListenToneIdx = 0;    // CTCSS candidate index under test
+static bool     sweepListenToneDone = false; // a full CTCSS pass finished with no match
+static ticksTimer_t sweepListenToneTimer;
+static ticksTimer_t sweepListenInfoTimer;
 const int VFO_SWEEP_SCAN_FREQ_STEP_TABLE[7] 		= {125,250,500,1000,2500,5000,10000};
 static uint8_t previousVFONumber = 0xFF; // Keep track of the currently loaded channel data
 
@@ -151,6 +180,11 @@ menuStatus_t uiVFOMode(uiEvent_t *ev, bool isFirstRun)
 			return MENU_STATUS_SUCCESS;
 		}
 #endif
+
+		// Fresh entry into the VFO screen (not a lock-screen resume): start the
+		// sweep "skip" list empty, so re-opening the spectrum analyzer never keeps
+		// skipping the frequencies that were skipped in a previous session.
+		clearNuisance();
 
 		uiDataGlobal.FreqEnter.index = 0;
 
@@ -301,6 +335,7 @@ menuStatus_t uiVFOMode(uiEvent_t *ev, bool isFirstRun)
 							else if (uiVFOModeSweepScanning(true) == false)
 							{
 								 uiUtilityDrawRSSIBarGraph();
+								 uiChannelModeDrawRSSIMeterStrip(); // coloured S-meter + numeric S-value (rows 2-3)
 							}
 						}
 
@@ -314,7 +349,7 @@ menuStatus_t uiVFOMode(uiEvent_t *ev, bool isFirstRun)
 							}
 							else
 							{
-								displayRenderRows(((uiDataGlobal.Scan.active && (uiDataGlobal.Scan.state == SCAN_STATE_PAUSED)) ? 0 : 1), 2);
+								displayRenderRows(((uiDataGlobal.Scan.active && (uiDataGlobal.Scan.state == SCAN_STATE_PAUSED)) ? 0 : 1), 4);
 							}
 						}
 					}
@@ -339,6 +374,7 @@ menuStatus_t uiVFOMode(uiEvent_t *ev, bool isFirstRun)
 				else
 				{
 					sweepScanStep();
+					sweepListenTick();
 				}
 			}
 #endif
@@ -395,6 +431,7 @@ menuStatus_t uiVFOMode(uiEvent_t *ev, bool isFirstRun)
 			else
 			{
 				sweepScanStep();
+				sweepListenTick();
 			}
 		}
 #endif
@@ -641,6 +678,8 @@ void uiVFOModeUpdateScreen(int txTimeSecs)
 
 				}
 			}
+			uiChannelModeDrawRSSIMeterStrip(); // coloured S-meter + numeric S-value
+			uiChannelModeDrawRxDecodeMarkers();
 			displayRender();
 			break;
 
@@ -650,6 +689,8 @@ void uiVFOModeUpdateScreen(int txTimeSecs)
 			uiDataGlobal.isDisplayingQSOData = true;
 			uiDataGlobal.displayChannelSettings = false;
 			uiUtilityRenderQSOData();
+			uiChannelModeDrawRSSIMeterStrip(); // no-op in DMR (analog-only guard)
+			uiChannelModeDrawRxDecodeMarkers();
 			displayRender();
 			break;
 
@@ -887,6 +928,18 @@ static void toggleAnalogBandwidth(void)
 
 static void handleEvent(uiEvent_t *ev)
 {
+	// Sweep "stop & listen": while paused on a found signal, STAR skips that
+	// frequency (remembers it) and resumes the sweep - e.g. to skip a repeater's
+	// output frequency and keep scanning for the caller's input frequency.
+	if (sweepListenActive && KEYCHECK_SHORTUP(ev->keys, KEY_STAR))
+	{
+		uiDataGlobal.Scan.nuisanceDelete[uiDataGlobal.Scan.nuisanceDeleteIndex] = (int)uiDataGlobal.Scan.scanSweepCurrentFreq;
+		uiDataGlobal.Scan.nuisanceDeleteIndex = (uiDataGlobal.Scan.nuisanceDeleteIndex + 1) % MAX_ZONE_SCAN_NUISANCE_CHANNELS;
+		sweepListenStop();
+		keyboardReset();
+		return;
+	}
+
 	if (uiDataGlobal.Scan.active && (ev->events & KEY_EVENT))
 	{
 		if (BUTTONCHECK_DOWN(ev, BUTTON_SK2) == 0)
@@ -1208,6 +1261,13 @@ static void handleEvent(uiEvent_t *ev)
 				}
 				return;
 			}
+			else if (KEYCHECK_LONGDOWN(ev->keys, KEY_0) && (KEYCHECK_LONGDOWN_REPEAT(ev->keys, KEY_0) == false)
+						&& (BUTTONCHECK_DOWN(ev, BUTTON_SK2) == 0) && (trxGetMode() == RADIO_MODE_ANALOG))
+			{
+				// Long-press 0 (analog FM only): one-shot 5-Tone selective call screen.
+				menuSystemPushNewMenu(UI_SELECTIVE_CALL_5TONE);
+				return;
+			}
 			else if (KEYCHECK_SHORTUP(ev->keys, KEY_STAR))
 			{
 				if (uiVFOModeSweepScanning(true) == false)
@@ -1258,15 +1318,17 @@ static void handleEvent(uiEvent_t *ev)
 						}
 						else
 						{
-							toggleAnalogBandwidth();
-							uiDataGlobal.displayQSOState = uiDataGlobal.displayQSOStatePrev;
-							headerRowIsDirty = true;
-							uiVFOModeUpdateScreen(0);
+							// STAR on analog opens the Morse sender, matching the
+							// channel screen. Bandwidth is still on SK2+STAR below
+							// and in the quick menu.
+							menuSystemPushNewMenu(UI_MORSE);
 						}
 					}
 				}
 				else
 				{
+					// Sweep scanning is running - keep the stock bandwidth toggle
+					// here. Pushing a menu mid-sweep would tear down the scan.
 					if (trxGetMode() == RADIO_MODE_ANALOG)
 					{
 						toggleAnalogBandwidth();
@@ -1297,6 +1359,11 @@ static void handleEvent(uiEvent_t *ev)
 					uiDataGlobal.displayQSOState = QSO_DISPLAY_DEFAULT_SCREEN;
 					uiVFOModeUpdateScreen(0);
 					announceItem(PROMPT_SEQUENCE_TS, PROMPT_THRESHOLD_1);
+				}
+				else
+				{
+					// Long STAR on an analog VFO opens the fox-hunt helper.
+					menuSystemPushNewMenu(UI_FOX_HUNT);
 				}
 			}
 			else if(uiVFOModeSweepScanning(true) &&  // Reset Sweep noise floor or Sweep Gain
@@ -1853,6 +1920,18 @@ static void handleEvent(uiEvent_t *ev)
 					}
 				}
 			}
+		}
+
+		// Short 0 with no frequency being typed - a frequency never starts with 0,
+		// so it was never a digit here: find the station's CTCSS/DCS. On release,
+		// so a long press still opens the selective call.
+		if ((uiDataGlobal.FreqEnter.index == 0) && KEYCHECK_SHORTUP(ev->keys, KEY_0) && (trxGetMode() == RADIO_MODE_ANALOG) &&
+				(screenOperationMode[nonVolatileSettings.currentVFONumber] == VFO_SCREEN_OPERATION_NORMAL) &&
+				(BUTTONCHECK_DOWN(ev, BUTTON_SK1) == false) && (BUTTONCHECK_DOWN(ev, BUTTON_SK2) == false) &&
+				(uiDataGlobal.Scan.active == false) && (uiDataGlobal.Scan.toneActive == false))
+		{
+			toneFinderToggle();
+			return;
 		}
 
 		if (uiDataGlobal.FreqEnter.index < ((screenOperationMode[nonVolatileSettings.currentVFONumber] == VFO_SCREEN_OPERATION_NORMAL) ? 8 : 12))
@@ -3262,6 +3341,8 @@ static void sweepScanInit(void)
 	uiDataGlobal.Scan.active = true;
 	uiDataGlobal.Scan.state = SCAN_STATE_SCANNING;
 	uiDataGlobal.Scan.scanType = SCAN_TYPE_NORMAL_STEP;
+	sweepListenActive = false; // clear any stale stop-and-listen state
+	clearNuisance();           // fresh skip list for this sweep session
 
 	uiDataGlobal.VoicePrompts.inhibitInitial = true;
 
@@ -3299,6 +3380,187 @@ static void sweepScanInit(void)
 }
 
 
+// True if the frequency is on the sweep skip ("nuisance") list - i.e. the operator
+// pressed STAR on it, so the sweep should not stop there again (e.g. a repeater output).
+static bool sweepFreqIsNuisance(uint32_t freq)
+{
+	int tol = (VFO_SWEEP_SCAN_RANGE_SAMPLE_STEP_TABLE[uiDataGlobal.Scan.sweepStepSizeIndex] / VFO_SWEEP_PIXELS_PER_STEP) + 1;
+
+	for (int i = 0; i < MAX_ZONE_SCAN_NUISANCE_CHANNELS; i++)
+	{
+		if (uiDataGlobal.Scan.nuisanceDelete[i] == -1)
+		{
+			continue;
+		}
+
+		int diff = (int)freq - uiDataGlobal.Scan.nuisanceDelete[i];
+		if (diff < 0)
+		{
+			diff = -diff;
+		}
+		if (diff <= tol)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// Draw the listened frequency and detected tone over the (frozen) sweep graph.
+static void sweepListenDrawInfo(void)
+{
+	char buf[SCREEN_LINE_BUFFER_SIZE];
+	uint32_t f = uiDataGlobal.Scan.scanSweepCurrentFreq;
+
+	displayThemeResetToDefault();
+	displayFillRect(0, VFO_SWEEP_GRAPH_START_Y, DISPLAY_SIZE_X, 34, true); // clear a panel over the graph
+
+	snprintf(buf, SCREEN_LINE_BUFFER_SIZE, "%u.%04u", (f / 100000), ((f % 100000) / 10));
+	displayPrintCentered((VFO_SWEEP_GRAPH_START_Y + 3), buf, FONT_SIZE_3);
+
+	if (sweepListenTone != 0)
+	{
+		snprintf(buf, SCREEN_LINE_BUFFER_SIZE, "CTCSS %u.%uHz", (sweepListenTone / 10), (sweepListenTone % 10));
+	}
+	else if (sweepListenToneDone)
+	{
+		snprintf(buf, SCREEN_LINE_BUFFER_SIZE, "Ton yok");
+	}
+	else
+	{
+		snprintf(buf, SCREEN_LINE_BUFFER_SIZE, "Ton araniyor");
+	}
+	displayPrintCentered((VFO_SWEEP_GRAPH_START_Y + 19), buf, FONT_SIZE_3);
+
+	displayRenderRows(1, (((VFO_SWEEP_GRAPH_START_Y + 34) / 8) + 1));
+}
+
+// Pause the sweep on the given frequency and start listening to it.
+static void sweepListenStart(uint32_t freq)
+{
+	uiVFOSweepScanModePause(true, false); // stop sweeping, restore normal FM bandwidth
+	trxSetFrequency(freq, currentChannelData->txFreq, DMR_MODE_AUTO); // tune to the found signal
+	trxSetRxCSS(RADIO_DEVICE_PRIMARY, CODEPLUG_CSS_TONE_NONE); // hear any signal, ignore the channel's RX CTCSS/DCS
+	uiDataGlobal.Scan.scanSweepCurrentFreq = freq;
+
+	sweepListenActive = true;
+	sweepListenConfirmed = false;
+	ticksTimerStart(&sweepListenMinTimer, SWEEP_LISTEN_MIN_MS);
+	ticksTimerStart(&sweepListenMaxTimer, SWEEP_LISTEN_MAX_MS);
+	ticksTimerStart(&sweepListenConfirmTimer, SWEEP_LISTEN_CONFIRM_MS);
+	ticksTimerStart(&sweepListenHangTimer, SWEEP_LISTEN_HANG_MS);
+
+	// Arm the audio-safe CTCSS detector on the first candidate and show the panel.
+	sweepListenTone = 0;
+	sweepListenToneIdx = 0;
+	sweepListenToneDone = false;
+	radioRxCTCSOn(RADIO_DEVICE_PRIMARY, (TRX_CTCSSTones[0] * 10));
+	ticksTimerStart(&sweepListenToneTimer, SWEEP_LISTEN_TONE_STEP_MS);
+	ticksTimerStart(&sweepListenInfoTimer, SWEEP_LISTEN_INFO_MS);
+
+	sweepListenDrawInfo();
+}
+
+// Resume sweeping after a listen.
+static void sweepListenStop(void)
+{
+	sweepListenActive = false;
+	trxSetRxCSS(RADIO_DEVICE_PRIMARY, currentChannelData->rxTone); // restore the channel's RX CSS
+
+	// Step past the bin we just listened to so the sweep always moves forward and
+	// never re-triggers on the same frequency (which would freeze the cursor).
+	uiDataGlobal.Scan.sweepSampleIndex += uiDataGlobal.Scan.sweepSampleIndexIncrement;
+	if (uiDataGlobal.Scan.sweepSampleIndex >= VFO_SWEEP_NUM_SAMPLES)
+	{
+		uiDataGlobal.Scan.sweepSampleIndex = 0;
+	}
+	else if (uiDataGlobal.Scan.sweepSampleIndex < 0)
+	{
+		uiDataGlobal.Scan.sweepSampleIndex = (VFO_SWEEP_NUM_SAMPLES - 1);
+	}
+
+	uiVFOSweepScanModePause(false, false);
+}
+
+// Runs every tick while paused-and-listening. The main loop's analog squelch
+// opens/closes the audio (getAudioAmpStatus RF bit) - we use that to know if the
+// conversation is still going. Resume once it has ended (hang time) and the
+// minimum dwell has elapsed. A false peak (no audio at all) resumes quickly.
+static void sweepListenTick(void)
+{
+	if (!sweepListenActive)
+	{
+		return;
+	}
+
+	bool audioOn = ((getAudioAmpStatus() & AUDIO_AMP_MODE_RF) != 0);
+
+	if (audioOn)
+	{
+		sweepListenConfirmed = true;
+		ticksTimerStart(&sweepListenHangTimer, SWEEP_LISTEN_HANG_MS); // refresh while there is audio
+	}
+
+	// Audio-safe CTCSS detection: once a real signal is confirmed, walk the chip's
+	// CTCSS detector across the candidates and read the flag. This does not touch
+	// the audio path, so the operator keeps hearing the conversation meanwhile.
+	if (sweepListenConfirmed && (sweepListenTone == 0) && (sweepListenToneDone == false) &&
+			ticksTimerHasExpired(&sweepListenToneTimer))
+	{
+		if (trxCheckCSSFlag(TRX_CTCSSTones[sweepListenToneIdx]))
+		{
+			sweepListenTone = TRX_CTCSSTones[sweepListenToneIdx];
+			sweepListenDrawInfo();
+		}
+		else
+		{
+			sweepListenToneIdx++;
+			if (sweepListenToneIdx >= TRX_NUM_CTCSS)
+			{
+				sweepListenToneIdx = 0;
+				sweepListenToneDone = true; // no CTCSS -> carrier-only signal
+				sweepListenDrawInfo();
+			}
+			else
+			{
+				radioRxCTCSOn(RADIO_DEVICE_PRIMARY, (TRX_CTCSSTones[sweepListenToneIdx] * 10));
+			}
+		}
+		ticksTimerStart(&sweepListenToneTimer, SWEEP_LISTEN_TONE_STEP_MS);
+	}
+
+	// Keep the freq/tone panel on screen (something else may repaint the area).
+	if (ticksTimerHasExpired(&sweepListenInfoTimer))
+	{
+		sweepListenDrawInfo();
+		ticksTimerStart(&sweepListenInfoTimer, SWEEP_LISTEN_INFO_MS);
+	}
+
+	// Safety cap: never let a constant carrier trap the sweep forever.
+	if (ticksTimerHasExpired(&sweepListenMaxTimer))
+	{
+		sweepListenStop();
+		return;
+	}
+
+	if (!sweepListenConfirmed)
+	{
+		// No audio opened yet: if the confirm window elapsed, it was a false peak.
+		if (ticksTimerHasExpired(&sweepListenConfirmTimer))
+		{
+			sweepListenStop();
+		}
+		return;
+	}
+
+	// Heard a real signal: resume only after the minimum dwell AND the
+	// conversation has been silent for the hang time.
+	if (ticksTimerHasExpired(&sweepListenMinTimer) && ticksTimerHasExpired(&sweepListenHangTimer))
+	{
+		sweepListenStop();
+	}
+}
+
 static void sweepScanStep(void)
 {
 	if (uiDataGlobal.Scan.state != SCAN_STATE_SCANNING)
@@ -3319,6 +3581,17 @@ static void sweepScanStep(void)
 #endif
 
 			vfoSweepSamples[uiDataGlobal.Scan.sweepSampleIndex] = radioDevices[RADIO_DEVICE_PRIMARY].trxRxSignal;// Need to save the samples so for when the freq is changed and we need to scroll the display
+
+			// Stop & listen: analog FM only. Use the radio's own carrier detect
+			// (noise below the squelch level) so we only stop on a REAL signal and
+			// the sweep keeps flowing over the noise. scanSweepCurrentFreq still holds
+			// the frequency that was just measured (it is tuned one step ahead).
+			if ((currentChannelData->chMode == RADIO_MODE_ANALOG) && trxCarrierDetected(RADIO_DEVICE_PRIMARY)
+					&& (sweepFreqIsNuisance(uiDataGlobal.Scan.scanSweepCurrentFreq) == false))
+			{
+				sweepListenStart(uiDataGlobal.Scan.scanSweepCurrentFreq);
+				return;
+			}
 
 			vfoSweepDrawSample(uiDataGlobal.Scan.sweepSampleIndex);
 

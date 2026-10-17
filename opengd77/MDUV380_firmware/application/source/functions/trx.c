@@ -1116,6 +1116,25 @@ void trxSetRxCSS(RadioDevice_t deviceId, uint16_t tone)
 	}
 }
 
+// Arms the CTCSS/DCS detector for one tone without making it the squelch:
+// rxCSSactive and the audio amplifier are left alone, so whatever is being
+// received stays audible. For the tone finder, which tries tones one at a
+// time and reads trxCheckCSSFlag() after each; trxSetRxCSS() puts the
+// channel's own tone back afterwards.
+void trxArmRxCSSDetector(uint16_t tone)
+{
+	CodeplugCSSTypes_t type = codeplugGetCSSType(tone);
+
+	if (type == CSS_TYPE_CTCSS)
+	{
+		radioRxCTCSOn(RADIO_DEVICE_PRIMARY, (tone * 10)); // the chip wants 100x the frequency, the codeplug keeps 10x
+	}
+	else if (type & CSS_TYPE_DCS)
+	{
+		radioRxDCSOn(RADIO_DEVICE_PRIMARY, convertCSSNative2BinaryCodedOctal(tone & ~CSS_TYPE_DCS_MASK), ((type & CSS_TYPE_DCS_INVERTED) != 0));
+	}
+}
+
 bool trxCheckCSSFlag(uint16_t tone)
 {
 	CodeplugCSSTypes_t type = codeplugGetCSSType(tone);

@@ -87,7 +87,7 @@ Revision: $Rev: 24316 $
 #endif
 
 #ifndef   BUFFER_SIZE_UP
-  #define BUFFER_SIZE_UP                            (1024)  // Size of the buffer for terminal output of target, up to host (Default: 1k)
+  #define BUFFER_SIZE_UP                            (64)    // Size of the buffer for terminal output of target, up to host (Default: 1k). Only read by a debug probe, and the firmware's few messages are short; 1k of main RAM was idle in normal use
 #endif
 
 #ifndef   BUFFER_SIZE_DOWN

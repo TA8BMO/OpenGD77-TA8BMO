@@ -44,6 +44,7 @@
 #endif
 #endif // CPU_MK22FN512VLL12
 #include "functions/aprs.h"
+#include "functions/fiveToneDecode.h"
 #include "hardware/HR-C6000.h"
 #include "functions/satellite.h"
 #if defined(HAS_GPS)
@@ -61,6 +62,14 @@
 
 
 #define AX25_PACKET_BUFFER_SIZE        256U
+// Flags sent ahead of the frame, after the APRS_XMIT_TX_DELAY settling time:
+// 40 at 1200 baud is about 270ms, so with the delay the frame starts some 320ms
+// after keying - about the 300ms most trackers use. 16 (about 160ms in all) was
+// too short for a digipeater whose squelch or demodulator is slow to open: it
+// missed the start of the frame, and with it the whole packet. The
+// longest frame (an e-mail, 129 characters) still fits the buffer with worst-case
+// bit stuffing, at about 237 bytes.
+#define APRS_PREAMBLE_FLAGS            40U
 #define SMART_BEACONING_SPEED_MIN       54U // more than 1km/h (0.5399568034557235 kn == 1km/h)
 #define APRS_DESTINATION            "APOG77" // MAX 6 char (excluding terminator)
 #define APRS_CONFIG_SATELLITE            0U
@@ -261,9 +270,8 @@ aprsBeaconingData_t aprsBcnData =
 const uint16_t initialIntervalsInSecs[APRS_BEACON_INITIAL_INTERVAL_MAX + 1] = { 12, 30, 60, 120, 180, 300, 600, 1200, 1800, 3600 };
 
 static char myCall[16];
-static int lenBytes = 0;
+static int lenBits = 0;
 static volatile uint32_t lastTone;
-static volatile int bytePos = 0;
 static volatile int bitPos = 0;
 static volatile uint8_t dataByte;
 static AX25Encoder_t encoderData;
@@ -274,10 +282,18 @@ volatile aprsSendProgress_t aprsTxProgress = APRS_TX_IDLE; // used in the ISR
 
 static bool aprsBeaconingStateEnabled(aprsBeaconingStates_t s);
 static bool aprsBeaconingLocationIsValid(aprsBeaconingLocation_t *location);
+static bool gpsFixIsValid(void);
 static void enqueueCharNrzi(AX25Encoder_t *encoderData, uint8_t data, bool useBitStuffing);
 
 static void enqueueBit(AX25Encoder_t *encoderData, bool data)
 {
+	// Never past the end of the buffer. Nothing the radio sends comes near it, but
+	// a frame cut short is better than memory after the buffer overwritten.
+	if (encoderData->packetBufferBitPosition >= (AX25_PACKET_BUFFER_SIZE * 8U))
+	{
+		return;
+	}
+
 	if (data)
 	{
 		encoderData->packetBuffer[encoderData->packetBufferBitPosition / 8U] |= 0x01 << (encoderData->packetBufferBitPosition % 8U);
@@ -532,6 +548,90 @@ static void aprsCompressLongitude(double lon, char *str)
 	str[4] = 0;
 }
 
+// Everything after a frame has been assembled: work out its length, choose the
+// bit rate, hand the radio over to the tone generator and start the timer that
+// clocks the bits out. Factored out of aprsSendPacket so that message frames can
+// use the identical, already proven transmit path.
+static void aprsStartBitStream(void)
+{
+	lenBits = encoderData.packetBufferBitPosition; // every bit, including a part-filled last byte
+	bitPos = 0;
+	lastTone = 0xFFFFFFFF;
+
+#if defined(PLATFORM_MD9600)
+	encoderData.baudIs300 = false;
+#else // PLATFORM_MD9600
+	encoderData.baudIs300 = ((aprsConfig->flags & 0x01) != 0);
+#endif // PLATFORM_MD9600
+
+#if defined(CPU_MK22FN512VLL12)
+	ftm_config_t ftmInfo;
+	FTM_GetDefaultConfig(&ftmInfo);
+	ftmInfo.prescale = kFTM_Prescale_Divide_4;
+	FTM_Init(FTM1, &ftmInfo);
+	FTM_SetTimerPeriod(FTM1, USEC_TO_COUNT((!encoderData.baudIs300 ? 833U : 3333U), (CLOCK_GetFreq(kCLOCK_BusClk) / 4)));//use 2087U instead of 833 if in HS_RUN clock speed mode
+	FTM_EnableInterrupts(FTM1, kFTM_TimeOverflowInterruptEnable);
+
+	GPIO_PinWrite(GPIO_RX_audio_mux, Pin_RX_audio_mux, 1);
+	enableAudioAmp(AUDIO_AMP_MODE_RF);
+
+	AT1846sWriteTone1Reg(lastTone);
+	trxSelectVoiceChannel(AT1846_VOICE_CHANNEL_TONE1);
+
+	aprsTxProgress = APRS_TX_IN_PROGRESS;
+
+	EnableIRQ(FTM1_IRQn);
+	FTM_StartTimer(FTM1, kFTM_SystemClock);
+#else // CPU_MK22FN512VLL12
+	htim6.Instance = TIM6;
+	htim6.Init.Prescaler = encoderData.baudIs300 ? 7 : 1; // 7 gives 300 baud. 1 gives 1200 baud
+	htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+
+#if defined(PLATFORM_MD9600)
+	htim6.Init.Period = 15000;
+#else // PLATFORM_MD9600
+	htim6.Init.Period = 30000;
+#endif // PLATFORM_MD9600
+
+	htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+	if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	HRC6000SetMic(false);
+
+#if defined(PLATFORM_MD9600)
+	uint32_t lastTone = 1;
+	trxSetTone1(lastTone);
+#else // PLATFORM_MD9600
+	uint32_t lastTone = 0;
+	AT1846sWriteTone1Reg(lastTone);
+	trxSelectVoiceChannel(AT1846_VOICE_CHANNEL_TONE1);
+
+	int volume = getVolumeControl() + 30;
+
+	if (volume >= 0)
+	{
+		radioWriteReg2byte(0x44, 0x06, volume);
+		HAL_GPIO_WritePin(RX_AUDIO_MUX_GPIO_Port, RX_AUDIO_MUX_Pin, GPIO_PIN_RESET);
+		enableAudioAmp(AUDIO_AMP_MODE_RF);
+	}
+#endif // PLATFORM_MD9600
+
+	aprsTxProgress = APRS_TX_IN_PROGRESS;
+	HAL_TIM_Base_Start_IT(&htim6);
+#endif // CPU_MK22FN512VLL12
+}
+
 static bool aprsSendPacket(codeplugAPRS_Config_t *config, aprsBeaconingLocation_t *previousLocation, aprsBeaconingLocation_t *currentLocation)
 {
 	double lat;
@@ -573,6 +673,36 @@ static bool aprsSendPacket(codeplugAPRS_Config_t *config, aprsBeaconingLocation_
 	{
 		lat = currentLocation->coords.latitude;
 		lon = currentLocation->coords.longitude;
+	}
+
+	// I used to refuse a zero position here, to keep "NN!!NN!!" (what 0,0
+	// compresses to) off the network. Bad idea: with no GPS fix the position is
+	// 0,0, the stock firmware happily sends it, and mine just stayed silent. I'd
+	// rather it behave like stock, so that guard is gone. The real cure for
+	// NN!!NN!! is a real position, not a silent radio.
+	//
+	// 0,0 is nobody's position though, and this one had me scratching my head. My beacons
+	// were reaching the igate (TB8ATA-8 heard them fine, qAR and all) but I never
+	// showed up on aprs.fi, and I blamed the igate. It was the position: the fixed
+	// one in the APRS settings was left at zero, and aprs.fi quietly drops a 0,0
+	// position. So now the best real position the radio has goes out instead - the
+	// GPS's if it has a fix right now, otherwise the last one it saved (only ever
+	// from a fix, or typed in) - and only if it has none at all does 0,0 still go.
+	if ((fabs(lat) < 1E-6) && (fabs(lon) < 1E-6))
+	{
+#if defined(HAS_GPS)
+		if (gpsFixIsValid())
+		{
+			lat = gpsData.LatitudeHiRes;
+			lon = gpsData.LongitudeHiRes;
+		}
+		else
+#endif
+		if (nonVolatileSettings.locationLat != SETTINGS_UNITIALISED_LOCATION_LAT)
+		{
+			lat = latLongFixed32ToDouble(nonVolatileSettings.locationLat);
+			lon = latLongFixed32ToDouble(nonVolatileSettings.locationLon);
+		}
 	}
 
 	if (ambiguity != 0)
@@ -689,7 +819,7 @@ static bool aprsSendPacket(codeplugAPRS_Config_t *config, aprsBeaconingLocation_
 		}
 	}
 
-	enqueueFlagOfLength(&encoderData, 16U);
+	enqueueFlagOfLength(&encoderData, APRS_PREAMBLE_FLAGS);
 
 	encoderData.crc = 0xFFFF; // Initialise CRC now, after data has been sent as CRC does is only for data bytes
 	enqueueHeader(&encoderData);
@@ -697,84 +827,69 @@ static bool aprsSendPacket(codeplugAPRS_Config_t *config, aprsBeaconingLocation_
 	enqueueCRC(&encoderData);
 	enqueueFlagOfLength(&encoderData, 3U);
 
-	lenBytes = encoderData.packetBufferBitPosition / 8;
-	bytePos = 0;
-	bitPos = 0;
-	lastTone = 0xFFFFFFFF;
+	aprsStartBitStream();
 
-#if defined(PLATFORM_MD9600)
-	encoderData.baudIs300 = false;
-#else // PLATFORM_MD9600
-	encoderData.baudIs300 = ((aprsConfig->flags & 0x01) != 0);
-#endif // PLATFORM_MD9600
+	return true;
+}
 
-#if defined(CPU_MK22FN512VLL12)
-	ftm_config_t ftmInfo;
-	FTM_GetDefaultConfig(&ftmInfo);
-	ftmInfo.prescale = kFTM_Prescale_Divide_4;
-	FTM_Init(FTM1, &ftmInfo);
-	FTM_SetTimerPeriod(FTM1, USEC_TO_COUNT((!encoderData.baudIs300 ? 833U : 3333U), (CLOCK_GetFreq(kCLOCK_BusClk) / 4)));//use 2087U instead of 833 if in HS_RUN clock speed mode
-	FTM_EnableInterrupts(FTM1, kFTM_TimeOverflowInterruptEnable);
+// Sends an arbitrary APRS information field: a message, or the acknowledgement
+// of one. The frame is identical to a beacon apart from what goes after the
+// header, so everything here reuses the beacon's own encoder and transmit path
+// rather than repeating it.
+//
+// The radio is keyed here and left transmitting; aprsBeaconingTxStateTick(),
+// which the main loop already calls, sees the bit stream finish and unkeys. Do
+// not add a second teardown - that state machine owns it.
+bool aprsSendInfoField(const char *info)
+{
+	uint32_t m;
 
-	GPIO_PinWrite(GPIO_RX_audio_mux, Pin_RX_audio_mux, 1);
-	enableAudioAmp(AUDIO_AMP_MODE_RF);
-
-	AT1846sWriteTone1Reg(lastTone);
-	trxSelectVoiceChannel(AT1846_VOICE_CHANNEL_TONE1);
-
-	aprsTxProgress = APRS_TX_IN_PROGRESS;
-
-	EnableIRQ(FTM1_IRQn);
-	FTM_StartTimer(FTM1, kFTM_SystemClock);
-#else // CPU_MK22FN512VLL12
-	htim6.Instance = TIM6;
-	htim6.Init.Prescaler = encoderData.baudIs300 ? 7 : 1; // 7 gives 300 baud. 1 gives 1200 baud
-	htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-
-#if defined(PLATFORM_MD9600)
-	htim6.Init.Period = 15000;
-#else // PLATFORM_MD9600
-	htim6.Init.Period = 30000;
-#endif // PLATFORM_MD9600
-
-	htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+	if ((info == NULL) || (info[0] == 0) || (aprsTxProgress != APRS_TX_IDLE) ||
+			trxTransmissionEnabled || trxIsTransmitting ||
+			(trxGetMode() != RADIO_MODE_ANALOG) ||
+			(codeplugChannelGetFlag(currentChannelData, CHANNEL_FLAG_RX_ONLY) != 0) ||
+			((nonVolatileSettings.txFreqLimited != BAND_LIMITS_NONE) &&
+					(trxCheckFrequencyInAmateurBand(currentChannelData->txFreq) == false)))
 	{
-		Error_Handler();
+		return false;
 	}
 
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+	aprsConfig = &aprsBcnData.aprsConfig[APRS_CONFIG_CHANNEL];
+
+	codeplugGetRadioName(myCall);
+	myCall[6] = 0;
+
+	encoderData.bitStuffingCounter = 0;
+	encoderData.currentBitNRZI = false;
+	memset(encoderData.packetBuffer, 0, AX25_PACKET_BUFFER_SIZE);
+	encoderData.packetBufferBitPosition = 0;
+
+	// Hand the codec back before keying. The receive decoders hold it while the
+	// squelch is open, and transmit needs it for the microphone path; waiting for
+	// their own tick to notice is too late, because the settling delay below runs
+	// first and blocks this task.
+	fiveToneDecodeReleaseCapture();
+
+	LedWrite(LED_GREEN, 0);
+	LedWrite(LED_RED, 1);
+	HRC6000ClearIsWakingState();
+	trxIsTransmitting = true;
+	trxSetTX(); // sets trxTransmissionEnabled itself
+
+	m = ticksGetMillis();
+	while ((ticksGetMillis() - m) < APRS_XMIT_TX_DELAY)
 	{
-		Error_Handler();
+		vTaskDelay((1 / portTICK_PERIOD_MS));
 	}
 
-	HRC6000SetMic(false);
+	enqueueFlagOfLength(&encoderData, APRS_PREAMBLE_FLAGS);
+	encoderData.crc = 0xFFFF; // only covers the data, so start it after the flags
+	enqueueHeader(&encoderData);
+	enqueueString(&encoderData, info);
+	enqueueCRC(&encoderData);
+	enqueueFlagOfLength(&encoderData, 3U);
 
-#if defined(PLATFORM_MD9600)
-	uint32_t lastTone = 1;
-	trxSetTone1(lastTone);
-#else // PLATFORM_MD9600
-	uint32_t lastTone = 0;
-	AT1846sWriteTone1Reg(lastTone);
-	trxSelectVoiceChannel(AT1846_VOICE_CHANNEL_TONE1);
-
-	int volume = getVolumeControl() + 30;
-
-	if (volume >= 0)
-	{
-		radioWriteReg2byte(0x44, 0x06, volume);
-		HAL_GPIO_WritePin(RX_AUDIO_MUX_GPIO_Port, RX_AUDIO_MUX_Pin, GPIO_PIN_RESET);
-		enableAudioAmp(AUDIO_AMP_MODE_RF);
-	}
-#endif // PLATFORM_MD9600
-
-	aprsTxProgress = APRS_TX_IN_PROGRESS;
-	HAL_TIM_Base_Start_IT(&htim6);
-#endif // CPU_MK22FN512VLL12
-
+	aprsStartBitStream();
 	return true;
 }
 
@@ -787,26 +902,33 @@ void aprsBitStreamSender(void)
 		return;
 	}
 
-	if (bitPos % 8 == 0)
+	// Every bit of the frame goes out, the closing flags included. This used to
+	// count whole bytes and stop as the last one was loaded, so that byte - and any
+	// part-filled one after it, bit stuffing rarely leaves a whole number - never
+	// went. Of the three closing flags only about one made it to the air, and a
+	// receiver that missed the end threw the whole packet away. For a long time
+	// all I heard back from the city digis was the odd short beep; this may well
+	// have been part of it. Stopping only here, a full bit period after the
+	// last bit was set, lets that last bit play out.
+	if (bitPos >= lenBits)
 	{
-		dataByte = encoderData.packetBuffer[bytePos];
-		bytePos++;
-
-		if (bytePos == lenBytes)
-		{
-//			AT1846SWriteTone1Reg(0);
-			// just stop the ISR and flag that the data has been sent.
+//		AT1846SWriteTone1Reg(0);
+		// just stop the ISR and flag that the data has been sent.
 
 #if defined(CPU_MK22FN512VLL12)
-			FTM_StopTimer(FTM1);
-			DisableIRQ(FTM1_IRQn);
+		FTM_StopTimer(FTM1);
+		DisableIRQ(FTM1_IRQn);
 #else // CPU_MK22FN512VLL12
-			HAL_TIM_Base_Stop_IT(&htim6);
+		HAL_TIM_Base_Stop_IT(&htim6);
 #endif // CPU_MK22FN512VLL12
 
-			aprsTxProgress = APRS_TX_FINISHED;			// Tell the foreground we've finished, so it can do the speaker and other stuff
-			return;
-		}
+		aprsTxProgress = APRS_TX_FINISHED;			// Tell the foreground we've finished, so it can do the speaker and other stuff
+		return;
+	}
+
+	if ((bitPos % 8) == 0)
+	{
+		dataByte = encoderData.packetBuffer[bitPos / 8];
 	}
 
 #if defined(CPU_MK22FN512VLL12)

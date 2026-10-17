@@ -482,7 +482,12 @@ void soundTickMelody(void)
 	taskENTER_CRITICAL();
 	if (melody_play != NULL)
 	{
-		if (sine_beep_duration == 0)
+		// <= rather than ==: soundSetMelody() can zero the duration from another
+		// task in between the beep task's "> 0" test and its decrement, which
+		// leaves it at -1. On == that never matches again, so the melody never
+		// advances, soundStopMelody() never runs, and the audio path stays stuck
+		// in beep mode until the radio is power cycled.
+		if (sine_beep_duration <= 0)
 		{
 			if (melody_play[melody_idx] == -1)
 			{
@@ -593,7 +598,12 @@ static void soundBeepTaskFunction(void *data)
 					interruptsEnableC6000Interrupts();
 				}
 
-				sine_beep_duration--;
+				// Guarded: another task may have zeroed this while we were busy
+				// with the SPI transfers above, and it must never go negative.
+				if (sine_beep_duration > 0)
+				{
+					sine_beep_duration--;
+				}
 			}
 			else
 			{

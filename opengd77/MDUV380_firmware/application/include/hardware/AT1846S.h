@@ -43,6 +43,7 @@
 #define AT1846_VOICE_CHANNEL_MIC    0x40
 
 bool radioWriteReg2byte(uint8_t reg, uint8_t val1, uint8_t val2);
+void radioSetFMRxAudioGain(int8_t volume);
 bool radioReadReg2byte(uint8_t reg, uint8_t *val1, uint8_t *val2);
 bool radioSetClearReg2byteWithMask(uint8_t reg, uint8_t mask1, uint8_t mask2, uint8_t val1, uint8_t val2);
 void I2C_AT1846S_send_Settings(const uint8_t settings[][AT1846_BYTES_PER_COMMAND], int numSettings);

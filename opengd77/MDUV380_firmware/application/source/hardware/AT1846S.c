@@ -317,6 +317,40 @@ bool radioWriteReg2byte(uint8_t reg, uint8_t val1, uint8_t val2)
 	return ret;
 }
 
+// Extra FM receive attenuation, for listening quietly.
+//
+// The normal volume control is the C6000 line-out gain, and it bottoms out at
+// -31dB - low, but still enough to fill a silent room at night. This winds the
+// AT1846S's own audio volume down as well over the lower half of the knob,
+// stacking on top of the line-out gain so the quietest setting is genuinely
+// low, while the upper half keeps the stock level. FM only: the AT1846S is not
+// in the DMR audio path.
+//
+// The volume sits in register 0x44, whose stock value is 0x06CC - the low byte
+// 0xCC being two equal nibbles, which the init comments call "80%". Both nibbles
+// are kept equal here, so whatever their exact meaning the value stays the same
+// symmetric shape as the factory one and only its level changes.
+void radioSetFMRxAudioGain(int8_t volume)
+{
+	uint8_t nib;
+
+	if (volume >= 0)
+	{
+		nib = 0x0C; // stock: low byte 0xCC
+	}
+	else
+	{
+		int g = ((volume < -31) ? -31 : (int) volume); // -31..-1 (guard the -99 mute)
+
+		// -31..0 maps onto nibble 2..12, so the bottom of the travel is a small
+		// fraction of full and it climbs smoothly back to the stock level by the
+		// midpoint of the knob.
+		nib = (uint8_t)(2 + (((g + 31) * (12 - 2)) / 31));
+	}
+
+	radioWriteReg2byte(0x44, 0x06, (uint8_t)((nib << 4) | nib));
+}
+
 bool radioReadReg2byte(uint8_t reg, uint8_t *val1, uint8_t *val2)
 {
 	uint8_t data[2] = {reg, 0x00};

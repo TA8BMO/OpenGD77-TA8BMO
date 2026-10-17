@@ -62,6 +62,28 @@ static int8_t shiftOffsetIndex = 0; // Beware, could be negative;
 
 static menuStatus_t menuChannelDetailsExitCode = MENU_STATUS_SUCCESS;
 
+// 5-Tone ANI on-radio editing state (ASELSAN-style direct 5-digit keypad entry).
+// Digits are edited in this buffer and only written to tmpChannel on save, so
+// leading zeros are preserved and a cancel keeps the previous value.
+static bool    fiveToneEditActive = false;
+static uint8_t fiveToneEditDigits[5] = { 0, 0, 0, 0, 0 };
+static uint8_t fiveToneEditCursor = 0;
+
+// Persist the edited 5-Tone code + mode from tmpChannel into the live channel AND
+// to flash, so the setting takes effect immediately for TX and survives a power
+// cycle (stored per-channel). VFO has no flash slot, so it is only made live.
+static void fiveTonePersist(void)
+{
+	uint8_t d[5];
+	aniTxMode_t m = codeplugChannelGetFiveTone(&tmpChannel, d);
+
+	codeplugChannelSetFiveTone(currentChannelData, d, m); // active immediately for TX
+	if (uiDataGlobal.currentSelectedChannelNumber != CH_DETAILS_VFO_CHANNEL)
+	{
+		codeplugChannelSaveDataForIndex(uiDataGlobal.currentSelectedChannelNumber, currentChannelData); // permanent
+	}
+}
+
 enum
 {
 	CH_DETAILS_NAME = 0,
@@ -75,6 +97,8 @@ enum
 	CH_DETAILS_CONTACT,
 	CH_DETAILS_RXCSS,
 	CH_DETAILS_TXCSS,
+	CH_DETAILS_FIVE_TONE,
+	CH_DETAILS_FIVE_TONE_REPLY,
 	CH_DETAILS_BANDWIDTH,
 	CH_DETAILS_FREQ_STEP,
 	CH_DETAILS_TOT,
@@ -90,6 +114,7 @@ enum
 	CH_DETAILS_TA_TX_TS2,
 	CH_DETAILS_APRS_CONFIG,
 	CH_DETAILS_DMR_FORCE_DMO,
+	CH_DETAILS_DELETE, // last, so the QuickKey numbers of the items above are unchanged
 	NUM_CH_DETAILS_ITEMS
 };// The last item in the list is used so that we automatically get a total number of items in the list
 
@@ -103,6 +128,7 @@ menuStatus_t menuChannelDetails(uiEvent_t *ev, bool isFirstRun)
 		uiDataGlobal.FreqEnter.index = 0;
 		nameInError = false;
 		shiftOffsetIndex = 0;
+		fiveToneEditActive = false;
 
 		if (memcmp(tmpChannel.name, CHANNEL_UNSET, 5) == 0) // Check if the channel was already loaded (TX Screen was triggered within this menu)
 		{
@@ -355,6 +381,56 @@ static void updateScreen(bool isFirstRun, bool allowedToSpeakUpdate)
 							snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, "Tx CSS:%s", currentLanguage->n_a);
 						}
 						break;
+					case CH_DETAILS_FIVE_TONE:
+						if (tmpChannel.chMode == RADIO_MODE_ANALOG)
+						{
+							if (fiveToneEditActive)
+							{
+								// Editing: show the 5 digits with a [ ] cursor around the active one
+								char b[SCREEN_LINE_BUFFER_SIZE];
+								int n = 0;
+								b[n++] = '5'; b[n++] = 'T'; b[n++] = ':';
+								for (int k = 0; (k < 5) && (n < (SCREEN_LINE_BUFFER_SIZE - 4)); k++)
+								{
+									if (k == fiveToneEditCursor)
+									{
+										b[n++] = '['; b[n++] = '0' + fiveToneEditDigits[k]; b[n++] = ']';
+									}
+									else
+									{
+										b[n++] = '0' + fiveToneEditDigits[k];
+									}
+								}
+								b[n] = 0;
+								strncpy(rightSideVar, b, SCREEN_LINE_BUFFER_SIZE);
+							}
+							else
+							{
+								uint8_t d[5];
+								aniTxMode_t mode = codeplugChannelGetFiveTone(&tmpChannel, d);
+								const char *modeStr = (mode == ANI_MODE_PTT_START) ? "St" :
+										((mode == ANI_MODE_PTT_END) ? "En" :
+										((mode == ANI_MODE_PTT_BOTH) ? "St+En" : currentLanguage->off));
+								snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, "5T:%u%u%u%u%u %s",
+										d[0], d[1], d[2], d[3], d[4], modeStr);
+							}
+						}
+						else
+						{
+							snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, "5T:%s", currentLanguage->n_a);
+						}
+						break;
+					case CH_DETAILS_FIVE_TONE_REPLY:
+						if (tmpChannel.chMode == RADIO_MODE_ANALOG)
+						{
+							snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, "5T Cevap:%s",
+									(codeplugChannelGetFiveToneReply(&tmpChannel) ? currentLanguage->on : currentLanguage->off));
+						}
+						else
+						{
+							snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, "5T Cevap:%s", currentLanguage->n_a);
+						}
+						break;
 					case CH_DETAILS_RXFREQ:
 						rightSideUnitsPrompt = PROMPT_MEGAHERTZ;
 						rightSideUnitsStr = "MHz";
@@ -543,6 +619,10 @@ static void updateScreen(bool isFirstRun, bool allowedToSpeakUpdate)
 							rightSideConst = ((codeplugChannelGetFlag(&tmpChannel, CHANNEL_FLAG_FORCE_DMO) != 0) ? currentLanguage->yes : currentLanguage->no);
 						}
 						break;
+					case CH_DETAILS_DELETE:
+						// An action rather than a setting: no "label:value", just the name.
+						snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, "%s", menuChannelZoneDeleteLabel());
+						break;
 				}
 
 				if (leftSide != NULL)
@@ -676,6 +756,7 @@ static void updateScreen(bool isFirstRun, bool allowedToSpeakUpdate)
 					switch(mNum)
 					{
 						case CH_DETAILS_NAME:
+						case CH_DETAILS_DELETE: // no ':' to split at - the default case would look for one
 							menuDisplayEntry(i, mNum, buf, -1, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
 							break;
 
@@ -872,6 +953,118 @@ static void handleEvent(uiEvent_t *ev)
 		}
 	}
 
+	// 5-Tone ANI direct keypad entry (ASELSAN-style): typed digits, cursor, save/cancel.
+	// Handled before the generic list key handling so these keys are captured here.
+	// Leading zeros are preserved because the 5 digits are edited/stored individually.
+	if ((menuDataGlobal.currentItemIndex == CH_DETAILS_FIVE_TONE) && (tmpChannel.chMode == RADIO_MODE_ANALOG))
+	{
+		int aniKeyval = menuGetKeypadKeyValue(ev, true);
+
+		// A number key 0-9: type a digit directly (leading zeros allowed, e.g. 03310)
+		if ((aniKeyval != 99) && !BUTTONCHECK_DOWN(ev, BUTTON_SK2) && !BUTTONCHECK_DOWN(ev, BUTTON_SK1))
+		{
+			if (fiveToneEditActive == false)
+			{
+				codeplugChannelGetFiveTone(&tmpChannel, fiveToneEditDigits); // start from stored code
+				fiveToneEditActive = true;
+				fiveToneEditCursor = 0;
+			}
+
+			if (fiveToneEditCursor > 4)
+			{
+				fiveToneEditCursor = 4;
+			}
+			fiveToneEditDigits[fiveToneEditCursor] = (uint8_t) aniKeyval;
+
+			if (fiveToneEditCursor < 4)
+			{
+				fiveToneEditCursor++;
+			}
+			else
+			{
+				// 5th digit typed: auto-save; enable ANI (PTT-start) if it was Off
+				// A freshly entered code defaults to "send at PTT start" (start only) -
+				// the common case. The mode can still be changed afterwards with the
+				// left/right keys. Forcing it here also avoids inheriting a stale ANI
+				// mode from a previously-unused codeplug byte.
+				codeplugChannelSetFiveTone(&tmpChannel, fiveToneEditDigits, ANI_MODE_PTT_START);
+					fiveTonePersist();
+				fiveToneEditActive = false;
+			}
+			updateScreen(false, true);
+			return;
+		}
+
+		if (fiveToneEditActive)
+		{
+			if (KEYCHECK_SHORTUP(ev->keys, KEY_GREEN))
+			{
+				// A freshly entered code defaults to "send at PTT start" (start only) -
+				// the common case. The mode can still be changed afterwards with the
+				// left/right keys. Forcing it here also avoids inheriting a stale ANI
+				// mode from a previously-unused codeplug byte.
+				codeplugChannelSetFiveTone(&tmpChannel, fiveToneEditDigits, ANI_MODE_PTT_START);
+					fiveTonePersist();
+				fiveToneEditActive = false;
+				updateScreen(false, true);
+				return;
+			}
+			else if (KEYCHECK_SHORTUP(ev->keys, KEY_RED))
+			{
+				fiveToneEditActive = false; // cancel: keep previous stored value
+				updateScreen(false, true);
+				return;
+			}
+			else if (KEYCHECK_SHORTUP(ev->keys, KEY_LEFT))
+			{
+				if (fiveToneEditCursor > 0)
+				{
+					fiveToneEditCursor--;
+				}
+				updateScreen(false, true);
+				return;
+			}
+			else if (KEYCHECK_SHORTUP(ev->keys, KEY_RIGHT))
+			{
+				if (fiveToneEditCursor < 4)
+				{
+					fiveToneEditCursor++;
+				}
+				updateScreen(false, true);
+				return;
+			}
+			else if (BUTTONCHECK_DOWN(ev, BUTTON_SK2))
+			{
+				fiveToneEditDigits[fiveToneEditCursor] = (fiveToneEditDigits[fiveToneEditCursor] + 1) % 10; // knob-like up
+				updateScreen(false, true);
+				return;
+			}
+			else if (BUTTONCHECK_DOWN(ev, BUTTON_SK1))
+			{
+				fiveToneEditDigits[fiveToneEditCursor] = (fiveToneEditDigits[fiveToneEditCursor] + 9) % 10; // knob-like down
+				updateScreen(false, true);
+				return;
+			}
+		}
+	}
+
+	// Delete Channel: green opens the password / "are you sure" screen instead of
+	// saving. Only for a channel that exists - not the VFO, and not the stand-in
+	// shown for an empty zone, whose number is 0.
+	if ((menuDataGlobal.currentItemIndex == CH_DETAILS_DELETE) && (ev->events & KEY_EVENT) &&
+			KEYCHECK_SHORTUP(ev->keys, KEY_GREEN) && (menuDataGlobal.menuOptionsSetQuickkey == 0) && (menuDataGlobal.menuOptionsTimeout == 0))
+	{
+		if (codeplugAllChannelsIndexIsInUse(uiDataGlobal.currentSelectedChannelNumber))
+		{
+			menuChannelZoneStartDelete(uiDataGlobal.currentSelectedChannelNumber);
+		}
+		else
+		{
+			menuChannelDetailsExitCode |= MENU_STATUS_ERROR;
+		}
+		return;
+	}
+
 	// Not entering a frequency numeric digit
 	bool allowedToSpeakUpdate = true;
 
@@ -879,12 +1072,14 @@ static void handleEvent(uiEvent_t *ev)
 	{
 		if (KEYCHECK_PRESS(ev->keys, KEY_DOWN))
 		{
+			fiveToneEditActive = false; // leaving the item cancels any in-progress 5-Tone edit
 			menuSystemMenuIncrement(&menuDataGlobal.currentItemIndex, NUM_CH_DETAILS_ITEMS);
 			updateScreen(false, true);
 			menuChannelDetailsExitCode |= MENU_STATUS_LIST_TYPE;
 		}
 		else if (KEYCHECK_PRESS(ev->keys, KEY_UP))
 		{
+			fiveToneEditActive = false; // leaving the item cancels any in-progress 5-Tone edit
 			menuSystemMenuDecrement(&menuDataGlobal.currentItemIndex, NUM_CH_DETAILS_ITEMS);
 			updateScreen(false, true);
 			menuChannelDetailsExitCode |= MENU_STATUS_LIST_TYPE;
@@ -1004,6 +1199,25 @@ static void handleEvent(uiEvent_t *ev)
 								(((voicePromptWasPlaying == false) && (nonVolatileSettings.audioPromptMode > AUDIO_PROMPT_MODE_VOICE_LEVEL_2)) ? DIRECTION_TRANSMIT : DIRECTION_NONE),
 								(voicePromptWasPlaying == false), AUDIO_PROMPT_MODE_VOICE_LEVEL_1);
 						allowedToSpeakUpdate = false;
+					}
+					break;
+				case CH_DETAILS_FIVE_TONE:
+					// Right/increment cycles the ANI transmit mode forward (Off->St->En->Both).
+					// Digit entry / cursor is handled earlier in the keypad-entry block.
+					if (tmpChannel.chMode == RADIO_MODE_ANALOG)
+					{
+						uint8_t d[5];
+						aniTxMode_t m = codeplugChannelGetFiveTone(&tmpChannel, d);
+						m = (aniTxMode_t)((m + 1) % ANI_MODE_MAX);
+						codeplugChannelSetFiveTone(&tmpChannel, d, m);
+						fiveTonePersist();
+					}
+					break;
+				case CH_DETAILS_FIVE_TONE_REPLY:
+					if (tmpChannel.chMode == RADIO_MODE_ANALOG)
+					{
+						codeplugChannelSetFiveToneReply(&tmpChannel, true);
+						codeplugChannelSetFiveToneReply(currentChannelData, true); // active immediately
 					}
 					break;
 				case CH_DETAILS_BANDWIDTH:
@@ -1228,6 +1442,24 @@ static void handleEvent(uiEvent_t *ev)
 								(((voicePromptWasPlaying == false) && (nonVolatileSettings.audioPromptMode > AUDIO_PROMPT_MODE_VOICE_LEVEL_2)) ? DIRECTION_TRANSMIT : DIRECTION_NONE),
 								(voicePromptWasPlaying == false), AUDIO_PROMPT_MODE_VOICE_LEVEL_1);
 						allowedToSpeakUpdate = false;
+					}
+					break;
+				case CH_DETAILS_FIVE_TONE:
+					if (tmpChannel.chMode == RADIO_MODE_ANALOG)
+					{
+						// Left/decrement cycles the ANI transmit mode backward.
+						uint8_t d[5];
+						aniTxMode_t m = codeplugChannelGetFiveTone(&tmpChannel, d);
+						m = (aniTxMode_t)((m + ANI_MODE_MAX - 1) % ANI_MODE_MAX);
+						codeplugChannelSetFiveTone(&tmpChannel, d, m);
+						fiveTonePersist();
+					}
+					break;
+				case CH_DETAILS_FIVE_TONE_REPLY:
+					if (tmpChannel.chMode == RADIO_MODE_ANALOG)
+					{
+						codeplugChannelSetFiveToneReply(&tmpChannel, false);
+						codeplugChannelSetFiveToneReply(currentChannelData, false); // active immediately
 					}
 					break;
 				case CH_DETAILS_BANDWIDTH:

@@ -596,7 +596,15 @@ static void handleEvent(uiEvent_t *ev)
 					break;
 #if defined(HAS_GPS)
 				case GENERAL_OPTIONS_GPS:
-					if ((nonVolatileSettings.gps != GPS_NOT_DETECTED) && (nonVolatileSettings.gps < (NUM_GPS_MODES - 1)))
+					// With the track log switched off (settings.h) its "Log" mode,
+					// the last one, is not offered: NMEA is as far as it goes.
+					if ((nonVolatileSettings.gps != GPS_NOT_DETECTED) &&
+#if defined(LOG_GPS_DATA) && ! GPS_TRACK_LOG_TO_FLASH
+							(nonVolatileSettings.gps < GPS_MODE_ON_NMEA)
+#else
+							(nonVolatileSettings.gps < (NUM_GPS_MODES - 1))
+#endif
+					)
 					{
 						if (nonVolatileSettings.gps == GPS_MODE_OFF)
 						{

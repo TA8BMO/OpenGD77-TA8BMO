@@ -158,6 +158,9 @@ void aprsBeaconingInit(void);
 void aprsBeaconingStart(void);
 void aprsBeaconingStop(void);
 void aprsBeaconingResetTimers(void);
+// Sends an arbitrary APRS information field - a message or its acknowledgement.
+// Keys the radio; aprsBeaconingTxStateTick() unkeys when the frame has gone.
+bool aprsSendInfoField(const char *info);
 void aprsBeaconingPrepareSatelliteConfig(void);
 void aprsBeaconingInvalidateFixedPosition(void);
 bool aprsBeaconingIsSuspended(void);

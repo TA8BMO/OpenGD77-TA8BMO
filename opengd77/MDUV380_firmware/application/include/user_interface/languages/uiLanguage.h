@@ -329,6 +329,11 @@ typedef struct
    const char auto_lock[LANGUAGE_TEXTS_LENGTH];
    const char trackball[LANGUAGE_TEXTS_LENGTH];
    const char dmr_force_dmo[LANGUAGE_TEXTS_LENGTH];
+   const char games[LANGUAGE_TEXTS_LENGTH];
+   const char aprsLog[LANGUAGE_TEXTS_LENGTH];
+   const char userManual[LANGUAGE_TEXTS_LENGTH]; // main menu entry, string 276
+   const char channelZone[LANGUAGE_TEXTS_LENGTH]; // main menu entry, string 277
+   const char fiveToneContacts[LANGUAGE_TEXTS_LENGTH]; // Contacts menu entry, string 278
 } stringsTable_t;
 
 #endif // _OPENGD77_UILANGUAGE_H_

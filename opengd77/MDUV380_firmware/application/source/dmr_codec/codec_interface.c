@@ -61,7 +61,8 @@ void codecDecode(uint8_t *indata_ptr, int numbBlocks)
 			"STR R1, [SP, #0x00]\n"
 			"LDR R3, =0\n"
 			"LDR R1, =80\n"
-			"BL " QU(AMBE_DECODE)
+			"LDR R12, =" QU(AMBE_DECODE) "\n"
+			"BLX R12\n"
 			"ADD SP, SP, #0x10\n"
 			"POP {R4-R11}"
 		);
@@ -83,13 +84,107 @@ void codecDecode(uint8_t *indata_ptr, int numbBlocks)
 			"STR R1, [SP, #0x00]\n"
 			"LDR R3, =0\n"
 			"LDR R1, =80\n"
-			"BL " QU(AMBE_DECODE)
+			"LDR R12, =" QU(AMBE_DECODE) "\n"
+			"BLX R12\n"
 			"ADD SP, SP, #0x10\n"
 			"POP {R4-R11}"
 		);
 
 		soundStoreBuffer();
     }
+}
+
+// The same three codec calls as codecEncodeBlock() below, on audio the caller
+// hands in rather than the next two microphone buffers. The registers go in as asm
+// operands, which pins them in r0-r2 at each call whatever the optimiser does
+// around them; the clobbers cover what the codec, as an ordinary AAPCS function,
+// may change.
+void codecEncodeBlockFromPCM(uint8_t *outdata_ptr, const uint8_t *pcm)
+{
+	memset((uint8_t *)outdata_ptr, 0, 9);
+	memset(bitbuffer_encode, 0, sizeof(bitbuffer_encode));
+
+	{
+		register int r0 asm ("r0") = (int)bitbuffer_encode;
+		register int r1 asm ("r1") = (int)ambebuffer_encode;
+		register int r2 asm ("r2") = (int)pcm;
+
+		asm volatile (
+			"PUSH {R4-R11}\n"
+			"SUB SP, SP, #0x14\n"
+			"STR R1, [SP, #0x0C]\n"
+			"LDR R1, =0x00002000\n"
+			"STR R1, [SP, #0x08]\n"
+			"LDR R1, =0\n"
+			"STR R1, [SP, #0x04]\n"
+			"LDR R1, =0x00001840\n"
+			"STR R1, [SP, #0x00]\n"
+			"LDR R3, =80\n"
+			"LDR R1, =0\n"
+			"LDR R12, =" QU(AMBE_ENCODE) "\n"
+			"BLX R12\n"
+			"ADD SP, SP, #0x14\n"
+			"POP {R4-R11}"
+			: "+r" (r0), "+r" (r1), "+r" (r2)
+			:
+			: "r3", "r12", "lr", "cc", "memory", "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"
+		);
+	}
+
+	{
+		register int r0 asm ("r0") = (int)bitbuffer_encode;
+		register int r1 asm ("r1") = (int)ambebuffer_encode;
+		register int r2 asm ("r2") = (int)(pcm + WAV_BUFFER_SIZE);
+
+		asm volatile (
+			"PUSH {R4-R11}\n"
+			"SUB SP, SP, #0x14\n"
+			"STR R1, [SP, #0x0C]\n"
+			"LDR R1, =0x00002000\n"
+			"STR R1, [SP, #0x08]\n"
+			"LDR R1, =1\n"
+			"STR R1, [SP, #0x04]\n"
+			"LDR R1, =0x00000800\n"
+			"STR R1, [SP, #0x00]\n"
+			"LDR R3, =80\n"
+			"LDR R1, =0\n"
+			"LDR R12, =" QU(AMBE_ENCODE) "\n"
+			"BLX R12\n"
+			"ADD SP, SP, #0x14\n"
+			"POP {R4-R11}"
+			: "+r" (r0), "+r" (r1), "+r" (r2)
+			:
+			: "r3", "r12", "lr", "cc", "memory", "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"
+		);
+	}
+
+	{
+		register int r0 asm ("r0") = (int)bitbuffer_encode;
+		register int r1 asm ("r1") = (int)ambebuffer_encode_ecc;
+
+		asm volatile (
+			"PUSH {R4-R11}\n"
+			"SUB SP, SP, #0x14\n"
+			"MOV R3, R1\n"
+			"LDR R2, =0\n"
+			"MOV R1, R0\n"
+			"LDR R12, =" QU(AMBE_ENCODE_ECC) "\n"
+			"BLX R12\n"
+			"ADD SP, SP, #0x14\n"
+			"POP {R4-R11}"
+			: "+r" (r0), "+r" (r1)
+			:
+			: "r2", "r3", "r12", "lr", "cc", "memory", "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"
+		);
+	}
+
+	for (int i = 0; i < 72; i++)
+	{
+		if (bitbuffer_encode[i] & 1)
+		{
+			outdata_ptr[i >> 3] |= 128 >> (i & 7);
+		}
+	}
 }
 
 void codecEncodeBlock(uint8_t *outdata_ptr)
@@ -120,7 +215,8 @@ void codecEncodeBlock(uint8_t *outdata_ptr)
 		"STR R1, [SP, #0x00]\n"
 		"LDR R3, =80\n"
 		"LDR R1, =0\n"
-		"BL " QU(AMBE_ENCODE)
+		"LDR R12, =" QU(AMBE_ENCODE) "\n"
+		"BLX R12\n"
 		"ADD SP, SP, #0x14\n"
 		"POP {R4-R11}"
 	);
@@ -143,7 +239,8 @@ void codecEncodeBlock(uint8_t *outdata_ptr)
 		"STR R1, [SP, #0x00]\n"
 		"LDR R3, =80\n"
 		"LDR R1, =0\n"
-		"BL " QU(AMBE_ENCODE)
+		"LDR R12, =" QU(AMBE_ENCODE) "\n"
+		"BLX R12\n"
 		"ADD SP, SP, #0x14\n"
 		"POP {R4-R11}"
 	);
@@ -157,7 +254,8 @@ void codecEncodeBlock(uint8_t *outdata_ptr)
 		"MOV R3, R1\n"
 		"LDR R2, =0\n"
 		"MOV R1, R0\n"
-		"BL " QU(AMBE_ENCODE_ECC)
+		"LDR R12, =" QU(AMBE_ENCODE_ECC) "\n"
+		"BLX R12\n"
 		"ADD SP, SP, #0x14\n"
 		"POP {R4-R11}"
 	);

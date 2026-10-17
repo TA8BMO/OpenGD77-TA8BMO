@@ -34,6 +34,21 @@
 
 
 #define LOW_SPEED_CLOCK_ECO_THRESHOLD 2
+
+// The APRS calling frequency, in the codeplug's units of 10Hz.
+//
+// Eco mode saves power by switching the receiver off for most of each cycle,
+// which is fine for voice - a caller holds the button long enough to be caught -
+// but not for APRS. A packet lasts well under a second, so most of them land
+// while the receiver is off and are simply never heard. The give-away was that
+// packets only ever appeared while the log screen was open: pressing keys there
+// kept eco from engaging at all.
+//
+// Rather than a menu setting to forget about, eco simply stands down whenever
+// the radio is tuned here. Everywhere else it behaves exactly as before, so
+// battery life is untouched on normal channels. This covers the VFO as well,
+// since currentChannelData points at the VFO's own channel in that mode.
+#define APRS_CALLING_FREQUENCY  14480000 // 144.800MHz
 static ecoPhase_t rxPowerSavingState = ECOPHASE_POWERSAVE_INACTIVE;
 static ticksTimer_t ecoPhaseTimer = { 0, 0 };
 volatile static int powerSavingLevel = 1;
@@ -139,6 +154,7 @@ void rxPowerSavingTick(uiEvent_t *ev, bool hasSignal)
 		{
 			if (ticksTimerHasExpired(&ecoPhaseTimer) &&
 					((powerSavingLevel > 0) && (codeplugChannelGetFlag(currentChannelData, CHANNEL_FLAG_NO_ECO) == 0)) &&
+					((currentChannelData == NULL) || (currentChannelData->rxFreq != APRS_CALLING_FREQUENCY)) &&
 					(melody_play == NULL) && (voicePromptsIsPlaying() == false)
 #if defined(PLATFORM_MDUV380) || defined(PLATFORM_RT84_DM1701) || defined(PLATFORM_MD2017)
 					&& (voxIsEnabled() == false)

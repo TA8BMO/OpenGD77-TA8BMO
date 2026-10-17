@@ -32,6 +32,9 @@
 #if defined(LANGUAGE_BUILD_JAPANESE)
 #include "user_interface/languages/japanese.h"
 #endif
+#if ! defined(LANGUAGE_BUILD_JAPANESE)
+#include "user_interface/languages/turkish.h" // built-in Turkish (TA8BMO Special Edition)
+#endif
 
 #if ! defined(LANGUAGE_BUILD_JAPANESE)
 #if defined(PLATFORM_GD77) || defined(PLATFORM_GD77S) || defined(PLATFORM_DM1801) || defined(PLATFORM_DM1801A) || defined(PLATFORM_RD5R)
@@ -55,7 +58,7 @@ const stringsTable_t languages[]=
 #if defined(LANGUAGE_BUILD_JAPANESE)
 		japaneseLanguage       // japaneseLanguageName
 #else
-		userLanguage // User language, written by the CPS
+		turkishLanguage // built-in Turkish (replaces the CPS "User" slot)
 #endif
 };
 const stringsTable_t *currentLanguage;

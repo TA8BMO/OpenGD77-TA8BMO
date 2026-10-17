@@ -49,7 +49,13 @@ static
   uint8_t NMEARecordingBuffer[LOG_RAM_BUF_SIZE];
 
 #define LOG_FLASH_16MB_START_ADDRESS  (14 * 1024 * 1024) // Last 2MB
+// The receive recorder has the top of the flash; with the track log enabled it
+// keeps only the top 1MB and the log gets the 1MB below (settings.h).
+#if GPS_TRACK_LOG_TO_FLASH
+#define LOG_FLASH_16MB_MEM_SIZE        (1 * 1024 * 1024)
+#else
 #define LOG_FLASH_16MB_MEM_SIZE        (2 * 1024 * 1024)
+#endif
 #if defined(CPU_MK22FN512VLL12)
 #define LOG_FLASH_2MB_START_ADDRESS    (1 * 1024 * 1024) // Last 1MB
 #define LOG_FLASH_2MB_MEM_SIZE         (1 * 1024 * 1024)
@@ -845,7 +851,7 @@ void gpsTick(void)
 						gpsData.Time = gpsTimeConvert(param[0], param[5]);
 
 						// Clock skew ?
-						if (((gpsData.Status & (GPS_STATUS_HAS_FIX | GPS_STATUS_3D_FIX)) == (GPS_STATUS_HAS_FIX | GPS_STATUS_3D_FIX)) &&
+						if ((statusLetter[0] == 'A') /* GPS time valid (2D fix is enough); no 3D needed, so the clock resyncs whenever GPS locks, even after the battery was out */ &&
 								(abs(uiDataGlobal.dateTimeSecs - gpsData.Time) > 5))
 						{
 							uiSetUTCDateTimeInSecs(gpsData.Time);
@@ -1095,6 +1101,10 @@ static void gpsLogNMEAData(const char *nmea, uint8_t length)
 
 void gpsLoggingStart(void)
 {
+#if ! GPS_TRACK_LOG_TO_FLASH
+	return; // switched off: that flash belongs to the receive recorder (settings.h)
+#endif
+
 	if (nonVolatileSettings.gps == GPS_MODE_ON_LOG)
 	{
 		if (gpsIsLogging == false)
@@ -1147,6 +1157,13 @@ void gpsLoggingClear(void)
 {
 	uint32_t numFlashPages = gpsLogFlashMemSize / LOG_RAM_BUF_SIZE;
 	uint32_t addr;
+
+#if ! GPS_TRACK_LOG_TO_FLASH
+	// Switched off: erasing "the log" would erase the receive recordings.
+	(void) numFlashPages;
+	(void) addr;
+	return;
+#endif
 
 	watchdogRun(false);
 	for(uint32_t i = 0; i < numFlashPages; i++)

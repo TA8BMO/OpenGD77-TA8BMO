@@ -1091,6 +1091,28 @@ void dmrIDCacheInit(void)
 	}
 }
 
+// The first address past the DMR ID database in the external flash, or 0 when
+// none is loaded. The receive recorder checks it, so that however large a
+// database the CPS writes, the recorder never erases a byte of it.
+uint32_t dmrIDDatabaseEndAddress(void)
+{
+	uint32_t total;
+
+	if ((dmrIDsCache.entries == 0) || (dmrIDsCache.contactLength == 0))
+	{
+		return 0;
+	}
+
+	total = (dmrIDsCache.entries * dmrIDsCache.contactLength);
+
+	if (total <= dmrIdDataArea_1_Size)
+	{
+		return (DMRID_MEMORY_LOCATION_1 + DMRID_HEADER_LENGTH + total);
+	}
+
+	return (dmrIDDatabaseMemoryLocation2 + (total - dmrIdDataArea_1_Size));
+}
+
 void dmrIDCacheClear(void)
 {
 	memset(&dmrIDsCache, 0, sizeof(dmrIDsCache_t));
@@ -4453,3 +4475,4 @@ int32_t cpuGetFlashSize(void)
 	return (*(__IO uint16_t *) (0x1FFF7A22));
 }
 #endif
+

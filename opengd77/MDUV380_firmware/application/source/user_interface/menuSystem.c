@@ -107,6 +107,24 @@ menuDataGlobal_t menuDataGlobal =
 				NULL,// Theme items browser
 				NULL,// Colour picker
 #endif
+				NULL,// Selective Call 5-Tone
+				NULL,// Morse
+				NULL,// Fox hunt
+				NULL,// Games menu
+				NULL,// Snake
+				NULL,// Tetris
+				NULL,// Breakout
+				NULL,// 2048
+				NULL,// Dino
+				NULL,// Scores
+				NULL,// Morse log
+				NULL,// APRS log
+				NULL,// APRS send message
+				NULL,// Morse practice
+				NULL,// APRS WhatsApp
+				NULL,// APRS e-mail
+				NULL,// User manual
+				NULL,// New channel / zone, delete channel
 		}
 };
 
@@ -165,7 +183,32 @@ static menuFunctionData_t menuFunctions[] =
 		{ menuThemeItemsBrowser,    NULL, NULL, 0 },
 		{ menuColourPicker,         NULL, NULL, 0 },
 #endif
+		{ menuSelectiveCall5Tone,   NULL, NULL, 0 },
+		{ menuMorse,                NULL, NULL, 0 },
+		{ menuFoxHunt,              NULL, NULL, 0 },
+		{ menuGames,                NULL, NULL, 0 },
+		{ menuGameSnake,            NULL, NULL, 0 },
+		{ menuGameTetris,           NULL, NULL, 0 },
+		{ menuGameBreakout,         NULL, NULL, 0 },
+		{ menuGame2048,             NULL, NULL, 0 },
+		{ menuGameDino,             NULL, NULL, 0 },
+		{ menuGameScores,           NULL, NULL, 0 },
+		{ menuMorseLog,             NULL, NULL, 0 },
+		{ menuAPRSLog,              NULL, NULL, 0 },
+		{ menuAPRSSend,             NULL, NULL, 0 },
+		{ menuMorseTrain,           NULL, NULL, 0 },
+		{ menuAPRSWhatsApp,         NULL, NULL, 0 },
+		{ menuAPRSEmail,            NULL, NULL, 0 },
+		{ menuUserManual,           NULL, NULL, 0 },
+		{ menuChannelZone,          NULL, NULL, 0 },
 };
+
+// This table is indexed by the MENU_SCREENS enum, and nothing about a mismatch
+// shows up at compile time - the screen simply jumps through whatever entry
+// happens to sit at that index, which is a hard fault. Adding a screen means
+// adding to both, in the same place; this catches forgetting one of them.
+_Static_assert(((sizeof(menuFunctions) / sizeof(menuFunctions[0])) == NUM_MENU_ENTRIES),
+		"menuFunctions[] and the MENU_SCREENS enum are out of step");
 
 static void menuSystemCheckForFirstEntryAudible(menuStatus_t status)
 {
@@ -655,7 +698,20 @@ const menuItemNewData_t mainMenuItems[] =
 #if defined(HAS_GPS)
 	{ 195, MENU_GPS		        },
 #endif
+	{ 274, MENU_GAMES           },// stringsTable_t.games ("Oyunlar")
+	{ 275, UI_APRS_LOG          },// stringsTable_t.aprsLog ("APRS Kayit")
+	{ 276, UI_USER_MANUAL       },// stringsTable_t.userManual ("Kilavuz")
+	{ 277, UI_CHANNEL_ZONE      },// stringsTable_t.channelZone ("Yeni Kanal/Zon")
 };
+
+// Main menu entries name their label by its position in the language table, not
+// by field, so a new string has to land exactly at the number its entry gives.
+// Checked here rather than trusted, because a mismatch is silent: the menu would
+// just show some other label.
+_Static_assert(((__builtin_offsetof(stringsTable_t, userManual) - __builtin_offsetof(stringsTable_t, LANGUAGE_NAME)) / LANGUAGE_TEXTS_LENGTH) == 276,
+		"stringsTable_t.userManual is not string 276 - the main menu would show the wrong label");
+_Static_assert(((__builtin_offsetof(stringsTable_t, channelZone) - __builtin_offsetof(stringsTable_t, LANGUAGE_NAME)) / LANGUAGE_TEXTS_LENGTH) == 277,
+		"stringsTable_t.channelZone is not string 277 - the main menu would show the wrong label");
 
 const menuItemsList_t menuDataMainMenu =
 {
@@ -668,7 +724,10 @@ static const menuItemNewData_t contactMenuItems[] =
 	{ 15,  MENU_CONTACT_LIST      },
 	{ 139, MENU_DTMF_CONTACT_LIST },
 	{ 14,  MENU_CONTACT_NEW       },
+	{ 278, UI_CHANNEL_ZONE        },// stringsTable_t.fiveToneContacts; the screen sees it was opened from here
 };
+_Static_assert(((__builtin_offsetof(stringsTable_t, fiveToneContacts) - __builtin_offsetof(stringsTable_t, LANGUAGE_NAME)) / LANGUAGE_TEXTS_LENGTH) == 278,
+		"stringsTable_t.fiveToneContacts is not string 278 - the Contacts menu would show the wrong label");
 
 const menuItemsList_t menuDataContact =
 {

@@ -137,6 +137,11 @@ bool settingsLoadSettings(bool reset)
 	settingsVFOSanityCheck(&settingsVFOChannel[CHANNEL_VFO_B], CHANNEL_VFO_B);
 #endif
 
+	// My own habit: VFO A always wakes up on 145.500 simplex, whatever was left
+	// in it at power-off. That is where I listen, so that is where it starts.
+	settingsVFOChannel[CHANNEL_VFO_A].rxFreq = 14550000;
+	settingsVFOChannel[CHANNEL_VFO_A].txFreq = 14550000;
+
 	/* 2020.10.27  vk3kyy. This should not be necessary as the rest of the firmware e.g. on the VFO screen and in the contact lookup handles when Rx Group and / or Contact is set to none
 	settingsInitVFOChannel(0);// clean up any problems with VFO data
 	settingsInitVFOChannel(1);

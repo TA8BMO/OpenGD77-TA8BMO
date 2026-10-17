@@ -48,13 +48,13 @@
 #define QU(X) QUAUX(X)
 
 #if defined(PLATFORM_MD9600) || defined(PLATFORM_MDUV380) || defined(PLATFORM_MD380)  || defined(PLATFORM_RT84_DM1701)
-#define AMBE_DECODE 0x08075954;
-#define AMBE_ENCODE 0x080754ac;
-#define AMBE_ENCODE_ECC 0x08075864;
+#define AMBE_DECODE 0x08075955
+#define AMBE_ENCODE 0x080754ad
+#define AMBE_ENCODE_ECC 0x08075865
 #else
-#define AMBE_DECODE 0x0005543D;
-#define AMBE_ENCODE 0x00054F94;
-#define AMBE_ENCODE_ECC 0x0005534C;
+#define AMBE_DECODE 0x0005543D
+#define AMBE_ENCODE 0x00054F95
+#define AMBE_ENCODE_ECC 0x0005534D
 #endif
 extern uint8_t ambebuffer_decode[CODEC_DECODE_CONFIG_DATA_LENGTH];
 extern uint8_t ambebuffer_encode[CODEC_ENCODE_CONFIG_DATA_LENGTH];
@@ -67,5 +67,9 @@ void codecInitInternalBuffers(void);
 void codecDecode(uint8_t *indata_ptr, int numbBlocks);
 void codecEncode(uint8_t *outdata_ptr, int numbBlocks);
 void codecEncodeBlock(uint8_t *outdata_ptr);
+// 20ms of audio the caller supplies - two WAV_BUFFER_SIZE halves back to back,
+// in the I2S buffers' own sample format - encoded to one 9-byte frame. Leaves the
+// sound buffers, which DMR transmit owns, alone.
+void codecEncodeBlockFromPCM(uint8_t *outdata_ptr, const uint8_t *pcm);
 
 #endif /* _OPENGD77_CODEC_H_ */

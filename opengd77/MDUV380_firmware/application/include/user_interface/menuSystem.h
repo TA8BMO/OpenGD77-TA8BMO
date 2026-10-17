@@ -232,6 +232,8 @@ void menuPrivateCallDismiss(void);
 void menuHotspotRestoreSettings(void);
 
 bool menuTxScreenDisplaysLastHeard(void);
+// Sends a 5-Tone code as an automatic answer to a matching selective call.
+bool uiTxScreenSendFiveToneReply(const uint8_t digits[5]);
 void menuTxScreenHandleTxTermination(uiEvent_t *ev, txTerminationReason_t reason);
 
 void menuSatelliteScreenClearPredictions(bool reloadKeps);
@@ -327,6 +329,26 @@ enum MENU_SCREENS
 	MENU_THEME_ITEMS_BROWSER,
 	MENU_COLOUR_PICKER,
 #endif
+	UI_SELECTIVE_CALL_5TONE,
+	UI_MORSE,
+	UI_FOX_HUNT,
+	MENU_GAMES,
+	UI_GAME_SNAKE,
+	UI_GAME_TETRIS,
+	UI_GAME_BREAKOUT,
+	UI_GAME_2048,
+	UI_GAME_DINO,
+	UI_GAME_SCORES,
+	// Must stay after MENU_GAMES: applicationMain.c blocks PTT for every menu
+	// from MENU_GAMES onwards, and this screen re-routes the C6000 codec.
+	UI_MORSE_LOG,
+	UI_APRS_LOG,
+	UI_APRS_SEND,
+	UI_MORSE_TRAIN,
+	UI_APRS_WHATSAPP,
+	UI_APRS_EMAIL,
+	UI_USER_MANUAL,
+	UI_CHANNEL_ZONE, // after MENU_GAMES on purpose: PTT is blocked while it writes the codeplug
 	NUM_MENU_ENTRIES
 };
 
@@ -403,7 +425,15 @@ typedef struct
 	char					menuOptionsSetQuickkey;
 	int 					menuOptionsTimeout;
 	bool 					newOptionSelected;
-	const menuItemsList_t	*data[];
+	// Sized, deliberately. This was a flexible array member, so it was exactly as
+	// long as the initialiser list in menuSystem.c happened to be - and adding a
+	// screen to MENU_SCREENS without adding a line there left the system indexing
+	// past the end of the struct, taking whatever followed in memory as a pointer.
+	// The radio locked up hard enough that it could not be switched off.
+	//
+	// With a size, a forgotten entry is simply NULL, which is what most of them
+	// are anyway, and too many entries is a compile error instead of a crash.
+	const menuItemsList_t	*data[NUM_MENU_ENTRIES];
 } menuDataGlobal_t;
 
 enum
@@ -439,6 +469,28 @@ menuStatus_t menuRadioInfos(uiEvent_t *event, bool isFirstRun);
 menuStatus_t menuFirmwareInfoScreen(uiEvent_t *event, bool isFirstRun);
 menuStatus_t menuNumericalEntry(uiEvent_t *event, bool isFirstRun);
 menuStatus_t menuTxScreen(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuSelectiveCall5Tone(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuMorse(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuFoxHunt(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuGames(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuGameSnake(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuGameTetris(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuGameBreakout(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuGame2048(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuGameDino(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuGameScores(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuMorseLog(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuAPRSLog(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuAPRSSend(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuAPRSWhatsApp(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuAPRSEmail(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuUserManual(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuChannelZone(uiEvent_t *event, bool isFirstRun);
+void menuChannelZoneStartDelete(int channelIndex); // opens the delete confirmation for this channel
+const char *menuChannelZoneDeleteLabel(void);     // "Kanali Sil" / "Delete Channel"
+menuStatus_t menuMorseTrain(uiEvent_t *event, bool isFirstRun);
+void uiChannelModeDrawRSSIMeterStrip(void);
+void uiChannelModeDrawRxDecodeMarkers(void);
 menuStatus_t menuRSSIScreen(uiEvent_t *event, bool isFirstRun);
 menuStatus_t menuLastHeard(uiEvent_t *event, bool isFirstRun);
 menuStatus_t menuGeneralOptions(uiEvent_t *event, bool isFirstRun);

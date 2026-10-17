@@ -195,7 +195,7 @@ const stringsTable_t englishLanguage =
 .pwr					= "Pwr",
 .user_power				= "User Power",
 .temperature				= "Temperature", // MaxLen: 16 (with ':' + .celcius or .fahrenheit)
-.celcius				= "°C",
+.celcius				= "ï¿½C",
 .seconds				= "seconds",
 .radio_info				= "Radio info",
 .temperature_calibration		= "Temp Cal",
@@ -315,12 +315,17 @@ const stringsTable_t englishLanguage =
 .aprs_fast_rate				= "Fast Rate", // MaxLen 16 (with ':' + 10..180 + 's')
 .aprs_low_speed				= "Low Speed", // MaxLen 16 (with ':' + 2..30 + 'km/h')
 .aprs_high_speed			= "Hi Speed", // MaxLen 16 (with ':' + 2..90 + 'km/h')
-.aprs_turn_angle			= "T. Angle", // MaxLen 16 (with ':' + 5..90 + '°')
-.aprs_turn_slope			= "T. Slope", // MaxLen 16 (with ':' + 1..255 + '°/v')
+.aprs_turn_angle			= "T. Angle", // MaxLen 16 (with ':' + 5..90 + 'ï¿½')
+.aprs_turn_slope			= "T. Slope", // MaxLen 16 (with ':' + 1..255 + 'ï¿½/v')
 .aprs_turn_time				= "T. Time", // MaxLen 16 (with ':' + 5..180 + 's')
 .auto_lock				= "Auto lock", // MaxLen 16 (with ':' + .off or 0.5..15 (.5 step) + 'min')
 .trackball				= "Trackball", // MaxLen 16 (with ':' + .on or .off)
 .dmr_force_dmo				= "Force DMO", // MaxLen 16 (with ':' + .n_a or .on or .off)
+.games					= "Games", // MaxLen 16
+.aprsLog				= "Logs", // MaxLen 16 - APRS, call and Morse logs
+.userManual				= "User Manual", // MaxLen 16
+.channelZone			= "Radio Setup", // MaxLen 16
+.fiveToneContacts		= "5T Contacts", // MaxLen 16
 };
 /********************************************************************
  *

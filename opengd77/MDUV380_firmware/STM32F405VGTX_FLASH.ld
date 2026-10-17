@@ -160,6 +160,21 @@ SECTIONS
 	    KEEP(*(.codec_bin_section_1))
 	} > FLASH
 
+	/* Large constant data that does not need to sit below the codec (TA8BMO).
+	 * Code and ordinary constants have to fit between the start of flash and
+	 * the codec's fixed address above, and that space is nearly full; the flash
+	 * after the codec is not. Anything marked
+	 * __attribute__((section(".hiconst"))) - the user manual text, the photo -
+	 * goes here instead. The codec region itself is untouched: the firmware
+	 * loader writes the real codec at its fixed address, and this follows it
+	 * exactly as the .data init image already did. */
+	.hiconst : ALIGN(4)
+	{
+	   *(.hiconst)
+	   *(.hiconst*)
+	   . = ALIGN(4);
+	} > FLASH
+
   /* Initialized data sections into "RAM" Ram type memory */
   .data :
   {

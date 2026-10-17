@@ -32,6 +32,11 @@
 #include "user_interface/uiLocalisation.h"
 #include "functions/voicePrompts.h"
 #include "functions/rxPowerSaving.h"
+#include "functions/fiveToneDecode.h"
+#include "functions/dtmfDecode.h"
+#include "functions/morseDecode.h"
+#include "functions/toneFinder.h"
+#include "functions/voiceRecorder.h"
 #if defined(PLATFORM_MD9600) || defined(PLATFORM_MD380) || defined(PLATFORM_MDUV380) || defined(PLATFORM_RT84_DM1701) || defined(PLATFORM_MD2017)
 #include "hardware/radioHardwareInterface.h"
 #endif
@@ -101,6 +106,9 @@ static void updateQuickMenuScreen(bool isFirstRun);
 static void handleQuickMenuEvent(uiEvent_t *ev);
 
 static void scanning(void);
+static void drawChannelRSSIMeter(void);
+static void drawLastFiveToneCall(void);
+static void drawMorseWaitingMarker(void);
 static void scanStart(bool longPressBeep);
 static void scanSearchForNextChannel(void);
 static void scanApplyNextChannel(void);
@@ -305,11 +313,12 @@ menuStatus_t uiChannelMode(uiEvent_t *ev, bool isFirstRun)
 						else
 						{
 							uiUtilityDrawRSSIBarGraph();
+							drawChannelRSSIMeter(); // designed coloured S-meter + numeric S-value (rows 2-3)
 						}
 
-						// Only render the second row which contains the bar graph, if we're not scanning,
-						// as there is no need to redraw the rest of the screen
-						displayRenderRows(((uiDataGlobal.Scan.active && (uiDataGlobal.Scan.state == SCAN_STATE_PAUSED)) ? 0 : 1), 2);
+						// Render the header bar row plus our meter rows (2-3) so both update live,
+						// unless we're scanning (then the whole upper block is redrawn).
+						displayRenderRows(((uiDataGlobal.Scan.active && (uiDataGlobal.Scan.state == SCAN_STATE_PAUSED)) ? 0 : 1), 4);
 					}
 					m = ev->time;
 				}
@@ -703,6 +712,262 @@ void uiChannelModeLoadChannelData(bool useChannelDataInMemory, bool loadVoicePro
 	}
 }
 
+// Always-on coloured S-meter + numeric S-value for the main channel screen.
+// (The stock header RSSI bar was not visible on the MD-UV390; this draws an
+// explicit meter in the header/bar row.) Green up to S9, red above S9. The
+// numeric value reads S0..S9 then S9+10..S9+60.
+// Last decoded 5-Tone caller. Drawn in the gap between the channel name and the
+// zone line, and left there - it is only replaced by the next call, cleared on
+// a channel change, or lost at power off. The whole point is to be able to walk
+// back to the radio and see who called.
+// Red CW marker above the channel name, shown while there is decoded Morse
+// stored for the frequency in use. Clearing the log in the Morse log screen
+// takes it away again; it never appears on a channel it did not arrive on.
+static void drawMorseWaitingMarker(void)
+{
+	if ((trxGetMode() != RADIO_MODE_ANALOG) || uiDataGlobal.displayChannelSettings ||
+			(morseDecodeHasTextForCurrentChannel() == false))
+	{
+		return;
+	}
+
+	displaySetForegroundAndBackgroundColours(
+			PLATFORM_COLOUR_FORMAT_SWAP_BYTES(RGB888_TO_PLATFORM_COLOUR_FORMAT(0xFF0000)),
+			PLATFORM_COLOUR_FORMAT_SWAP_BYTES(RGB888_TO_PLATFORM_COLOUR_FORMAT(0x000000)));
+	displayPrintCore(0, (DISPLAY_Y_POS_CHANNEL_FIRST_LINE - 16), "CW", FONT_SIZE_3, TEXT_ALIGN_CENTER, false);
+	displayThemeResetToDefault();
+}
+
+// The DTMF decoder shares this line: whichever of the two was received last is
+// the one shown, "5T 12345" or "DT 123*#".
+static void drawLastFiveToneCall(void)
+{
+	char code[FIVETONE_CODE_LEN + 1];
+	char dtmf[DTMF_DECODE_CODE_LEN + 1];
+	char buf[24];
+	uint32_t ftAge = 0;
+	uint32_t dtAge = 0;
+	bool haveFt;
+	bool haveDt;
+
+	if ((trxGetMode() != RADIO_MODE_ANALOG) || uiDataGlobal.displayChannelSettings)
+	{
+		return;
+	}
+
+	haveFt = fiveToneDecodeGetLast(code, &ftAge);
+	haveDt = dtmfDecodeGetLast(dtmf, &dtAge);
+
+	// The tone finder (0 key) shares the line too: always while it searches,
+	// and afterwards for as long as its answer is newer than any code.
+	uint32_t tfAge = 0;
+	bool tfActive = false;
+	bool haveTf = toneFinderGetText(buf, sizeof(buf), &tfAge, &tfActive);
+
+	if ((haveTf == false) ||
+			((tfActive == false) && ((haveFt && (ftAge < tfAge)) || (haveDt && (dtAge < tfAge)))))
+	{
+		// A caller with a DTMF contact whose code matches is shown by name
+		// instead of by number - "5T Ahmet" rather than "5T 12345".
+		const char *prefix;
+		const char *shown;
+		char name[17];
+
+		if (haveDt && ((haveFt == false) || (dtAge < ftAge)))
+		{
+			prefix = "DT";
+			shown = dtmf;
+		}
+		else if (haveFt)
+		{
+			prefix = "5T";
+			shown = code;
+		}
+		else
+		{
+			return;
+		}
+
+		if (codeplugDTMFContactFindNameForCode(shown, name))
+		{
+			shown = name;
+		}
+		snprintf(buf, sizeof(buf), "%s %s", prefix, shown);
+	}
+
+	// The channel screen has free space below the channel name, but on the VFO
+	// screen that same offset lands squarely between the RX and TX frequency
+	// lines and overwrites both. The VFO's empty band is above the frequencies,
+	// right after the CW marker's row, so the code goes there instead.
+	displayThemeApply(THEME_ITEM_FG_CHANNEL_CONTACT_INFO, THEME_ITEM_BG);
+	displayPrintCore(0,
+			((menuSystemGetCurrentMenuNumber() == UI_VFO_MODE) ?
+					DISPLAY_Y_POS_CHANNEL_FIRST_LINE :
+					(DISPLAY_Y_POS_CHANNEL_FIRST_LINE + 24)),
+			buf, FONT_SIZE_3, TEXT_ALIGN_CENTER, false);
+	displayThemeResetToDefault();
+}
+
+static void drawChannelRSSIMeter(void)
+{
+#if defined(HAS_COLOURS)
+	// Analog FM only: in DMR the TG/contact line occupies this band. Also skip
+	// while transmitting, sweep/tone-scanning, or when the SK1 overlay is shown.
+	if ((trxGetMode() != RADIO_MODE_ANALOG) || trxTransmissionEnabled ||
+			uiVFOModeSweepScanning(true) || uiDataGlobal.displayChannelSettings ||
+			uiDataGlobal.Scan.toneActive)
+	{
+		return;
+	}
+
+	int dbm = trxGetRSSIdBm(RADIO_DEVICE_PRIMARY);
+	int s = 0;
+	for (int i = 15; i >= 0; i--)
+	{
+		if (dbm >= DBM_LEVELS[i])
+		{
+			s = i;
+			break;
+		}
+	}
+
+	char sbuf[10];
+	if (s <= 9)
+	{
+		snprintf(sbuf, sizeof(sbuf), "S%d", s);
+	}
+	else
+	{
+		snprintf(sbuf, sizeof(sbuf), "S9+%d", (s - 9) * 10);
+	}
+
+	const int textLen = (s <= 9) ? 2 : 5; // "Sn" or "S9+nn"
+
+	// In "black" display mode the panel runs with hardware inverse video (INVON),
+	// which flips every framebuffer colour on the glass. Pre-invert our explicit
+	// RGB values so the glass shows the intended colours in both modes, and use
+	// the theme's real background for the strip so it always matches the screen.
+	//
+	// Do not be tempted to take these from theme items: THEME_ITEM_FG_DECORATION
+	// is the full-brightness text colour, not a dim one, so using it for the
+	// unlit segments lights the whole meter up and makes it look stuck at full
+	// scale.
+	const bool inv = settingsIsOptionBitSet(BIT_INVERSE_VIDEO);
+	#define METER_COLOUR(rgb) PLATFORM_COLOUR_FORMAT_SWAP_BYTES(RGB888_TO_PLATFORM_COLOUR_FORMAT(inv ? (0xFFFFFFU ^ (rgb)) : (rgb)))
+
+	const uint16_t green  = METER_COLOUR(0x00C800U);
+	const uint16_t orange = METER_COLOUR(0xFF8000U);
+	const uint16_t red    = METER_COLOUR(0xFF2020U);
+	const uint16_t dim    = METER_COLOUR(inv ? 0x404040U : 0xD0D0D0U); // subtle against either background
+
+	uint16_t themeFg, themeBg;
+	displayThemeResetToDefault();
+	displayGetForegroundAndBackgroundColours(&themeFg, &themeBg);
+	(void)themeFg;
+
+	// Own row, just below the stock header bar (rows 2-3) so the two never overlap.
+	const int meterY = 16;
+	const int valY   = meterY;      // numeric S-value
+	const int barY   = meterY + 9;  // segmented bar
+	const int barH   = 6;
+
+	// Segment colour by S zone: green up to S9, orange S9+10..+30, red S9+40 and above.
+	#define RSSI_SEG_ZONE(idx) (((idx) <= 8) ? green : (((idx) <= 11) ? orange : red))
+
+	// Clear our two rows with the theme background so the strip blends in.
+	displaySetForegroundAndBackgroundColours(themeBg, themeBg);
+	displayFillRect(0, meterY, DISPLAY_SIZE_X, 16, false);
+
+	// Numeric S-value, centred, coloured by zone (8px-wide font). S9 stays green.
+	uint16_t valColour = (s <= 9) ? green : ((s <= 12) ? orange : red);
+	displaySetForegroundAndBackgroundColours(valColour, themeBg);
+	displayPrintAt(((DISPLAY_SIZE_X - (textLen * 8)) / 2), valY, sbuf, FONT_SIZE_2);
+
+	// The receive recorder: "REC" at the left of the strip for as long as it is
+	// switched on, and a dot after it while a transmission is being recorded.
+	// Red on the glass whatever the display mode - the colour is pre-inverted
+	// for inverse video like the meter's own.
+	if (voiceRecorderGetEnabled() && (voiceRecorderGetStatus() == VOICE_RECORDER_STATUS_OK))
+	{
+		displaySetForegroundAndBackgroundColours(red, themeBg);
+		displayPrintAt(2, valY, "REC", FONT_SIZE_2);
+		if (voiceRecorderIsRecording())
+		{
+			displayFillCircle(30, (valY + 3), 2, false);
+		}
+	}
+
+	// Segmented meter (15 steps), centred, lit up to the current S-unit; unlit steps dim.
+	const int segCount = 15;
+	const int segW = 9;
+	const int segGap = 1;
+	const int barW = (segCount * (segW + segGap)) - segGap;
+	const int barX = (DISPLAY_SIZE_X - barW) / 2;
+	for (int i = 0; i < segCount; i++)
+	{
+		displaySetForegroundAndBackgroundColours(((i < s) ? RSSI_SEG_ZONE(i) : dim), themeBg);
+		displayFillRect((barX + (i * (segW + segGap))), barY, segW, barH, false);
+	}
+
+	#undef RSSI_SEG_ZONE
+	#undef METER_COLOUR
+	displayThemeResetToDefault();
+#endif
+}
+
+// Shared entry point so the VFO screen can draw the same meter strip.
+void uiChannelModeDrawRSSIMeterStrip(void)
+{
+	drawChannelRSSIMeter();
+}
+
+// Local time, centred in the free band under the S-meter / contact line
+// (40..47, clear on channel and VFO in both analog and DMR). The clock itself
+// needs no minding: a hardware interrupt counts the seconds and GPS re-syncs it
+// automatically whenever it has a fix (gps.c), so unlike a hand-set clock it
+// does not drift. This only makes it visible without opening a menu.
+static void drawClockLine(void)
+{
+	struct tm t;
+	char buf[8];
+	time_t_custom local;
+
+	// Nothing until the clock has been set to something plausible - a radio
+	// that has never had GPS or the CPS would otherwise show 1970.
+	if (uiDataGlobal.displayChannelSettings || (uiDataGlobal.dateTimeSecs < 1577836800U /* 2020-01-01 */))
+	{
+		return;
+	}
+
+	// The same timezone arithmetic the Radio Infos screen uses.
+	// When no timezone has been set (bit 0x80 clear), default to Turkey - UTC+3,
+	// no daylight saving - rather than showing bare UTC, which read three hours
+	// behind. An explicitly chosen timezone still takes precedence.
+	local = uiDataGlobal.dateTimeSecs +
+			((nonVolatileSettings.timezone & 0x80) ? (((nonVolatileSettings.timezone & 0x7F) - 64) * (15 * 60)) : (3 * 60 * 60));
+
+	gmtime_r_Custom(&local, &t);
+	snprintf(buf, sizeof(buf), "%02u:%02u", (unsigned int) t.tm_hour, (unsigned int) t.tm_min);
+
+	displayThemeApply(THEME_ITEM_FG_CHANNEL_NAME, THEME_ITEM_BG);
+	displayPrintCore(0, 40, buf, FONT_SIZE_2, TEXT_ALIGN_CENTER, false);
+	displayThemeResetToDefault();
+}
+
+// Likewise for the received-Morse and 5-Tone markers, so both screens show them.
+void uiChannelModeDrawRxDecodeMarkers(void)
+{
+	drawLastFiveToneCall();
+	drawMorseWaitingMarker();
+
+	// Only on the resting screen: caller data draws its own text through this
+	// band, and a clock stamped over a callsign helps nobody.
+	if (uiDataGlobal.displayQSOStatePrev == QSO_DISPLAY_DEFAULT_SCREEN)
+	{
+		drawClockLine();
+	}
+}
+
 void uiChannelModeUpdateScreen(int txTimeSecs)
 {
 	char nameBuf[NAME_BUFFER_LEN];
@@ -848,6 +1113,12 @@ void uiChannelModeUpdateScreen(int txTimeSecs)
 
 			}
 
+			if (!trxTransmissionEnabled)
+			{
+				drawChannelRSSIMeter(); // always-on coloured S-meter + numeric S-value
+				drawLastFiveToneCall(); // last 5-Tone caller, held until superseded
+				drawMorseWaitingMarker();
+			}
 			displayRender();
 			break;
 
@@ -857,6 +1128,12 @@ void uiChannelModeUpdateScreen(int txTimeSecs)
 			uiDataGlobal.isDisplayingQSOData = true;
 			uiDataGlobal.displayChannelSettings = false;
 			uiUtilityRenderQSOData();
+			if (!trxTransmissionEnabled)
+			{
+				drawChannelRSSIMeter(); // always-on coloured S-meter + numeric S-value
+				drawLastFiveToneCall(); // last 5-Tone caller, held until superseded
+				drawMorseWaitingMarker();
+			}
 			displayRender();
 			break;
 
@@ -1131,6 +1408,13 @@ static void handleEvent(uiEvent_t *ev)
 			{
 				menuSystemPushNewMenu(MENU_NUMERICAL_ENTRY);
 			}
+			return;
+		}
+		else if (KEYCHECK_LONGDOWN(ev->keys, KEY_0) && (KEYCHECK_LONGDOWN_REPEAT(ev->keys, KEY_0) == false)
+					&& (BUTTONCHECK_DOWN(ev, BUTTON_SK2) == 0) && (trxGetMode() == RADIO_MODE_ANALOG))
+		{
+			// Long-press 0 (analog FM only): one-shot 5-Tone selective call screen.
+			menuSystemPushNewMenu(UI_SELECTIVE_CALL_5TONE);
 			return;
 		}
 		else if (KEYCHECK_LONGDOWN(ev->keys, KEY_RED) && (KEYCHECK_LONGDOWN_REPEAT(ev->keys, KEY_RED) == false) && BUTTONCHECK_DOWN(ev, BUTTON_SK1))
@@ -1411,19 +1695,8 @@ static void handleEvent(uiEvent_t *ev)
 				}
 				else
 				{
-					uint8_t bw25k = codeplugChannelSetFlag(currentChannelData, CHANNEL_FLAG_BW_25K, !(codeplugChannelGetFlag(currentChannelData, CHANNEL_FLAG_BW_25K)));
-
-					if (bw25k)
-					{
-						nextKeyBeepMelody = (int16_t *)MELODY_KEY_BEEP_FIRST_ITEM;
-					}
-
-					// ToDo announce VP for bandwidth perhaps
-					trxSetModeAndBandwidth(RADIO_MODE_ANALOG, (bw25k != 0));
-					soundSetMelody(MELODY_NACK_BEEP);
-					headerRowIsDirty = true;
-					uiDataGlobal.displayQSOState = uiDataGlobal.displayQSOStatePrev;
-					uiChannelModeUpdateScreen(0);
+					// STAR on an analog channel opens the Morse (CW) text sender.
+					menuSystemPushNewMenu(UI_MORSE);
 				}
 			}
 		}
@@ -1449,6 +1722,11 @@ static void handleEvent(uiEvent_t *ev)
 				uiDataGlobal.displayQSOState = QSO_DISPLAY_DEFAULT_SCREEN;
 				uiChannelModeUpdateScreen(0);
 				announceItem(PROMPT_SEQUENCE_TS, PROMPT_THRESHOLD_1);
+			}
+			else
+			{
+				// Long STAR on an analog channel opens the fox-hunt helper.
+				menuSystemPushNewMenu(UI_FOX_HUNT);
 			}
 		}
 		else if (KEYCHECK_LONGDOWN(ev->keys, KEY_HASH) && (KEYCHECK_LONGDOWN_REPEAT(ev->keys, KEY_HASH) == false))
@@ -1512,6 +1790,15 @@ static void handleEvent(uiEvent_t *ev)
 				return;
 #endif
 			}
+		}
+		else if (KEYCHECK_SHORTUP(ev->keys, KEY_0) && (directChannelNumber == 0) && (trxGetMode() == RADIO_MODE_ANALOG) &&
+				(BUTTONCHECK_DOWN(ev, BUTTON_SK1) == false) && (BUTTONCHECK_DOWN(ev, BUTTON_SK2) == false) && (uiDataGlobal.Scan.active == false))
+		{
+			// Short 0, with no channel number being typed (there is no channel 0,
+			// so a leading 0 was never a digit): find the station's CTCSS/DCS.
+			// On release, so a long press still opens the selective call.
+			toneFinderToggle();
+			return;
 		}
 		else
 		{

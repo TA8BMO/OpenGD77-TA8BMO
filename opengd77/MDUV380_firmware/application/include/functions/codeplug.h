@@ -381,6 +381,36 @@ uint32_t codeplugChannelGetOptionalDMRID(struct_codeplugChannel_t *channelBuf);
 void codeplugChannelSetOptionalDMRID(struct_codeplugChannel_t *channelBuf, uint32_t dmrID);
 uint8_t codeplugChannelGetFlag(struct_codeplugChannel_t *channelBuf, ChannelFlag_t flag);
 uint8_t codeplugChannelSetFlag(struct_codeplugChannel_t *channelBuf, ChannelFlag_t flag, uint8_t value);
+
+// --- 5-Tone ANI (firmware-only feature, analog FM channels) ---
+// Per-channel fixed-length 5-digit code + ANI transmit mode. Stored WITHOUT
+// changing the 56-byte on-disk channel record, so CPS binary compatibility and
+// struct alignment are preserved. Layout (reuses otherwise-unused bytes):
+//   VFOoffsetFreq (offset 52-53): 4 BCD digits d0..d3 (d0=bits12-15 ... d3=bits0-3)
+//   _UNUSED_1     (offset 37)   : high nibble = d4, low nibble = ANI mode
+// Digits are stored as BCD nibbles so leading zeros are always preserved
+// (e.g. "03310" is stored as digits {0,3,3,1,0}, never collapsed to an int).
+// NOTE: OpenGD77 CPS zeroes these bytes on write, so a CPS codeplug upload
+//       reverts the value to OFF/00000 and it must be re-entered on the radio.
+typedef enum
+{
+	ANI_MODE_OFF = 0,
+	ANI_MODE_PTT_START,
+	ANI_MODE_PTT_END,
+	ANI_MODE_PTT_BOTH,
+	ANI_MODE_MAX
+} aniTxMode_t;
+
+// Fills digitsOut[5] with digits 0..9 (invalid/garbage nibbles are clamped to 0).
+// Returns the per-channel ANI transmit mode.
+aniTxMode_t codeplugChannelGetFiveTone(struct_codeplugChannel_t *channelBuf, uint8_t digitsOut[5]);
+// Stores digits[5] (each expected 0..9) and the ANI transmit mode.
+void codeplugChannelSetFiveTone(struct_codeplugChannel_t *channelBuf, const uint8_t digits[5], aniTxMode_t mode);
+// Per-channel automatic answer: when a received selective call matches this
+// channel's own ANI code, transmit that code back once. Stored in bit 0 of
+// _UNUSED_2 (offset 42), independent of the ANI transmit mode above.
+bool codeplugChannelGetFiveToneReply(struct_codeplugChannel_t *channelBuf);
+void codeplugChannelSetFiveToneReply(struct_codeplugChannel_t *channelBuf, bool enabled);
 void codeplugChannelGetDataWithOffsetAndLengthForIndex(int index, struct_codeplugChannel_t *channelBuf, uint8_t offset, int length);
 void codeplugChannelGetDataForIndex(int index, struct_codeplugChannel_t *channelBuf);
 void codeplugUtilConvertBufToString(char *codeplugBuf, char *outBuf, int len);
@@ -413,6 +443,13 @@ int codeplugDTMFContactsGetCount(void);
 int codeplugContactsGetCount(uint32_t callType);
 int codeplugContactGetDataForNumberInType(int number, uint32_t callType, struct_codeplugContact_t *contact);
 int codeplugDTMFContactGetDataForNumber(int number, struct_codeplugDTMFContact_t *contact);
+// Name of the DTMF contact whose code is a received 5-Tone/DTMF code. nameOut: 17 bytes.
+bool codeplugDTMFContactFindNameForCode(const char *code, char *nameOut);
+// On-radio editing of DTMF contacts (5T Contacts menu).
+void codeplugDTMFContactsInitCache(void);
+void codeplugDTMFContactCodeToString(const uint8_t *code, char *out); // out: 17 bytes, "0-9A-D*#"
+int codeplugDTMFContactWrite(int index, const char *name, const char *code); // index 0 = first free; returns slot or 0
+bool codeplugDTMFContactErase(int index);
 int codeplugContactIndexByTGorPCFromNumber(int number, uint32_t tgorpc, uint32_t callType, struct_codeplugContact_t *contact, uint8_t optionalTS);
 int codeplugContactIndexByTGorPC(uint32_t tgorpc, uint32_t callType, struct_codeplugContact_t *contact, uint8_t optionalTS);
 int codeplugContactSaveDataForIndex(int index, struct_codeplugContact_t *contact);
@@ -431,6 +468,12 @@ bool codeplugGetGeneralSettings(struct_codeplugGeneralSettings_t *generalSetting
 bool codeplugGetSignallingDTMF(struct_codeplugSignalling_DTMF_t *signallingDTMFBuffer);
 bool codeplugGetSignallingDTMFDurations(struct_codeplugSignalling_DTMFDurations_t *signallingDTMFDurationsBuffer);
 bool codeplugZoneAddChannelToZoneAndSave(int channelIndex, struct_codeplugZone_t *zoneBuf);
+int codeplugZoneCreate(const char *name); // number of the new zone, or -1
+bool codeplugChannelDelete(int channelIndex);
+bool codeplugZoneDelete(int zoneNum);
+bool codeplugZoneRename(int zoneNum, const char *name);
+bool codeplugZoneRemoveChannel(int zoneNum, int channelIndex);
+bool codeplugSetPasswordPin(int32_t pin, int len); // len 0 turns the power-on password off
 bool codeplugGetDeviceInfo(struct_codeplugDeviceInfo_t *deviceInfoBuffer);
 
 uint16_t codeplugGetQuickkeyFunctionID(char key);
@@ -452,6 +495,9 @@ bool codeplugSaveLastUsedChannelInZone(void);
 
 int codeplugAPRSConfigGetCount(void);
 bool codeplugAPRSGetDataForIndex(int index, codeplugAPRS_Config_t *APRS_Buf);
+bool codeplugAPRSSetDataForIndex(int index, codeplugAPRS_Config_t *config); // index up to count + 1
+bool codeplugAPRSDeleteIndex(int index); // 1..count; later configs move up, channels are renumbered to match
+bool codeplugSetRadioName(const char *name);
 int codeplugAPRSGetIndexOfName(char *configName);
 
 #endif

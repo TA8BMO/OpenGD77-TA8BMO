@@ -1,0 +1,495 @@
+@@ Overview
+This radio runs a special OpenGD77 firmware (Special Edition) developed by TA8BMO.
+
+Its key feature is that it decodes analog FM audio inside the radio itself. This is done in software alone, with no added hardware, and is a world first for this radio.
+
+As a result the radio:
+- receives and sends 5-Tone (CCIR) calls
+- receives and sends Morse (CW), and has a practice mode
+- receives APRS packets and sends APRS messages
+- sends WhatsApp and e-mail messages over APRS
+
+It also has a fox hunt helper, a spectrum sweep that stops on speech, a GPS-set clock, a very quiet volume range for night use, a screen brightness shortcut, making channels and zones and deleting channels on the radio, and games.
+
+The 5-Tone, Morse and APRS features work on analog FM channels only.
+
+If this is your first time, read "How to Read" and "Keys" first.
+
+@@ How to Read
+In the topic list:
+- Up/Down arrow or channel knob: choose a topic
+- Green: open the topic
+- Red: back to the main menu
+
+Inside a topic:
+- Up/Down arrow: scroll line by line. Hold to scroll quickly.
+- Turn the channel knob: scroll a screen at a time
+- Green: go to the next topic
+- Red: back to the topic list
+
+The thin bar on the right shows where you are in the text.
+
+You can always reach the manual from Menu > User Manual.
+
+@@ Keys
+Key names used in this manual:
+- Green: menu, confirm and send key
+- Red: back, delete and cancel key
+- Up/Down arrow: the arrow keys on the top row of the keypad
+- SK1, SK2: the two small keys on the side of the radio
+- PTT: the push-to-talk (transmit) key
+- Channel knob: the channel selector on top. In menus it is turned to change values.
+- Volume knob: the on/off and volume knob on top
+
+Short press: press and release. Long press: hold for about one second.
+
+[TYPING]
+On screens where you type text, the keys work like a mobile phone: press the same key repeatedly to choose a letter.
+- 2: a b c 2 A B C
+- 3: d e f 3 D E F (the other keys work the same way)
+- 0: 0 and space
+- 1: 1 . ! , @ - : ? and more symbols
+Wait a moment and the letter is accepted, then go on to the next one.
+
+@@ Channel Screen
+On the channel or VFO screen, on an analog FM channel:
+- 0 short press: tone finder (shows the station's CTCSS/DCS)
+- 0 long press: 5-Tone selective call screen
+- * short press: Morse sending screen
+- * long press: fox hunt screen
+- Hold SK1 + turn the volume knob: screen brightness
+- # long press (in VFO): spectrum sweep
+
+What you may see on the screen:
+- Below the channel name: the code of the last 5-Tone call received
+- A red "CW" above the channel name: a new decoded Morse message is waiting
+- Clock (HH:MM): set automatically by GPS
+- Signal strength bar
+
+Note: These shortcuts only work on analog channels. On a digital (DMR) channel the * key changes the timeslot (TS).
+
+@@ 5-Tone Sending
+5-Tone is the CCIR selective calling system, also used by Aselsan radios. Each channel can be given a 5-digit identity code (ANI).
+
+[SETTING THE CODE]
+In Menu > Channel details, go to the "5T:" row and type the 5 digits with the number keys. Leading zeros are kept (example: 03310). When the fifth digit is typed the code is saved and sending switches to "St" mode. While typing, Green saves and Red cancels.
+
+Change the sending mode with the channel knob:
+- St: send when PTT is pressed
+- En: send when PTT is released
+- St+En: send at both
+- Off: do not send
+
+[HOW IT WORKS]
+When you press PTT the radio waits about 0.25 seconds, then sends the 5 tones at 100 milliseconds each. After the last tone 100 ms of silent carrier is kept. So even if you only tap the PTT, the last digit still reaches the other radio complete.
+
+In normal speech the transmission stops as soon as you release PTT.
+
+If the same digit appears twice in a row, the CCIR repeat tone is sent in place of the second one, as the standard requires. The code on the screen does not change.
+
+@@ 5-Tone Rx/Reply
+5-Tone calls on an analog FM channel are decoded automatically. The caller's code appears below the channel name. It stays there until the channel changes, the radio is switched off or a new call arrives.
+
+[NAMES]
+The caller's name can be shown instead of the code: 5T Ahmet rather than 5T 12345. Save the person as a contact on the radio, with their name and their 5-Tone or DTMF code as its code (for example 12345). The same goes for DTMF codes. Contacts are added on the radio itself (Menu > Contacts > 5T Contacts) or in the CPS's DTMF Contacts list; both are the same list.
+
+[5T CONTACTS MENU]
+Menu > Contacts > 5T Contacts. The list shows each contact's name and code.
+- "+ New Contact" adds a contact; Green on a contact edits it.
+- Name: type it on the keypad. Red deletes the last character.
+- Code: type the digits; the * and # keys work too. For A-D, the channel knob or the Left/Right arrows step the last character through 0-9, A-D, *, #. Red deletes the last character.
+- SAVE saves it. A second contact with the same code is refused.
+- DELETE (only on an existing contact): the question "Delete this contact?" appears, starting on NO.
+- A long press on Red goes back to the list without saving.
+Up to 63 contacts can be kept. They also appear in Contacts > DTMF and can be sent as DTMF from there.
+- An exact match of the code is looked for first.
+- Failing that, a contact code of 4 or more digits found inside the received string also counts (for example 1234 inside *1234#).
+- A code with no contact is shown as a number.
+
+[CALL LOG]
+Menu > Logs > Call Log. Every 5-Tone call and every DTMF sequence received is recorded with the time and frequency, and kept through power-off. The newest is at the top; up to 32 calls are kept (when full, the oldest is overwritten).
+- A row shows the time, the type (5T or DT) and the name (if there is a contact) or the code.
+- Green: the call in full - type, frequency, code, name, date and time. Up/Down move to the newer and older call.
+- Holding the # key clears the log.
+Single-digit DTMF is not logged (it may have come from speech); a DTMF sequence is logged after 2 seconds of silence. A call that came in while the clock was not set shows its time as --:--.
+
+[AUTOMATIC REPLY]
+In Menu > Channel details, set the "5T Cevap" row to On with the channel knob. The channel must also have an ANI code.
+
+When someone calls you, the radio:
+- waits about 1.2 seconds,
+- sends its own ANI code once,
+- beeps the buzzer three times (so you hear it if you are away from the radio).
+
+To stop two radios answering each other forever, only a limited number of replies are sent in quick succession. Real, separate calls are still answered.
+
+@@ DTMF Receive
+DTMF tones on an analog FM channel are decoded automatically too and appear with "DT" on the line where the 5-Tone code is shown, for example: DT 1234*#. Whichever of 5-Tone and DTMF arrived last is the one shown.
+
+Digits are added as they arrive. A digit after a pause of more than 2 seconds starts a new sequence. The last 16 characters at most are shown. The code stays on screen until the channel changes or a new sequence arrives.
+
+[FAST DTMF]
+Some radios send their ID (PTT-ID, ANI) as very fast DTMF. The whole code takes under half a second and sounds like a single "beep". This decoder catches those too: 40 ms or more per digit always, 30-40 ms most of the time.
+
+Speech can now and then be taken for a DTMF digit, which is why a single digit may sometimes appear on its own.
+
+A buzzy "brrrt" sound is not DTMF but a data burst (MDC-1200, FleetSync and similar). This decoder does not decode it.
+
+While DTMF is playing, the 5-Tone and Morse decoders wait, so DTMF does not leave a false 5-Tone code or Morse behind.
+
+@@ RX Recorder
+Records every transmission you hear on FM by itself, so you can listen again later. Recordings survive a power-off.
+
+To open: Menu > Logs > RX Recorder. The top row is "Record: On/Off"; Green switches it. It starts off.
+
+[HOW IT RECORDS]
+- Recording starts when the squelch opens and ends when it closes; each transmission is its own recording.
+- Anything under 1 second (a repeater being keyed up) is not recorded.
+- If a 5-tone or DTMF code is decoded during a transmission, the recording also says who was talking.
+- While the recorder is on, a red REC shows at the left of the signal bar on the channel and VFO screens, with a red dot beside it while a transmission is being recorded. It stays red in inverse (black) display mode too.
+- While recording, the APRS and Morse decoders wait; 5-tone and DTMF carry on.
+- Nothing is recorded on the APRS frequency (144.800) or on DMR.
+- Nothing is recorded while a computer is connected over USB.
+
+[FOLDERS]
+Recordings are filed into folders by channel: one per channel, under its name, or under the frequency if it was recorded on the VFO. The folder recorded into most recently is at the top. Example: "14:32 KATRAD (12)" - the time of its newest recording, the folder and how many it holds.
+- Up/Down: move between folders
+- Green: open the folder. On opening, the most recent folder is already selected.
+- #: delete every recording in the folder (asks first). On the top row: delete every recording (asks first).
+- Red: back
+
+[INSIDE A FOLDER]
+That channel's recordings, newest at the top: time, length, and who was talking if a code was heard. Example: "14:32 12s 5T Ahmet".
+- Up/Down: move between recordings
+- Green: play or stop the selected recording. On opening a folder, its newest recording is selected.
+- #: delete the selected recording (at once)
+- Red: back to the folders
+
+If the channel opens while you listen - someone talks - the playback stops: you hear the live transmission, and it is recorded too.
+
+[CAPACITY]
+Recordings are compressed into the top 2MB of the external flash: about 1 hour in all. When it is full the oldest recordings are written over. The list shows the last 96. The audio is compressed as on DMR; clean on a strong signal, it can sound robotic on a weak, noisy one.
+
+[SAFETY]
+At every power-on the radio checks that the flash is 16MB and that the DMR ID database does not reach into the recording space. If not, recording stays off, the top row gives the reason ("Unsuitable flash" or "DMR ID DB too big"), and nothing is erased.
+
+@@ Tone Finder
+Finds which CTCSS or DCS tone a station is transmitting with. Useful when setting up a repeater or a new channel.
+
+To open: on the channel or VFO screen, in analog FM, short press 0. Pressing it again stops the search.
+- While searching, the progress shows on the 5-Tone line, for example "Tone CTCSS 40%".
+- The 50 CTCSS tones are tried first, then the 83 DCS codes, then the inverted DCS codes.
+- When a tone is found the radio beeps and shows it, like "Tone 88.5Hz" or "Tone D023N".
+- If no tone is found it shows "No tone".
+
+A tone can only be found while the station is transmitting. When the transmission stops the search waits ("Tone: no signal") and carries on when it comes back. CTCSS is found in about 10 seconds, DCS within a minute.
+
+The station stays audible during the search. The channel's or VFO's tone setting is not changed; the result is only shown. Changing channel or frequency clears it; pressing PTT stops the search.
+
+@@ Selective Call
+Used to send the 5-Tone code of any station you like, without changing the code stored in the channel.
+
+To open: long press 0 on an analog channel.
+- Number keys: type the 5 digits
+- Green: send the 5 tones once. Nothing is sent until all 5 digits are in; you hear a warning beep.
+- Red: delete the last digit. When empty it leaves the screen.
+
+After sending you stay on the screen, so you can send the same code again or correct it.
+
+@@ Morse Sending
+To open: short press * on an analog channel.
+
+Type your message on the keypad (20 characters at most). Press Green and the message is transmitted in Morse (700 Hz tone). After sending you stay on the screen to send again or correct it.
+- Up/Down arrow: speed, 5 to 30 WPM, starting at 12.
+- Red short: delete the last letter. When empty, leave.
+- Red long: clear everything and leave.
+- *: go to the Morse log screen (also opened with Menu > Logs > Morse Log).
+
+[TYPING WITH PTT]
+On this screen the PTT works as a straight key. When you key Morse with the PTT the radio DOES NOT TRANSMIT; it decodes your keying and adds it to the message as letters. When the message is ready, transmit it with Green.
+
+The speed setting sets both the transmitted Morse and the practice screen.
+
+@@ Morse Rx/Log
+Morse (CW) heard on an analog FM channel is decoded automatically; nothing needs to be switched on. Tones from 400 to 900 Hz and different keying speeds are detected automatically. It works in VFO too.
+
+When a new decoded message is waiting, a red "CW" appears above the channel name.
+
+[MORSE LOG]
+To open: open the Morse sending screen with *, then press * once more.
+- Up/Down arrow: move between entries
+- #: asks to delete the whole log. Press # again to confirm, Red to cancel.
+- *: go to Morse practice
+- Red: go back
+
+Nonsense decodes, made mostly of unrecognised characters, are not logged. The log is kept even when the radio is switched off.
+
+@@ Morse Practice
+To open: press * on the Morse log screen. In short: * > * > * on the channel.
+
+Nothing is TRANSMITTED on this screen. You only hear the side tone from the radio's own speaker. The PTT is used as the key.
+
+There are two modes, switched with SK2:
+- Free: key whatever you like and see it as letters on the screen.
+- Follow: type a target word on the keypad. Its dots and dashes appear below it. Key it with the PTT and see how much you got right.
+
+Keys:
+- SK1 short: delete the last letter of the target (Follow)
+- SK1 long: clear the target (Follow)
+- Green short: delete the last letter you keyed
+- Green long: clear what you keyed and try again
+- Up/Down arrow: speed (WPM)
+- Red: leave
+
+@@ APRS Receive
+The radio automatically decodes the APRS packets it hears on 144.800 MHz on an analog FM channel. Power saving (eco) is switched off automatically on this frequency, so short packets are not missed.
+
+To open: Menu > Logs > APRS Log.
+
+The last 16 stations are kept. A station heard again replaces its older entry and moves to the top, so one station beaconing often cannot push the others out. Messages to you are never removed this way. The station you are looking at stays selected while the list updates. The screen has two views.
+
+[LIST]
+What opens first. Each row has the station's symbol picture, callsign, distance from you and a small arrow pointing its way. The newest station is at the top. A station with no position shows "--" for the distance; a message to you shows "Msg".
+- Up/Down arrow or the channel knob: move between stations
+- Green: open the selected station (card)
+- Red: back to Logs
+
+[CARD]
+One station in full: a large symbol picture, the callsign, what it is (car, house, repeater...) and how long ago it was heard; below, the distance and direction in large type, and a compass on the right. North is at the top of the compass and the arrow turns towards the station - point your antenna that way. At the bottom, the coordinates and the station's comment.
+The title says which station it is and how the packet arrived: "3/16 via TA8XX-1" means it was heard through that digipeater, "3/16 Direct" straight from the station. This also shows which digi repeated your own beacon back.
+- Up/Down arrow or the channel knob: previous/next station
+- Red: back to the list
+In both views:
+- *: write a message. If the selected station sent you a message, the address is filled in, so replying is one key.
+- #: clear the list
+
+[DISTANCE AND DIRECTION]
+The direction is the compass bearing from you to the station: N, NE, E, SE, S, SW, W, NW; the number is in degrees (0 = north, 90 = east).
+- Your position: the live GPS position when there is a fix, otherwise the last position the radio kept. If the radio has never had a position, the card says "Your position is unknown".
+- A packet at 0,0 (a station beaconing with no GPS fix) is shown as "No position" and no distance is worked out.
+- Under 10 km it is shown to 100 metres, above that in whole kilometres.
+- Positions in the Mic-E format, which most Kenwood and Yaesu radios use, are decoded too.
+
+[TURKISH LETTERS]
+Turkish letters in comments are shown properly in the radio's font. If your own comment shows broken letters, the cause is the CPS: it saves the comment in an encoding without Turkish letters. Type the comment again in Menu > Radio Setup > APRS Settings > Comment.
+
+[BENCHMARK]
+SK2 decodes a fixed test packet at several noise levels; the result shows at the bottom of the screen. It is for comparing firmware changes and does not measure real reception. With no packets the screen shows "Signal %": above 90 is good.
+
+@@ APRS Message
+To open: press * on the APRS Log screen.
+
+There are two fields: To (the other station's callsign, 9 characters at most) and Message (60 characters at most). Move between the fields with the Up/Down arrow.
+- Green: send the message
+- SK2: add your position to the message or remove it. With no GPS position you hear a warning beep.
+- Red short: delete the last character. If the field is empty it moves to the other field; if both are empty it leaves.
+- Red long: clear both fields
+- * or SK1: go to the WhatsApp screen
+
+A sequence number is added to the end of the message, so the other station can acknowledge it.
+
+@@ WhatsApp
+Sends a WhatsApp message to a phone number over APRS. The message is passed on by the WTSAPP gateway on the APRS network. For this there must be a station in your area that links APRS to the internet (an iGate).
+
+To open: * or SK1 on the APRS message screen.
+
+[NUMBER]
+Only digits can be entered. Type the number as 05xx; the radio converts it to international form itself. Example: typing 05551234567 sends @905551234567. At least 10 digits are needed.
+
+For a foreign number, press the 1 key twice while the number is empty: a + appears. Then type the country code and number (example: +12025550123, +79161234567). A number typed with + is sent exactly as typed, without the Turkish 90. At least 7 digits are needed.
+
+[MESSAGE]
+50 characters at most. Letters are typed with repeated presses.
+
+Keys:
+- Up/Down arrow: change field
+- Green: send
+- Red short: delete; if the field is empty go to the other one; if both are empty leave
+- Red long: clear everything
+- *: go to the e-mail screen
+
+The counter at the bottom shows how many messages you have sent.
+
+@@ E-mail
+Sends a message to an e-mail address over APRS (EMAIL-2 gateway). As with WhatsApp, an iGate is needed in your area.
+
+To open: press * on the WhatsApp screen.
+
+Letters are typed in both fields. The special characters are on the 1 key:
+- @: press 1 five times
+- . (dot): press 1 twice
+- - (dash): press 1 six times
+
+How long the message may be depends on the length of the address, up to 50 characters. The "x/y karakter" on the screen shows how much room is left.
+
+If the address is incomplete (no @, or no dot after the @) the message is not sent and you hear a warning beep.
+
+The keys are the same as on the WhatsApp screen: Up/Down changes field, Green sends, Red deletes or leaves, long Red clears.
+
+@@ APRS Beacon
+The beacon broadcasts your position to the APRS network at intervals. Settings: Menu > Options > APRS options.
+
+The position sent is chosen in this order: the fixed position in the APRS setting (if one is entered), otherwise the GPS fix. If that comes out as 0,0 (the fixed position left at zero, or the GPS has no fix yet) the radio does not send 0,0: it sends the GPS's current fix, or failing that the last position the radio saved (the last GPS fix, or one typed in). This matters because aprs.fi treats 0,0 as invalid and leaves you off the map. If the radio has never had a position the beacon still goes with 0,0; get a GPS fix once, or enter a fixed position, to appear on the map.
+
+Which APRS setting the beacon uses is chosen per channel: Menu > Channel details > the APRS row.
+
+[APRS SETTINGS]
+Menu > Radio Setup > APRS Settings. APRS settings are added and edited without the CPS (up to 8). "+ New APRS Setting" is at the top; a new setting starts with SSID 7, WIDE1-1, WIDE2-1 and the person symbol.
+- Name: the setting's name (up to 8). Edited with Green.
+- SSID: 0-15 with Left/Right. The row shows how it will look, for example TA8BMO-7.
+- Path 1 / Path 2: edited with Green, for example WIDE1-1. Path 2 may be left empty; Path 1 is needed.
+- Icon: with Left/Right - person, car, house, motorcycle, bicycle, truck, bus, ship, aircraft, repeater, I-Gate and more.
+- Comment: edited with Green, up to 23 characters.
+- Pos: GPS or a fixed position with Left/Right. Green takes the radio's current position (the last GPS fix) as the fixed one. It is shown with 2 decimals and kept with 4.
+- SAVE: the setting is only written by SAVE; Red leaves without saving. After saving, the beacon uses the new setting at once.
+- DELETE: shown at the end of the form when an existing setting is opened; asks yes/no (starting on no). Channels that used it are left without APRS; the settings after it move up a place, and the channels using them keep the same setting.
+While editing text, Red deletes the last character and, when empty, goes back unchanged. Paths and the callsign are made upper case.
+
+[CALLSIGN]
+Menu > Radio Setup > Callsign. Changes the radio's callsign (letters and digits, up to 8). APRS uses its first 6 characters. It takes effect at once.
+
+Sending messages, WhatsApp and e-mail does not need a position.
+
+@@ Fox Hunt
+A signal meter that helps you find a hidden transmitter (the fox).
+
+To open: long press * on an analog channel.
+
+On the screen: frequency, live signal strength (dBm and S units), T: the highest value measured (peak), an arrow showing whether the signal is rising or falling, and an estimated distance.
+
+[HOW TO USE]
+Turn a directional antenna slowly. With no such antenna, hold the radio against your chest and turn round; your body blocks the signal. The direction where the signal is strongest is the direction of the fox.
+
+[SETTINGS]
+Choose a setting with the Up/Down arrow:
+- Frequency: type it in kHz (145500 for 145.500 MHz), apply with Green. 130 to 470 MHz.
+- Power: type the fox's transmit power in watts, apply with Green. The distance estimate is based on it.
+- Sound: switch the audio guide (beeps) on or off with Green.
+
+Other keys:
+- #: reset the peak value
+- Red: delete a half-typed value; when empty, leave. On leaving, the channel's own frequency is restored.
+
+The distance is only a rough estimate; terrain and obstacles affect it a lot. Two values are shown: typical terrain and open ground (best case).
+
+@@ Spectrum Sweep
+Long press # on the VFO screen: the spectrum (sweep) scan starts and the signals in the band are shown as a graph.
+
+In this firmware the sweep stops by itself when it finds speech:
+- When it finds a signal it stops for at least 15 seconds and plays the audio
+- It shows the frequency and, if there is one, the CTCSS tone
+- It carries on 3 seconds after the audio stops (it waits at most 60 seconds)
+
+While it is stopped, press * to skip that frequency and carry on. This is useful, for example, to skip a repeater output and find the frequency of the station actually talking.
+
+The list of skipped frequencies is cleared when you leave the sweep screen and come back.
+
+@@ Volume & Display
+[VERY QUIET VOLUME]
+In the lower half of the volume knob, FM audio is turned down much further than normal. In a quiet room at night you can make it so only you can hear it. In the upper half the volume rises as normal. With the knob turned fully down the audio is off. This setting is for analog FM.
+
+[BRIGHTNESS]
+Hold SK1 and turn the volume knob: the volume does not change, the screen brightness does (about 3% per step). When you let go of SK1 the volume stays where it was. The brightness setting is kept.
+
+@@ Clock and GPS
+The clock (HH:MM) is shown on the channel and VFO screens.
+
+If GPS is on, the clock is set by itself as soon as a satellite fix is made. A 2D fix is enough. Even if the radio has been off for a long time, or the battery was removed and the clock reset, it is put right the moment GPS gets a fix.
+
+If no timezone is set, Turkey time (UTC+3) is used. For another timezone: Menu > Options > Display options > Timezone.
+
+For a GPS fix, wait a few minutes in an open place with a view of the sky. Indoors there may be no fix.
+
+The GPS setting's "Log" (track log) mode is switched off in this firmware; its flash space belongs to the RX Recorder.
+
+@@ Channels/Zones
+Menu > Radio Setup. Channels and zones are made, zones are edited, and the callsign, APRS settings (see APRS Beacon) and power-on password are set on the radio itself, without a computer or the CPS. The lists in this menu start at the top.
+
+[NEW ZONE]
+Choose "New Zone" and press Green. Type the zone name on the keypad (up to 16 characters). Red deletes the last character; with the name empty, Red goes back. Green creates the zone. A second zone with the same name is refused. The new zone is offered first for the next new channel.
+
+[NEW CHANNEL]
+Choose "New Channel" and press Green. Move between the rows with the Up/Down arrows. Green moves on to the next row:
+- Name: type the channel name (up to 16 characters). Red deletes the last character.
+- RX: type the receive frequency as digits. Example: 14550000 for 145.500 MHz. After 8 digits it is taken by itself. Type fewer and press Green and the rest are 0 (145 + Green = 145.00000). Red deletes the last digit. A frequency the radio cannot use is refused.
+- TX: the transmit frequency. Left empty, it is the same as RX (simplex). For a repeater, type TX as well.
+- RX Tone / TX Tone: choose with the channel knob or the Left/Right arrows. The order is: None, the CTCSS tones, the DCS codes, the inverted DCS codes.
+- BW: 25 kHz or 12.5 kHz with Left/Right.
+- Zone: the zone the channel goes into (Left/Right). With "All Channels" the channel is not added to any zone and only appears in All Channels.
+- SAVE: Green saves the channel.
+
+The new channel is analog FM. Power and squelch follow the radio's general settings, and 5-Tone and APRS are off. All of these can be changed later in Channel Details. A long press on Red closes the form without saving. If the zone is full (80 channels) the channel is not saved.
+
+[DELETING A CHANNEL]
+Go to the channel you want to delete. In Menu > Channel Details, go to the "Delete Channel" row at the bottom of the list and press Green.
+- If the radio has a power-on password (set in the CPS), it is asked for first. Type the digits and confirm with Green. Red deletes the last digit, and with nothing typed goes back.
+- Then the question "Delete this channel?" appears, with NO selected. The Left/Right arrows or the channel knob switch between YES and NO; Green confirms the choice.
+- YES: the channel is deleted and taken out of every zone. The radio returns to the channel screen, on the next channel.
+- NO, or Red: nothing is deleted.
+In VFO mode, and in an empty zone, there is no channel to delete, so the row does nothing.
+
+Important: a deletion cannot be undone. Keep a backup of important channels on the computer with the CPS.
+
+[EDIT ZONES]
+Radio Setup > Edit Zones. Choose a zone first, then:
+- Rename: type the new name and save with Green. No two zones can have the same name.
+- Channels: every channel on the radio is listed. Those in the zone start with [*]. Green adds the channel under the cursor to the zone, or takes it out. A channel added goes to the end of the zone. Nothing is deleted - the channel only leaves the zone. A zone holds up to 80 channels.
+- Delete Zone: the password is asked for first if there is one, then "Delete this zone?" (starting on NO). The zone's channels are not deleted; they stay in All Channels and in any other zone. If the radio was on the deleted zone it moves to All Channels.
+All Channels cannot be edited and is not in the list.
+
+[POWER-ON PASSWORD]
+Radio Setup > Power-on Password. Sets, changes or removes the password asked for when the radio is switched on.
+- If there already is one, it is asked for first.
+- Then type the new password (up to 6 digits) and press Green, type it once more and press Green. If the two match it is saved.
+- Pressing Green twice without typing any digits removes the password.
+Do not forget a new password: the radio asks for it at power-on. The same password is asked for when deleting channels and zones.
+
+@@ Games
+Menu > Games. Choose with the Up/Down arrow and start with Green, or open a game directly with keys 1 to 5. Scores are kept permanently.
+
+In every game:
+- Green: start, resume, play again
+- *: pause / resume
+- Red: asks whether to leave (Green yes, Red no)
+- Red long: leave at once
+
+If someone talks on the channel while you play, the audio comes from the speaker.
+
+[SNAKE]
+2/8/4/6: up, down, left, right.
+
+[TETRIS]
+4/6: left/right, 2: rotate, 8 or 0: drop at once. The channel knob also moves the piece. If the game is closed it carries on where you left off.
+
+[BREAKOUT]
+Green: launch the ball. Hold 4/6: move the paddle. The channel knob gives fine control.
+
+[2048]
+2/8/4/6: slide the tiles. #: undo one move.
+
+[DINO]
+Green or 2: jump. Hold 8: duck.
+
+@@ Firmware Info
+Menu > Firmware info. Move between the pages with the Down arrow:
+- Page 1: firmware version, build date and processor
+- Page 2: "Developed by TA8BMO - Special Edition" and the Turkish flag
+- Page 3: a scrolling message telling the story of this firmware, ending with TA8BMO's photo
+
+When the radio's language is English, the message is shown in English.
+
+@@ Troubleshooting
+[APRS DECODES LITTLE]
+Look at the T% value on the APRS Log screen. If it is below 90 the problem is signal quality: try a better or longer antenna, or a more open spot. Keep the channel bandwidth at 12.5 kHz.
+
+[CLOCK IS WRONG]
+Make sure GPS is on and has a fix outdoors. If the clock is off by whole hours, check the Timezone setting.
+
+[BEACON POSITION WRONG]
+The radio has never had a position: get a GPS fix once, or enter a fixed position in the APRS setting. A wrongly entered fixed position is sent as it is. See the "APRS Beacon" topic.
+
+[A FEATURE DOES NOT WORK]
+5-Tone, Morse and APRS work only on analog FM channels; they do not work on DMR channels.
+
+[SAFETY]
+Do not transmit (TX) while the programming cable is connected.

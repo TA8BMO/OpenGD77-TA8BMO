@@ -45,6 +45,14 @@ enum BAND_LIMITS_ENUM { BAND_LIMITS_NONE = 0 , BAND_LIMITS_ON_LEGACY_DEFAULT, BA
 enum INFO_ON_SCREEN { INFO_ON_SCREEN_OFF = 0x00, INFO_ON_SCREEN_TS = 0x01, INFO_ON_SCREEN_PWR = 0x02, INFO_ON_SCREEN_BOTH = 0x03 };
 
 #if defined(HAS_GPS)
+// GPS track logging to the external flash: the GPS "Log" mode, whose NMEA record
+// is read back with the CPS. Off here: the top 2MB of the flash it would use
+// belong to the receive recorder (voiceRecorder.c) instead. To bring it back, set
+// this to 1 and rebuild - the recorder then keeps only the top 1MB, and the track
+// log gets the 1MB below it (gps.c, voiceRecorder.h). LOG_GPS_DATA, and with it
+// the layout of the saved settings, is left exactly as it was either way.
+#define GPS_TRACK_LOG_TO_FLASH   0
+
 typedef enum
 {
 	GPS_NOT_DETECTED,
@@ -127,6 +135,7 @@ typedef enum
 #if defined(PLATFORM_MDUV380) && !defined(PLATFORM_VARIANT_UV380_PLUS_10W)
 	BIT_FORCE_10W_RADIO             = (1 << 24),
 #endif
+	BIT_RX_RECORDER                 = (1 << 25), // receive recorder on (voiceRecorder.c); a bit never used before, so off on every existing radio
 } bitfieldOptions_t;
 
 #if defined(PLATFORM_MD9600)

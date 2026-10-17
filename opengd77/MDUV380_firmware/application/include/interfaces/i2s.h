@@ -115,4 +115,8 @@ void I2SReset(void);
 void I2STerminateTransfers(void);
 void I2SStartDMA(uint16_t *txbuff, uint16_t *rxbuff, size_t bufferLen);
 
+// Set to receive each completed half of the RX buffer as it arrives (interrupt
+// context). NULL to detach.
+extern void (*i2sRxTapCallback)(uint32_t bufNum);
+
 #endif /* _OPENGD77_I2S_H_ */

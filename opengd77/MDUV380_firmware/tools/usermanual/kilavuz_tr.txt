@@ -1,0 +1,495 @@
+@@ Genel Bakış
+Bu telsiz, TA8BMO tarafından geliştirilmiş özel bir OpenGD77 yazılımı (Special Edition) çalıştırır.
+
+En önemli özelliği, analog FM sesini telsizin kendi içinde çözebilmesidir. Bu, ek bir donanım olmadan yalnızca yazılımla yapılır ve bu telsiz için dünyada bir ilktir.
+
+Bu sayede telsiz:
+- 5-Ton (CCIR) çağrıları alır ve gönderir
+- Mors (CW) alır, gönderir ve antrenman yaptırır
+- APRS paketlerini alır ve APRS mesajı gönderir
+- APRS üzerinden WhatsApp ve e-posta gönderir
+
+Bunlara ek olarak tilki avı yardımcısı, konuşma bulunca duran spektrum taraması, GPS ile otomatik saat, gece için çok kısık ses, ekran parlaklığı kısayolu, telsizden kanal/zon oluşturma ve kanal silme ve oyunlar vardır.
+
+5-Ton, Mors ve APRS özellikleri yalnızca analog FM kanallarda çalışır.
+
+Kılavuzu ilk kez okuyorsan önce "Nasıl Okunur" ve "Tuşlar" konularına bak.
+
+@@ Nasıl Okunur
+Konu listesinde:
+- Yukarı/Aşağı ok veya kanal düğmesi: konu seç
+- Yeşil: konuyu aç
+- Kırmızı: ana menüye dön
+
+Bir konunun içinde:
+- Yukarı/Aşağı ok: satır satır kaydır. Basılı tutarsan hızlı kayar.
+- Kanal düğmesini çevir: sayfa sayfa kaydır
+- Yeşil: sonraki konuya geç
+- Kırmızı: konu listesine dön
+
+Sağ kenardaki ince çubuk, metnin neresinde olduğunu gösterir.
+
+Kılavuza her zaman Menü > Kılavuz yolundan ulaşabilirsin.
+
+@@ Tuşlar
+Kılavuzda geçen tuş adları:
+- Yeşil: menü, onay ve gönder tuşu
+- Kırmızı: geri, sil ve iptal tuşu
+- Yukarı/Aşağı ok: tuş takımının en üst sırasındaki ok tuşları
+- SK1, SK2: telsizin yan tarafındaki iki küçük tuş
+- PTT: konuşma (yayın) tuşu
+- Kanal düğmesi: üstteki kanal seçme düğmesi. Menülerde değer değiştirmek için çevrilir.
+- Ses düğmesi: üstteki aç/kapa ve ses düğmesi
+
+Kısa bas: tuşa basıp bırak. Uzun bas: yaklaşık bir saniye basılı tut.
+
+[YAZI YAZMA]
+Yazı yazılan ekranlarda tuşlar cep telefonu gibi çalışır: aynı tuşa art arda basarak harf seçilir.
+- 2: a b c 2 A B C
+- 3: d e f 3 D E F (diğer tuşlar da böyle)
+- 0: 0 ve boşluk
+- 1: 1 . ! , @ - : ? ve diğer işaretler
+Biraz beklersen harf yerleşir ve sonraki harfe geçebilirsin.
+
+@@ Kanal Ekranı
+Kanal veya VFO ekranında, analog FM bir kanaldayken:
+- 0 kısa bas: ton bulucu (yayının CTCSS/DCS tonunu gösterir)
+- 0 uzun bas: 5-Ton seçmeli çağrı ekranı
+- * kısa bas: Mors gönderme ekranı
+- * uzun bas: tilki avı ekranı
+- SK1 basılı tut + ses düğmesini çevir: ekran parlaklığı
+- # uzun bas (VFO'da): spektrum taraması
+
+Ekranda görebileceklerin:
+- Kanal adının altında: son gelen 5-Ton çağrının kodu
+- Kanal adının üstünde kırmızı "CW": çözülmüş yeni bir Mors mesajı var
+- Saat (SS:DD): GPS ile kendiliğinden ayarlanır
+- Sinyal gücü çubuğu
+
+Not: Bu kısayollar yalnızca analog kanalda çalışır. Dijital (DMR) kanalda * tuşu zaman dilimini (TS) değiştirir.
+
+@@ 5-Ton Gönderme
+5-Ton, Aselsan telsizlerinin de kullandığı CCIR seçmeli çağrı sistemidir. Her kanala 5 haneli bir kimlik kodu (ANI) verilebilir.
+
+[KOD AYARLAMA]
+Menü > Kanal Ayrıntısı içinde "5T:" satırına gel ve rakam tuşlarıyla 5 haneyi yaz. Baştaki sıfırlar korunur (örnek: 03310). Beşinci hane yazılınca kod kaydedilir ve gönderim "St" moduna geçer. Yazarken Yeşil kaydeder, Kırmızı vazgeçer.
+
+Gönderim modunu kanal düğmesiyle değiştir:
+- St: PTT'ye basınca gönder
+- En: PTT'yi bırakınca gönder
+- St+En: ikisinde de gönder
+- Kapalı: gönderme
+
+[NASIL ÇALIŞIR]
+PTT'ye bastığında telsiz yaklaşık 0,25 saniye bekler, sonra 5 tonu 100'er milisaniye gönderir. Son tondan sonra 100 ms sessiz taşıyıcı bırakılır. Böylece PTT'ye hızlıca bas-çek yapsan bile son hane karşıya eksiksiz ulaşır.
+
+Normal konuşmada PTT'yi bırakınca yayın hemen kesilir.
+
+Aynı rakam art arda gelirse CCIR kuralı gereği ikinci rakam yerine tekrar tonu gönderilir. Ekrandaki kod değişmez.
+
+@@ 5-Ton Alma/Cevap
+Analog FM kanalda gelen 5-Ton çağrılar kendiliğinden çözülür. Çağıranın kodu kanal adının altında görünür. Kanal değişene, telsiz kapanana ya da yeni bir çağrı gelene kadar ekranda kalır.
+
+[İSİMLER]
+Kod yerine çağıranın adı da görünebilir: 5T 12345 yerine 5T Ahmet. Bunun için kişiyi telsize kaydet: adı kişinin adı, kodu onun 5-Ton ya da DTMF kodu olsun (örneğin 12345). DTMF kodları için de aynısı geçerlidir. Kişiler doğrudan telsizden (Menü > Kişiler > 5T Kişileri) ya da CPS'deki DTMF Kişiler listesinden eklenir; ikisi aynı listedir.
+
+[5T KİŞİLERİ MENÜSÜ]
+Menü > Kişiler > 5T Kişileri. Listede her kişinin adı ve kodu görünür.
+- "+ Yeni Kişi" ile yeni kişi eklenir, bir kişinin üstünde Yeşil'e basınca düzenlenir.
+- Ad: tuş takımıyla yaz. Kırmızı son harfi siler.
+- Kod: rakamları yaz; * ve # tuşları da kullanılır. A-D harfleri için kanal düğmesi ya da Sol/Sağ ok son karakteri 0-9, A-D, *, # arasında değiştirir. Kırmızı son karakteri siler.
+- KAYDET ile kaydedilir. Aynı kodla ikinci bir kişi kaydedilmez.
+- SİL (yalnızca var olan kişide): "Kişiyi silmek istiyor musun?" sorusu gelir, HAYIR seçili başlar.
+- Kırmızı'yı uzun basmak kaydetmeden listeye döner.
+En fazla 63 kişi kaydedilebilir. Bu kişiler Kişiler > DTMF listesinde de görünür ve oradan DTMF olarak gönderilebilir.
+- Önce kodun birebir aynısı aranır.
+- Bulunamazsa, gelen dizinin içinde geçen en az 4 haneli bir kişi kodu da sayılır (örneğin *1234# içinde 1234).
+- Kişisi olmayan kod, numara olarak gösterilir.
+
+[ÇAGRI KAYDI]
+Menü > Kayıtlar > Çağrı Kaydı. Gelen her 5-Ton çağrısı ve her DTMF dizisi saat ve frekansla kaydedilir; telsiz kapansa da silinmez. En yenisi en üsttedir, en fazla 32 çağrı tutulur (dolunca en eskisinin üstüne yazılır).
+- Satırda saat, tür (5T ya da DT) ve isim (kişisi varsa) ya da kod görünür.
+- Yeşil: çağrının ayrıntısı - tür, frekans, kod, isim, tarih ve saat. Yukarı/Aşağı ile önceki ve sonraki çağrıya geçilir.
+- # tuşunu basılı tutmak kaydı temizler.
+Tek rakamlık DTMF'ler kaydedilmez (konuşmadan çıkmış olabilir); bir DTMF dizisi 2 saniye sessizlikten sonra kaydedilir. Saat ayarlı değilken gelen çağrının saati --:-- görünür.
+
+[OTOMATİK CEVAP]
+Menü > Kanal Ayrıntısı içindeki "5T Cevap" satırını kanal düğmesiyle Açık yap. Kanalda bir ANI kodu da kayıtlı olmalı.
+
+Biri seni çağırdığında telsiz:
+- yaklaşık 1,2 saniye bekler,
+- kendi ANI kodunu bir kez gönderir,
+- buzzer üç kez öter (uzaktaysan duyman için).
+
+İki telsizin birbirine sonsuza kadar cevap vermesini önlemek için kısa sürede art arda çok fazla cevap verilmez. Gerçek, ayrı çağrılara cevap vermeye devam eder.
+
+@@ DTMF Alma
+Analog FM kanalda gelen DTMF tonları da kendiliğinden çözülür ve 5-Ton kodunun gösterildiği satırda "DT" ile görünür, örneğin: DT 1234*#. 5-Ton ve DTMF'ten hangisi en son geldiyse o gösterilir.
+
+Rakamlar geldikçe ekrana eklenir. 2 saniyeden uzun bir aradan sonra gelen rakam yeni bir dizi başlatır. En fazla son 16 karakter gösterilir. Kod kanal değişene ya da yeni bir dizi gelene kadar ekranda kalır.
+
+[HIZLI DTMF]
+Bazı telsizler kimliğini (PTT-ID, ANI) çok hızlı DTMF ile yollar. Bütün kod yarım saniyeden kısa sürer ve kulağa tek bir "bip" gibi gelir. Bu çözücü bunları da yakalar: rakam başına 40 ms ve üstü her zaman, 30-40 ms arası çoğu zaman çözülür.
+
+Konuşan birinin sesi, nadiren bir DTMF rakamı gibi algılanabilir. Bir tek rakamın tek başına görünmesi bu yüzden olabilir.
+
+Cızırtılı bir "brrrt" sesi DTMF değildir, bir veri paketidir (MDC-1200, FleetSync gibi). Bu çözücü onu çözmez.
+
+DTMF çalınırken 5-Ton ve Mors çözücü bekler, böylece DTMF'ten sahte 5-Ton kodu ya da Mors çıkmaz.
+
+@@ Dinleme Kaydı
+FM'de duyduğun her yayını kendiliğinden kaydeder, sonra tekrar dinlersin. Kayıtlar telsiz kapansa da silinmez.
+
+Açmak için: Menü > Kayıtlar > Dinleme Kaydı. En üst satır "Kayıt: Açık/Kapalı"dır; Yeşil ile açılıp kapanır. İlk açılışta kapalıdır.
+
+[NASIL KAYDEDER]
+- Squelch açılınca kayıt başlar, kapanınca biter; her yayın ayrı bir kayıttır.
+- 1 saniyeden kısa yayınlar (röle açma vuruşu) kaydedilmez.
+- Yayında 5-ton ya da DTMF kodu çözülürse kayda kimin konuştuğu da yazılır.
+- Kayıt açıkken kanal ve VFO ekranında sinyal çubuğunun solunda kırmızı REC yazar; o anda bir yayın kaydediliyorsa yanında kırmızı bir nokta da yanar. Ekran ters (siyah) moddayken de kırmızı kalır.
+- Kayıt sırasında APRS ve Mors çözücüler bekler; 5-ton ve DTMF çalışmaya devam eder.
+- APRS frekansında (144.800) ve DMR'de kayıt yapılmaz.
+- Telsiz bilgisayara USB ile bağlıyken kayıt yapılmaz.
+
+[KLASÖRLER]
+Kayıtlar kanala göre klasörlere ayrılır: her kanalın adıyla bir klasör, VFO'da kayıt yapıldıysa frekansıyla. En son kayıt yapılan klasör en üsttedir. Örnek: "14:32 KATRAD (12)" - en son kaydın saati, klasör ve içindeki kayıt sayısı.
+- Yukarı/Aşağı: klasörler arasında gez
+- Yeşil: klasörü aç. Ekranı açınca en son klasör seçili gelir.
+- #: klasördeki bütün kayıtları sil (önce sorar). En üst satırda: bütün kayıtları sil (önce sorar).
+- Kırmızı: geri
+
+[KLASÖRÜN İÇİ]
+O kanalın kayıtları, en yeni en üstte: saat, süre ve kod duyulduysa konuşan. Örnek: "14:32 12s 5T Ahmet".
+- Yukarı/Aşağı: kayıtlar arasında gez
+- Yeşil: seçili kaydı çal ya da durdur. Klasör açılınca en yeni kayıt seçili gelir.
+- #: seçili kaydı sil (hemen)
+- Kırmızı: klasörlere dön
+
+Dinlerken kanal açılırsa, yani biri konuşursa, dinleme durur: canlı yayını duyarsın ve o da kaydedilir.
+
+[KAPASİTE]
+Kayıtlar dış flash belleğin en üstündeki 2 MB'a sıkıştırılarak yazılır: toplam yaklaşık 1 saat. Dolunca en eski kayıtların üzerine yazılır. Listede son 96 kayıt görünür. Ses DMR'deki gibi sıkıştırılır; güçlü sinyalde temiz, zayıf ve cızırtılı sinyalde robotik duyulabilir.
+
+[GÜVENLİK]
+Telsiz her açılışta flash belleğin 16 MB olduğunu ve DMR ID veritabanının kayıt alanına uzanmadığını denetler. Uygun değilse kayıt kapanır, en üst satırda sebebi yazar ("Flash uygun değil" ya da "DMR ID DB büyük") ve hiçbir şey silinmez.
+
+@@ Ton Bulucu
+Bir istasyonun hangi CTCSS ya da DCS tonuyla yayın yaptığını bulur. Röle ya da yeni bir kanal ayarlarken işe yarar.
+
+Açmak: kanal ya da VFO ekranında, analog FM'de 0 tuşuna kısa bas. Tekrar basmak aramayı durdurur.
+- Arama sırasında 5-Ton satırında ilerleme görünür, örneğin "Ton CTCSS 40%".
+- Önce 50 CTCSS tonu, sonra 83 DCS kodu, sonra ters DCS kodları denenir.
+- Ton bulununca bip sesi gelir ve "Ton 88.5Hz" ya da "Ton D023N" gibi gösterilir.
+- Hiçbir ton bulunmazsa "Ton yok" yazar.
+
+Ton yalnızca istasyon yayındayken bulunabilir. Yayın kesilince arama bekler ("Ton: sinyal yok"), yayın gelince kaldığı yerden devam eder. CTCSS yaklaşık 10 saniyede, DCS en fazla 1 dakikada bulunur.
+
+Arama sırasında istasyon duyulmaya devam eder. Kanalın ya da VFO'nun ton ayarı değiştirilmez, sonuç yalnızca ekranda gösterilir. Kanal ya da frekans değişince sonuç silinir; PTT'ye basılırsa arama durur.
+
+@@ Seçmeli Çağrı
+Kanaldaki kayıtlı kodu değiştirmeden, istediğin bir istasyonun 5-Ton kodunu göndermek için kullanılır.
+
+Açmak: analog kanalda 0 tuşunu uzun bas.
+- Rakam tuşları: 5 haneyi yaz
+- Yeşil: 5 tonu bir kez gönder. 5 hane dolmadan gönderilmez, uyarı sesi verir.
+- Kırmızı: son haneyi sil. Boşken basarsan ekrandan çıkar.
+
+Gönderdikten sonra ekranda kalırsın; aynı kodu tekrar gönderebilir ya da düzeltebilirsin.
+
+@@ Mors Gönderme
+Açmak: analog kanalda * tuşuna kısa bas.
+
+Mesajını tuş takımıyla yaz (en fazla 20 karakter). Yeşil'e basınca mesaj mors olarak yayınlanır (700 Hz ton). Gönderdikten sonra ekranda kalırsın; tekrar gönderebilir ya da düzeltebilirsin.
+- Yukarı/Aşağı ok: hız. 5 ile 30 WPM arası, başlangıç 12.
+- Kırmızı kısa: son harfi sil. Boşken çıkar.
+- Kırmızı uzun: hepsini sil ve çık.
+- *: Mors kayıt ekranına geç (Menü > Kayıtlar > Mors Kaydı ile de açılır).
+
+[PTT İLE YAZMA]
+Bu ekranda PTT düz manipülatör (straight key) gibi çalışır. PTT ile mors vurduğunda telsiz YAYIN YAPMAZ; vuruşlarını çözer ve harf olarak mesaja ekler. Mesaj hazır olunca Yeşil ile yayınlarsın.
+
+Hız ayarı, hem yayınlanan morsun hem de antrenman ekranının hızını belirler.
+
+@@ Mors Alma/Kayıt
+Analog FM kanalda duyulan mors (CW) kendiliğinden çözülür; ayrıca bir şey açman gerekmez. 400-900 Hz arası tonlar ve farklı vuruş hızları otomatik algılanır. VFO'da da çalışır.
+
+Çözülmüş yeni bir mesaj olduğunda kanal adının üstünde kırmızı "CW" yazısı çıkar.
+
+[MORS KAYDI]
+Açmak: * ile Mors gönderme ekranını aç, sonra bir kez daha * bas.
+- Yukarı/Aşağı ok: kayıtlar arasında gez
+- #: tüm kaydı silmeyi sorar. Onay için tekrar #, vazgeçmek için Kırmızı.
+- *: Mors antrenmanına geç
+- Kırmızı: geri dön
+
+Çoğu tanınmayan karakterden oluşan anlamsız çözümler kayda alınmaz. Kayıt, telsiz kapansa da saklanır.
+
+@@ Mors Antrenmanı
+Açmak: Mors kayıt ekranında * bas. Kısaca: kanalda * > * > *.
+
+Bu ekranda hiçbir şey YAYINLANMAZ. Sadece telsizin hoparlöründen yan ton duyulur. PTT manipülatör olarak kullanılır.
+
+İki mod vardır, SK2 ile değiştirilir:
+- Serbest: istediğini vur, harf olarak ekranda gör.
+- Takip: tuş takımıyla bir hedef kelime yaz. Altında nokta-çizgi karşılığı görünür. PTT ile vur, ne kadarını doğru vurduğunu gör.
+
+Tuşlar:
+- SK1 kısa: hedeften son harfi sil (Takip)
+- SK1 uzun: hedefi temizle (Takip)
+- Yeşil kısa: vurduğun son harfi sil
+- Yeşil uzun: vurduklarını temizle, baştan dene
+- Yukarı/Aşağı ok: hız (WPM)
+- Kırmızı: çık
+
+@@ APRS Alma
+Telsiz, 144.800 MHz'de analog FM kanalda duyduğu APRS paketlerini kendiliğinden çözer. Bu frekansta güç tasarrufu (eco) otomatik kapanır, böylece kısa paketler kaçmaz.
+
+Açmak: Menü > Kayıtlar > APRS Kaydı.
+
+Son 16 istasyon tutulur. Aynı istasyon tekrar duyulursa eski kaydının yerine geçer ve en üste çıkar; böylece sık beacon atan bir istasyon diğerlerini listeden atamaz. Sana gelen mesajlar bu yüzden silinmez. Liste yenilenirken baktığın istasyon seçili kalır. Ekran iki görünümlüdür.
+
+[LİSTE]
+İlk açılan ekran. Her satırda istasyonun sembol resmi, çağrı işareti, sana uzaklığı ve istasyonun yönünü gösteren küçük bir ok vardır. En yeni istasyon en üsttedir. Konumu olmayan istasyonda uzaklık yerine "--", sana gelen mesajda "Mesaj" yazar.
+- Yukarı/Aşağı ok ya da kanal düğmesi: istasyonlar arasında gez
+- Yeşil: seçili istasyonu aç (kart)
+- Kırmızı: Kayıtlar'a geri
+
+[KART]
+Tek istasyonun ayrıntısı: büyük sembol resmi, çağrı işareti, ne olduğu (araba, ev, röle...) ve ne kadar önce duyulduğu; altında büyük harflerle uzaklık ve yön, sağda bir pusula. Pusulada kuzey yukarıdadır, ok istasyona doğru döner; anteni o yöne çevirirsin. En altta koordinatlar ve istasyonun yorumu.
+Başlıkta kaçıncı istasyon olduğu ve paketin nasıl geldiği yazar: "3/16 Digi TA8XX-1" paketi o digipeater üzerinden duyduğunu, "3/16 Direkt" istasyonun kendisinden duyduğunu gösterir. Kendi beacon'ının hangi digi'den geri geldiğini de buradan görürsün.
+- Yukarı/Aşağı ok ya da kanal düğmesi: önceki/sonraki istasyon
+- Kırmızı: listeye geri
+Her iki görünümde:
+- *: mesaj yaz. Seçili istasyon sana mesaj göndermişse adres kendiliğinden dolar; tek tuşla cevap verirsin.
+- #: listeyi temizle
+
+[MESAFE VE YÖN]
+Yön, senden istasyona doğru pusula yönüdür: K kuzey, KD kuzeydoğu, D doğu, GD güneydoğu, G güney, GB güneybatı, B batı, KB kuzeybatı; sayı derecedir (0 = kuzey, 90 = doğu).
+- Senin konumun: GPS fix varsa canlı GPS konumu, yoksa telsizin hatırladığı son konum. Telsiz hiç konum almadıysa kartta "Senin konumun yok" yazar.
+- Konumu 0,0 olan paket (GPS fix'i olmadan beacon gönderen istasyon) "Konum yok" olarak gösterilir, uzaklık hesaplanmaz.
+- 10 km'nin altı 100 metre hassasiyetle, üstü tam kilometre olarak gösterilir.
+- Kenwood ve Yaesu telsizlerin çoğunun kullandığı Mic-E biçimindeki konumlar da çözülür.
+
+[TÜRKÇE HARFLER]
+Yorumlardaki Türkçe harfler (ç ğ ı ö ş ü) telsizin fontuyla doğru gösterilir. Kendi yorumunda bozuk harf görüyorsan sebebi CPS'tir: CPS yorumu Türkçe harfleri desteklemeyen bir kodlamayla kaydeder. Yorumu Menü > Telsiz Kurulumu > APRS Ayarları > Yorum'dan Türkçe harf kullanmadan yeniden yaz.
+
+[KIYAS TESTİ]
+SK2, sabit bir test paketini farklı gürültü seviyelerinde çözer; sonuç ekranın altında görünür. Yazılım değişikliklerini karşılaştırmak içindir, gerçek alımı ölçmez. Paket yokken ekranda "Sinyal %" yazar: 90'ın üstü iyidir.
+
+@@ APRS Mesaj
+Açmak: APRS Kaydı ekranında * bas.
+
+İki alan vardır: Kime (karşı istasyonun çağrı işareti, en fazla 9 karakter) ve Mesaj (en fazla 60 karakter). Yukarı/Aşağı ok ile alanlar arasında geçilir.
+- Yeşil: mesajı gönder
+- SK2: konumunu mesaja ekle ya da çıkar. GPS konumu yoksa uyarı sesi verir.
+- Kırmızı kısa: son karakteri sil. Alan boşsa diğer alana geçer; ikisi de boşsa çıkar.
+- Kırmızı uzun: iki alanı da temizle
+- * veya SK1: WhatsApp ekranına geç
+
+Mesajın sonuna bir sıra numarası eklenir; karşı istasyon bu numarayla alındı onayı gönderebilir.
+
+@@ WhatsApp
+APRS üzerinden bir telefon numarasına WhatsApp mesajı gönderir. Mesaj, APRS ağındaki WTSAPP geçidi tarafından iletilir. Bunun için bölgende APRS'i internete aktaran bir istasyon (iGate) bulunmalıdır.
+
+Açmak: APRS mesaj ekranında * ya da SK1.
+
+[NUMARA]
+Sadece rakam girilir. Numarayı 05xx şeklinde yaz; telsiz kendisi uluslararası biçime çevirir. Örnek: 05551234567 yazınca @905551234567 olarak gider. En az 10 hane gerekir.
+
+Yabancı numara için numara boşken 1 tuşuna iki kez bas: + işareti çıkar. Ardından ülke kodu ve numarayı yaz (örnek: +12025550123, +79161234567). + ile yazılan numara olduğu gibi gönderilir, başına 90 eklenmez. En az 7 hane gerekir.
+
+[MESAJ]
+En fazla 50 karakter. Harfler çoklu basmayla yazılır.
+
+Tuşlar:
+- Yukarı/Aşağı ok: alan değiştir
+- Yeşil: gönder
+- Kırmızı kısa: sil; alan boşsa diğerine geç; ikisi de boşsa çık
+- Kırmızı uzun: hepsini temizle
+- *: E-posta ekranına geç
+
+Alttaki sayaç, kaç mesaj gönderdiğini gösterir.
+
+@@ E-posta
+APRS üzerinden bir e-posta adresine mesaj gönderir (EMAIL-2 geçidi). WhatsApp'taki gibi bölgede bir iGate gerekir.
+
+Açmak: WhatsApp ekranında * bas.
+
+İki alanda da harf yazılır. Özel işaretler 1 tuşundadır:
+- @: 1 tuşuna 5 kez bas
+- . (nokta): 1 tuşuna 2 kez bas
+- - (tire): 1 tuşuna 6 kez bas
+
+Mesajın uzunluğu adresin uzunluğuna göre değişir, en fazla 50 karakterdir. Ekrandaki "x/y karakter" kalan hakkını gösterir.
+
+Adres eksikse (@ yoksa ya da @ işaretinden sonra nokta yoksa) mesaj gönderilmez, uyarı sesi verir.
+
+Tuşlar WhatsApp ekranıyla aynıdır: Yukarı/Aşağı alan değiştirir, Yeşil gönderir, Kırmızı siler ya da çıkar, uzun Kırmızı temizler.
+
+@@ APRS Beacon
+Beacon, konumunu belirli aralıklarla APRS ağına yayınlar. Ayarları: Menü > Seçenekler > APRS options.
+
+Gönderilen konum şu sırayla seçilir: APRS ayarındaki sabit konum (girilmişse), yoksa GPS fix'i. Bu konum 0,0 çıkarsa (sabit konum sıfır bırakılmış ya da GPS henüz fix almamış) telsiz 0,0 göndermez; GPS'in o anki fix'ini, o da yoksa telsizin kaydettiği son konumu (son GPS fix'i ya da elle girilen konum) gönderir. aprs.fi 0,0 konumunu geçersiz sayıp haritaya koymadığı için bu önemlidir. Telsiz hiç konum almadıysa beacon yine 0,0 ile gider; haritada görünmek için bir kez GPS fix'i al ya da sabit konum gir.
+
+Beacon'ın hangi APRS ayarını kullanacağı kanal başına seçilir: Menü > Kanal Ayrıntısı > APRS satırı.
+
+[APRS AYARLARI]
+Menü > Telsiz Kurulumu > APRS Ayarları. CPS olmadan APRS ayarı eklenir ve düzenlenir (en fazla 8). "+ Yeni APRS Ayarı" en üsttedir; yeni ayar SSID 7, WIDE1-1, WIDE2-1 ve yaya simgesiyle başlar.
+- Ad: ayarın adı (en fazla 8). Yeşil ile düzenlenir.
+- SSID: Sol/Sağ ile 0-15. Satırda nasıl görüneceği yazar, örneğin TA8BMO-7.
+- Yol 1 / Yol 2: Yeşil ile düzenlenir, örneğin WIDE1-1. Yol 2 boş bırakılabilir, Yol 1 gerekli.
+- Simge: Sol/Sağ ile yaya, araba, ev, motosiklet, bisiklet, kamyon, otobüs, gemi, uçak, röle, I-Gate ve diğerleri.
+- Yorum: Yeşil ile düzenlenir, en fazla 23 karakter.
+- Konum: Sol/Sağ ile GPS ya da sabit konum. Yeşil, telsizin şu anki konumunu (son GPS fix'i) sabit konum olarak alır. Sabit konum ekranda 2 ondalıkla görünür, 4 ondalıkla saklanır.
+- KAYDET: ayar ancak KAYDET ile yazılır; Kırmızı kaydetmeden çıkar. Kayıttan sonra beacon yeni ayarı hemen kullanır.
+- SİL: kayıtlı bir ayarı açınca formun sonunda görünür; Evet/Hayır sorar (Hayır seçili başlar). Ayarı kullanan kanallarda APRS kapanır; sonraki ayarlar bir sıra yukarı kayar ve onları kullanan kanallar aynı ayarı kullanmaya devam eder.
+Metin düzenlerken Kırmızı son harfi siler, boşken değiştirmeden geri döner. Yol ve çağrı işareti otomatik büyük harfe çevrilir.
+
+[ÇAGRI İŞARETİ]
+Menü > Telsiz Kurulumu > Çağrı İşareti. Telsizin çağrı işaretini değiştirir (harf ve rakam, en fazla 8). APRS bunun ilk 6 karakterini kullanır. Hemen geçerli olur.
+
+Mesaj, WhatsApp ve e-posta göndermek konum gerektirmez.
+
+@@ Tilki Avı
+Gizli bir vericiyi (tilki) bulmana yardım eden sinyal ölçerdir.
+
+Açmak: analog kanalda * tuşunu uzun bas.
+
+Ekranda: frekans, anlık sinyal gücü (dBm ve S birimi), T: ölçülen en yüksek değer (tepe), sinyalin güçlendiğini ya da zayıfladığını gösteren ok ve tahmini mesafe.
+
+[KULLANIM]
+Yönlü bir anteni yavaşça çevir. Anten yoksa telsizi göğsüne yaslayıp kendi etrafında dön; vücudun sinyali keser. Sinyalin en güçlü olduğu yön tilkinin yönüdür.
+
+[AYARLAR]
+Yukarı/Aşağı ok ile ayar seçilir:
+- Frekans: kHz olarak yaz (145.500 MHz için 145500), Yeşil ile uygula. 130-470 MHz arası.
+- Güç: tilkinin verici gücünü Watt olarak yaz, Yeşil ile uygula. Mesafe tahmini buna göre yapılır.
+- Ses: Yeşil ile sesli rehberi (bip) aç ya da kapat.
+
+Diğer tuşlar:
+- #: tepe değerini sıfırla
+- Kırmızı: yarım yazılan değeri sil; boşken çık. Çıkınca kanalın eski frekansı geri gelir.
+
+Mesafe kaba bir tahmindir; arazi ve engeller sonucu çok etkiler. İki değer görünür: tipik arazi ve açık alan (en iyi durum).
+
+@@ Spektrum Tarama
+VFO ekranında # tuşunu uzun bas: spektrum (sweep) taraması başlar; frekans bandındaki sinyaller grafik olarak görünür.
+
+Bu yazılımda tarama, konuşma bulunca kendiliğinden durur:
+- Sinyal bulunca en az 15 saniye durur ve sesi hoparlörden verir
+- Frekansı ve varsa CTCSS tonunu gösterir
+- Ses kesildikten 3 saniye sonra taramaya devam eder (en fazla 60 saniye bekler)
+
+Dururken * tuşuna basarsan o frekans atlanır ve tarama sürer. Örneğin bir röle çıkışını atlayıp asıl konuşan istasyonun frekansını bulmak için kullanılır.
+
+Atlanan frekans listesi, tarama ekranından çıkıp yeniden girince sıfırlanır.
+
+@@ Ses ve Ekran
+[ÇOK KISIK SES]
+Ses düğmesinin alt yarısında FM sesi normalden çok daha fazla kısılır. Gece sessiz bir odada sesi sadece senin duyacağın kadar düşürebilirsin. Üst yarıda ses normal şekilde yükselir. Düğme sonuna kadar kısılınca ses tamamen kapanır. Bu ayar analog FM içindir.
+
+[PARLAKLIK]
+SK1'i basılı tutarken ses düğmesini çevir: ses değişmez, ekran parlaklığı değişir (her adım yaklaşık %3). SK1'i bırakınca ses eski seviyesinde kalır. Parlaklık ayarı kalıcıdır.
+
+@@ Saat ve GPS
+Kanal ve VFO ekranında saat (SS:DD) görünür.
+
+GPS açıksa, uydu bağlantısı (fix) kurulduğu anda saat kendiliğinden ayarlanır. 2D fix yeterlidir. Telsiz uzun süre kapalı kalsa ya da batarya çıkıp saat sıfırlansa bile GPS bağlandığı ilk anda saat düzelir.
+
+Saat dilimi ayarlanmamışsa Türkiye saati (UTC+3) kullanılır. Başka bir saat dilimi için: Menü > Seçenekler > Ekran Seç. > Zaman Dilimi.
+
+GPS fix için gökyüzünü gören açık bir yerde birkaç dakika bekle. Bina içinde fix gelmeyebilir.
+
+GPS ayarındaki "Log" (iz kaydı) kipi bu yazılımda kapalıdır; o flash alanı Dinleme Kaydı'na ayrıldı.
+
+@@ Kanal ve Zon
+Menü > Telsiz Kurulumu. Bilgisayar ve CPS olmadan, doğrudan telsizden kanal ve zon oluşturulur, zonlar düzenlenir, çağrı işareti ve APRS ayarları (bkz. APRS Beacon) ve açılış parolası ayarlanır. Bu menüdeki listeler en üstten başlar.
+
+[YENİ ZON]
+"Yeni Zon Oluştur"u seç ve Yeşil'e bas. Zon adını tuş takımıyla yaz (en fazla 16 harf). Kırmızı son harfi siler, ad boşken Kırmızı geri çıkar. Yeşil ile zon oluşturulur. Aynı adla ikinci bir zon oluşturulamaz. Yeni zon, bir sonraki yeni kanal için hazır seçili gelir.
+
+[YENİ KANAL]
+"Yeni Kanal Oluştur"u seç ve Yeşil'e bas. Yukarı/Aşağı ok ile satırlar arasında gezilir. Yeşil bir sonraki satıra geçer:
+- Ad: kanal adını yaz (en fazla 16 harf). Kırmızı son harfi siler.
+- RX: alış frekansını rakamlarla yaz. Örnek: 145.500 MHz için 14550000. 8 rakam yazılınca kendiliğinden alınır. Daha az yazıp Yeşil'e basarsan kalan rakamlar 0 olur (145 + Yeşil = 145.00000). Kırmızı son rakamı siler. Telsizin çalışmadığı bir frekans kabul edilmez.
+- TX: gönderme frekansı. Boş bırakılırsa RX ile aynı olur (simpleks). Röle için TX'i ayrıca yaz.
+- RX Ton / TX Ton: kanal düğmesi ya da Sol/Sağ ok ile seç. Sıra: Yok, CTCSS tonları, DCS kodları, ters DCS kodları.
+- Bant: Sol/Sağ ile 25 kHz ya da 12,5 kHz.
+- Zon: kanalın kaydedileceği zon (Sol/Sağ). "Tüm Kanallar" seçilirse kanal hiçbir zona eklenmez, yalnızca Tüm Kanallar'da görünür.
+- KAYDET: Yeşil ile kanal kaydedilir.
+
+Yeni kanal analog FM'dir. Güç ve squelch telsizin genel ayarını kullanır, 5-Ton ve APRS kapalıdır. Bunlar sonradan Kanal Ayrıntısı'ndan değiştirilebilir. Kırmızı'yı uzun basmak formu kaydetmeden kapatır. Zon doluysa (80 kanal) kaydedilmez.
+
+[KANAL SİLME]
+Silmek istediğin kanala geç. Menü > Kanal Ayrıntısı listesinin en altındaki "Kanalı Sil" satırına gel ve Yeşil'e bas.
+- Telsizde açılış parolası varsa (CPS'de ayarlanan) önce parola sorulur. Rakamları yaz, Yeşil ile onayla. Kırmızı son rakamı siler, boşken geri çıkar.
+- Sonra "Kanalı silmek istiyor musun?" sorusu gelir. HAYIR seçili gelir. Sol/Sağ ok ya da kanal düğmesi ile EVET/HAYIR arasında geçilir, Yeşil seçimi onaylar.
+- EVET: kanal silinir ve bütün zonlardan çıkarılır. Telsiz kanal ekranına döner ve sıradaki kanala geçer.
+- HAYIR ya da Kırmızı: hiçbir şey silinmez.
+VFO'da ve boş bir zonda silinecek kanal olmadığı için bu satır çalışmaz.
+
+Önemli: Silme geri alınamaz. Önemli kanalların yedeğini CPS ile bilgisayara al.
+
+[ZONLARI DÜZENLE]
+Telsiz Kurulumu > Zonları Düzenle. Önce zon seçilir, sonra:
+- Adını Değiştir: yeni adı yaz, Yeşil ile kaydet. Aynı adda başka bir zon olamaz.
+- Kanallar: telsizdeki bütün kanallar listelenir. Zonda olanların başında [*] vardır. Yeşil, imlecin üstündeki kanalı zona ekler ya da zondan çıkarır. Yeni eklenen kanal zonun sonuna gelir. Kanal silinmez, sadece zondan çıkar. Bir zonda en fazla 80 kanal olur.
+- Zonu Sil: parola varsa önce parola sorulur, sonra "Zonu silmek istiyor musun?" sorusu gelir (HAYIR seçili başlar). Zonun içindeki kanallar silinmez, Tüm Kanallar'da ve diğer zonlarda kalır. Telsiz silinen zondaysa Tüm Kanallar'a geçer.
+Tüm Kanallar düzenlenemez, listede yoktur.
+
+[AÇILIŞ PAROLASI]
+Telsiz Kurulumu > Açılış Parolası. Telsiz açılırken sorulan parolayı koyar, değiştirir ya da kaldırır.
+- Parola zaten varsa önce eski parola sorulur.
+- Sonra yeni parolayı yaz (en fazla 6 rakam) ve Yeşil'e bas, aynısını bir kez daha yaz ve Yeşil'e bas. İkisi aynıysa kaydedilir.
+- Hiç rakam yazmadan iki kez Yeşil'e basarsan parola kaldırılır.
+Yeni parolayı unutma: telsiz açılışta onu sorar. Kanal ve zon silerken de aynı parola sorulur.
+
+@@ Oyunlar
+Menü > Oyunlar. Yukarı/Aşağı ok ile seç ve Yeşil ile başlat ya da 1-5 tuşlarıyla oyunu doğrudan aç. Skorlar kalıcı olarak saklanır.
+
+Bütün oyunlarda:
+- Yeşil: başlat, devam et, yeniden oyna
+- *: duraklat / devam et
+- Kırmızı: çıkış sorusu (Yeşil evet, Kırmızı hayır)
+- Kırmızı uzun: hemen çık
+
+Oyun oynarken kanalda konuşma olursa ses hoparlörden gelir.
+
+[YILAN]
+2/8/4/6: yukarı, aşağı, sol, sağ.
+
+[TETRİS]
+4/6: sola/sağa, 2: döndür, 8 ya da 0: hemen düşür. Kanal düğmesiyle de kaydırılır. Oyun kapansa da kaldığın yerden devam eder.
+
+[BREAKOUT]
+Yeşil: topu at. 4/6'yı basılı tut: raketi kaydır. Kanal düğmesi ince ayar yapar.
+
+[2048]
+2/8/4/6: taşları kaydır. #: bir hamle geri al.
+
+[DİNOZOR]
+Yeşil ya da 2: zıpla. 8'i basılı tut: eğil.
+
+@@ Yazılım Bilgisi
+Menü > Yazılım Bilgisi. Aşağı ok ile sayfalar arasında gezilir:
+- 1. sayfa: yazılım sürümü, derleme tarihi ve işlemci bilgisi
+- 2. sayfa: "Developed by TA8BMO - Special Edition" ve Türk bayrağı
+- 3. sayfa: bu yazılımın hikayesini anlatan kayan bir mesaj ve sonunda TA8BMO'nun fotoğrafı
+
+Telsizin dili İngilizce seçilirse mesaj İngilizce görünür.
+
+@@ Sorun Giderme
+[APRS AZ ÇÖZÜYOR]
+APRS Kaydı ekranında T% değerine bak. 90'ın altındaysa sorun sinyal kalitesidir: daha iyi ya da daha uzun bir anten, daha açık bir konum dene. Kanal bant genişliğini 12,5 kHz tut.
+
+[SAAT YANLIŞ]
+GPS'in açık olduğundan ve açık havada fix aldığından emin ol. Saat tam birkaç saat farklıysa Zaman Dilimi ayarını kontrol et.
+
+[BEACON KONUMU YANLIŞ]
+Telsiz hiç konum almamıştır: bir kez GPS fix'i al ya da APRS ayarına sabit konum gir. Sabit konum yanlış girildiyse o konum gider. "APRS Beacon" konusuna bak.
+
+[ÖZELLİK ÇALIŞMIYOR]
+5-Ton, Mors ve APRS yalnızca analog FM kanallarda çalışır; DMR kanalda çalışmaz.
+
+[GÜVENLİK]
+Programlama kablosu takılıyken yayın (TX) yapma.
