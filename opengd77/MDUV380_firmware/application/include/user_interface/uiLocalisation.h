@@ -57,19 +57,26 @@ typedef enum
 uint8_t languagesGetCount(void);
 char currentLanguageGetSymbol(LanguageSymbol_t s);
 
-// The built-in languages, in the order of languages[]: English, Turkish, Spanish.
-// The index is kept in two option bits (BIT_SECONDARY_LANGUAGE, BIT_LANGUAGE_SPANISH)
-// rather than a settings field, so the settings layout does not change.
+// The built-in languages, in the order of languages[]: English, Turkish, Spanish,
+// Russian. The index is kept in option bits (BIT_SECONDARY_LANGUAGE,
+// BIT_LANGUAGE_SPANISH, BIT_LANGUAGE_RUSSIAN) rather than a settings field, so
+// the settings layout does not change.
 #define LANGUAGE_INDEX_ENGLISH 0
 #define LANGUAGE_INDEX_TURKISH 1
 #define LANGUAGE_INDEX_SPANISH 2
+#define LANGUAGE_INDEX_RUSSIAN 3
 
 int languageGetSavedIndex(void);          // what the option bits say, clamped to what exists
-void languageSetIndex(int index);         // sets the bits and currentLanguage; the caller saves
+void languageApply(int index);            // currentLanguage and the display's Cyrillic mode, nothing saved
+void languageSetIndex(int index);         // languageApply() plus the option bits; the caller saves
 bool languageIsTurkish(void);
 bool languageIsSpanish(void);
+bool languageIsRussian(void);
 
-// My own screens pick their text with this: Turkish, English, Spanish.
-#define LANG3(tr, en, es) (languageIsTurkish() ? (tr) : (languageIsSpanish() ? (es) : (en)))
+// My own screens pick their text with these: Turkish, English, Spanish, Russian.
+// Russian text is Windows-1251 (see HX8353E_charset_cyrillic.h). Where there is
+// no Russian yet, LANG3 shows the English.
+#define LANG4(tr, en, es, ru) (languageIsTurkish() ? (tr) : (languageIsSpanish() ? (es) : (languageIsRussian() ? (ru) : (en))))
+#define LANG3(tr, en, es) LANG4((tr), (en), (es), (en))
 
 #endif

@@ -27,7 +27,7 @@
 
 // Game text follows the radio's language: Turkish, English or Spanish - the same
 // rule as the firmware info message and the manual.
-#define GT(tr, en, es) LANG3((tr), (en), (es))
+#define GT(tr, en, es, ru) LANG4((tr), (en), (es), (ru)) // Turkish, English, Spanish, Russian
 
 // ---------------------------------------------------------------------------
 // Palette - built from the live theme, rebuilt on every screen (re)entry.
@@ -495,6 +495,16 @@ static const char * const gamesMenuItemsES[] =
 };
 #define GAMES_MENU_COUNT  (sizeof(gamesMenuItems) / sizeof(gamesMenuItems[0]))
 _Static_assert((sizeof(gamesMenuItemsES) == sizeof(gamesMenuItems)), "games menu: Turkish and Spanish lists differ in length");
+static const char * const gamesMenuItemsRU[] =
+{
+	"1. \xC7\xEC\xE5\xE9\xEA\xE0",
+	"2. \xD2\xE5\xF2\xF0\xE8\xF1",
+	"3. \xC0\xF0\xEA\xE0\xED\xEE\xE8\xE4",
+	"4. 2048",
+	"5. \xC4\xE8\xED\xEE",
+	"6. \xD0\xE5\xEA\xEE\xF0\xE4\xFB"
+};
+_Static_assert((sizeof(gamesMenuItemsRU) == sizeof(gamesMenuItems)), "games menu: Turkish and Russian lists differ in length");
 _Static_assert((sizeof(gamesMenuItemsEN) == sizeof(gamesMenuItems)), "games menu: Turkish and English lists differ in length");
 
 static const int gamesMenuTargets[GAMES_MENU_COUNT] =
@@ -511,7 +521,7 @@ static void gamesMenuDraw(void)
 	gameClearScreen();
 
 	gameSetColour(gamePal.accent);
-	displayPrintCentered(3, GT("OYUNLAR", "GAMES", "JUEGOS"), FONT_SIZE_3);
+	displayPrintCentered(3, GT("OYUNLAR", "GAMES", "JUEGOS", "\xC8\xC3\xD0\xDB"), FONT_SIZE_3);
 	gameSetColour(gamePal.border);
 	displayFillRect(4, 19, (DISPLAY_SIZE_X - 8), 1, false);
 
@@ -533,7 +543,7 @@ static void gamesMenuDraw(void)
 		}
 
 		displayThemeApply(THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_BG);
-		displayPrintCore(10, y, GT(gamesMenuItems[i], gamesMenuItemsEN[i], gamesMenuItemsES[i]), FONT_SIZE_3, TEXT_ALIGN_LEFT, focused);
+		displayPrintCore(10, y, GT(gamesMenuItems[i], gamesMenuItemsEN[i], gamesMenuItemsES[i], gamesMenuItemsRU[i]), FONT_SIZE_3, TEXT_ALIGN_LEFT, focused);
 	}
 
 	displayThemeResetToDefault();
@@ -605,6 +615,7 @@ menuStatus_t menuGames(uiEvent_t *ev, bool isFirstRun)
 static const char * const gameScoreNames[GAME_SCORE_ROWS] = { "Yilan", "Tetris", "Tugla", "2048", "Dino" };
 static const char * const gameScoreNamesEN[GAME_SCORE_ROWS] = { "Snake", "Tetris", "Breakout", "2048", "Dino" };
 static const char * const gameScoreNamesES[GAME_SCORE_ROWS] = { "Serpiente", "Tetris", "Ladrillos", "2048", "Dino" };
+static const char * const gameScoreNamesRU[GAME_SCORE_ROWS] = { "\xC7\xEC\xE5\xE9\xEA\xE0", "\xD2\xE5\xF2\xF0\xE8\xF1", "\xC0\xF0\xEA\xE0\xED\xEE\xE8\xE4", "2048", "\xC4\xE8\xED\xEE" };
 static const uint8_t gameScoreIds[GAME_SCORE_ROWS] =
 		{ GAME_ID_SNAKE, GAME_ID_TETRIS, GAME_ID_BREAKOUT, GAME_ID_2048, GAME_ID_DINO };
 static bool gameScoresConfirmReset = false;
@@ -619,13 +630,13 @@ static void gameScoresDraw(void)
 
 	if (gameScoresConfirmReset)
 	{
-		gameDrawPanel(GT("SKORLAR", "SCORES", "R\xC9""CORDS"), GT("Tum skorlar silinsin mi?", "Delete all scores?", "Borrar los r\xE9""cords?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No"), gamePal.danger);
+		gameDrawPanel(GT("SKORLAR", "SCORES", "R\xC9""CORDS", "\xD0\xC5\xCA\xCE\xD0\xC4\xDB"), GT("Tum skorlar silinsin mi?", "Delete all scores?", "Borrar los r\xE9""cords?", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC \xF0\xE5\xEA\xEE\xF0\xE4\xFB?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No", "\xC7\xE5\xEB: \xC4\xE0   \xCA\xF0\xE0\xF1: \xCD\xE5\xF2"), gamePal.danger);
 		displayRender();
 		return;
 	}
 
 	gameSetColour(gamePal.accent);
-	displayPrintCentered(4, GT("EN YUKSEK SKORLAR", "HIGH SCORES", "MEJORES R\xC9""CORDS"), FONT_SIZE_1);
+	displayPrintCentered(4, GT("EN YUKSEK SKORLAR", "HIGH SCORES", "MEJORES R\xC9""CORDS", "\xD0\xC5\xCA\xCE\xD0\xC4\xDB"), FONT_SIZE_1);
 	gameSetColour(gamePal.border);
 	displayFillRect(4, 18, (DISPLAY_SIZE_X - 8), 1, false);
 
@@ -634,7 +645,7 @@ static void gameScoresDraw(void)
 		int y = 26 + (i * 17);
 
 		gameSetColour(gamePal.foreground);
-		displayPrintAt(8, y, GT(gameScoreNames[i], gameScoreNamesEN[i], gameScoreNamesES[i]), FONT_SIZE_3);
+		displayPrintAt(8, y, GT(gameScoreNames[i], gameScoreNamesEN[i], gameScoreNamesES[i], gameScoreNamesRU[i]), FONT_SIZE_3);
 
 		snprintf(buf, sizeof(buf), "%u", (unsigned) gameScoreGet(gameScoreIds[i]));
 		gameSetColour(gamePal.gameObject3);
@@ -642,7 +653,7 @@ static void gameScoresDraw(void)
 	}
 
 	gameSetColour(gamePal.secondaryText);
-	displayPrintCentered((DISPLAY_SIZE_Y - 12), GT("SK2+# uzun: sifirla", "SK2+# long: reset", "SK2+# largo: borrar"), FONT_SIZE_1);
+	displayPrintCentered((DISPLAY_SIZE_Y - 12), GT("SK2+# uzun: sifirla", "SK2+# long: reset", "SK2+# largo: borrar", "SK2+# \xE4\xEE\xEB\xE3\xEE: \xF1\xE1\xF0\xEE\xF1"), FONT_SIZE_1);
 
 	displayRender();
 }
@@ -811,7 +822,7 @@ static void snakeDraw(void)
 
 	displayClearBuf();
 	gameClearScreen();
-	gameDrawHeader(GT("YILAN", "SNAKE", "SERPIENTE"), snakeScore);
+	gameDrawHeader(GT("YILAN", "SNAKE", "SERPIENTE", "\xC7\xCC\xC5\xC9\xCA\xC0"), snakeScore);
 
 	// Play area frame
 	gameSetColour(gamePal.border);
@@ -850,26 +861,26 @@ static void snakeDraw(void)
 	switch (snakeState)
 	{
 		case GAME_STATE_START:
-			gameDrawPanel(GT("YILAN", "SNAKE", "SERPIENTE"), GT("2 Yukari  8 Asagi", "2 Up  8 Down", "2 Arriba  8 Abajo"), GT("4 Sol  6 Sag   * Duraklat", "4 Left  6 Right  * Pause", "4 Izq.  6 Der.  * Pausa"),
-					GT("Yesil: Basla    Kirmizi: Geri", "Green: Start   Red: Back", "Verde: Jugar   Rojo: Atr\xE1s"), gamePal.accent);
+			gameDrawPanel(GT("YILAN", "SNAKE", "SERPIENTE", "\xC7\xCC\xC5\xC9\xCA\xC0"), GT("2 Yukari  8 Asagi", "2 Up  8 Down", "2 Arriba  8 Abajo", "2 \xC2\xE2\xE5\xF0\xF5  8 \xC2\xED\xE8\xE7"), GT("4 Sol  6 Sag   * Duraklat", "4 Left  6 Right  * Pause", "4 Izq.  6 Der.  * Pausa", "4 \xCB\xE5\xE2\xEE  6 \xCF\xF0\xE0\xE2\xEE  * \xCF\xE0\xF3\xE7\xE0"),
+					GT("Yesil: Basla    Kirmizi: Geri", "Green: Start   Red: Back", "Verde: Jugar   Rojo: Atr\xE1s", "\xC7\xE5\xEB: \xD1\xF2\xE0\xF0\xF2 \xCA\xF0\xE0\xF1: \xCD\xE0\xE7\xE0\xE4"), gamePal.accent);
 			break;
 
 		case GAME_STATE_PAUSED:
-			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA"), NULL, GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir"), GT("Kirmizi: Cikis", "Red: Exit", "Rojo: Salir"), gamePal.warning);
+			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA", "\xCF\xC0\xD3\xC7\xC0"), NULL, GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir", "* \xE8\xEB\xE8 \xC7\xE5\xEB: \xC4\xE0\xEB\xFC\xF8\xE5"), GT("Kirmizi: Cikis", "Red: Exit", "Rojo: Salir", "\xCA\xF0\xE0\xF1: \xC2\xFB\xF5\xEE\xE4"), gamePal.warning);
 			break;
 
 		case GAME_STATE_GAME_OVER:
-			snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u"), (unsigned) snakeScore);
+			snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u", "\xCE\xF7\xEA\xE8: %u"), (unsigned) snakeScore);
 			{
 				char buf2[24];
-				snprintf(buf2, sizeof(buf2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u"), (unsigned) gameScoreGet(GAME_ID_SNAKE));
-				gameDrawPanel((snakeNewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO")), buf, buf2,
-						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir"), (snakeNewRecord ? gamePal.success : gamePal.danger));
+				snprintf(buf2, sizeof(buf2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u", "\xD0\xE5\xEA\xEE\xF0\xE4: %u"), (unsigned) gameScoreGet(GAME_ID_SNAKE));
+				gameDrawPanel((snakeNewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!", "\xD0\xC5\xCA\xCE\xD0\xC4!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO", "\xCA\xCE\xCD\xC5\xD6 \xC8\xC3\xD0\xDB")), buf, buf2,
+						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir", "\xC7\xE5\xEB: \xC5\xF9\xB8  \xCA\xF0\xE0\xF1: \xC2\xFB\xF5\xEE\xE4"), (snakeNewRecord ? gamePal.success : gamePal.danger));
 			}
 			break;
 
 		case GAME_STATE_EXIT_CONFIRM:
-			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No"), gamePal.warning);
+			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR", "\xC2\xDB\xD5\xCE\xC4"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?", "\xC2\xFB\xE9\xF2\xE8 \xE8\xE7 \xE8\xE3\xF0\xFB?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No", "\xC7\xE5\xEB: \xC4\xE0   \xCA\xF0\xE0\xF1: \xCD\xE5\xF2"), gamePal.warning);
 			break;
 
 		default:
@@ -1382,10 +1393,10 @@ static void tetDraw(void)
 
 	// Info panel
 	gameSetColour(gamePal.secondaryText);
-	displayPrintAt(TET_PANEL_X, 18, GT("Puan", "Score", "Ptos."), FONT_SIZE_1);
-	displayPrintAt(TET_PANEL_X, 40, GT("Seviye", "Level", "Nivel"), FONT_SIZE_1);
-	displayPrintAt(TET_PANEL_X, 62, GT("Satir", "Lines", "Filas"), FONT_SIZE_1);
-	displayPrintAt(TET_PANEL_X, 84, GT("Sonraki", "Next", "Pr\xF3xima"), FONT_SIZE_1);
+	displayPrintAt(TET_PANEL_X, 18, GT("Puan", "Score", "Ptos.", "\xCE\xF7\xEA\xE8"), FONT_SIZE_1);
+	displayPrintAt(TET_PANEL_X, 40, GT("Seviye", "Level", "Nivel", "\xD3\xF0."), FONT_SIZE_1);
+	displayPrintAt(TET_PANEL_X, 62, GT("Satir", "Lines", "Filas", "\xD0\xFF\xE4\xFB"), FONT_SIZE_1);
+	displayPrintAt(TET_PANEL_X, 84, GT("Sonraki", "Next", "Pr\xF3xima", "\xC4\xE0\xEB\xE5\xE5"), FONT_SIZE_1);
 
 	gameSetColour(gamePal.foreground);
 	snprintf(buf, sizeof(buf), "%u", (unsigned) tetScore);
@@ -1415,27 +1426,27 @@ static void tetDraw(void)
 	switch (tetState)
 	{
 		case GAME_STATE_START:
-			gameDrawPanel("TETRIS", GT("4/6 Sol-Sag  2 Dondur", "4/6 Move  2 Rotate", "4/6 Mover  2 Girar"), GT("8 Indir  0 Birak  * Dur", "8/0 Drop     * Pause", "8/0 Soltar   * Pausa"),
-					GT("Yesil: Basla   Kirmizi: Geri", "Green: Start   Red: Back", "Verde: Jugar   Rojo: Atr\xE1s"), gamePal.accent);
+			gameDrawPanel("TETRIS", GT("4/6 Sol-Sag  2 Dondur", "4/6 Move  2 Rotate", "4/6 Mover  2 Girar", "4/6 \xD1\xE4\xE2\xE8\xE3  2 \xCF\xEE\xE2\xEE\xF0\xEE\xF2"), GT("8 Indir  0 Birak  * Dur", "8/0 Drop     * Pause", "8/0 Soltar   * Pausa", "8/0 \xD1\xE1\xF0\xEE\xF1   * \xCF\xE0\xF3\xE7\xE0"),
+					GT("Yesil: Basla   Kirmizi: Geri", "Green: Start   Red: Back", "Verde: Jugar   Rojo: Atr\xE1s", "\xC7\xE5\xEB: \xD1\xF2\xE0\xF0\xF2 \xCA\xF0\xE0\xF1: \xCD\xE0\xE7\xE0\xE4"), gamePal.accent);
 			break;
 
 		case GAME_STATE_PAUSED:
-			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA"), NULL, GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir"), GT("Kirmizi: Cikis", "Red: Exit", "Rojo: Salir"), gamePal.warning);
+			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA", "\xCF\xC0\xD3\xC7\xC0"), NULL, GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir", "* \xE8\xEB\xE8 \xC7\xE5\xEB: \xC4\xE0\xEB\xFC\xF8\xE5"), GT("Kirmizi: Cikis", "Red: Exit", "Rojo: Salir", "\xCA\xF0\xE0\xF1: \xC2\xFB\xF5\xEE\xE4"), gamePal.warning);
 			break;
 
 		case GAME_STATE_GAME_OVER:
 			{
 				char b2[20];
 
-				snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u"), (unsigned) tetScore);
-				snprintf(b2, sizeof(b2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u"), (unsigned) gameScoreGet(GAME_ID_TETRIS));
-				gameDrawPanel((tetNewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO")), buf, b2,
-						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir"), (tetNewRecord ? gamePal.success : gamePal.danger));
+				snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u", "\xCE\xF7\xEA\xE8: %u"), (unsigned) tetScore);
+				snprintf(b2, sizeof(b2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u", "\xD0\xE5\xEA\xEE\xF0\xE4: %u"), (unsigned) gameScoreGet(GAME_ID_TETRIS));
+				gameDrawPanel((tetNewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!", "\xD0\xC5\xCA\xCE\xD0\xC4!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO", "\xCA\xCE\xCD\xC5\xD6 \xC8\xC3\xD0\xDB")), buf, b2,
+						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir", "\xC7\xE5\xEB: \xC5\xF9\xB8  \xCA\xF0\xE0\xF1: \xC2\xFB\xF5\xEE\xE4"), (tetNewRecord ? gamePal.success : gamePal.danger));
 			}
 			break;
 
 		case GAME_STATE_EXIT_CONFIRM:
-			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No"), gamePal.warning);
+			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR", "\xC2\xDB\xD5\xCE\xC4"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?", "\xC2\xFB\xE9\xF2\xE8 \xE8\xE7 \xE8\xE3\xF0\xFB?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No", "\xC7\xE5\xEB: \xC4\xE0   \xCA\xF0\xE0\xF1: \xCD\xE5\xF2"), gamePal.warning);
 			break;
 
 		default:
@@ -2123,7 +2134,7 @@ static void brkDraw(void)
 
 	displayClearBuf();
 	gameClearScreen();
-	gameDrawHeader(GT("TUGLA KIRMA", "BREAKOUT", "LADRILLOS"), brkScore);
+	gameDrawHeader(GT("TUGLA KIRMA", "BREAKOUT", "LADRILLOS", "\xC0\xD0\xCA\xC0\xCD\xCE\xC8\xC4"), brkScore);
 
 	// Lives as small blocks
 	gameSetColour(gamePal.success);
@@ -2203,34 +2214,34 @@ static void brkDraw(void)
 
 	// Level / bonus indicator
 	gameSetColour(gamePal.secondaryText);
-	snprintf(buf, sizeof(buf), GT("Sv%d Hiz%d%s%s", "Lv%d Spd%d%s%s", "Nv%d Vel%d%s%s"), brkLevel, brkSpeedLevel,
-			((brkLongUntil != 0) ? GT(" U", " L", " G") : ""), ((brkSlowUntil != 0) ? GT(" Y", " S", " L") : ""));
+	snprintf(buf, sizeof(buf), GT("Sv%d Hiz%d%s%s", "Lv%d Spd%d%s%s", "Nv%d Vel%d%s%s", "\xD3\xF0%d \xD1\xEA%d%s%s"), brkLevel, brkSpeedLevel,
+			((brkLongUntil != 0) ? GT(" U", " L", " G", " \xC4") : ""), ((brkSlowUntil != 0) ? GT(" Y", " S", " L", " \xCC") : ""));
 	displayPrintAt(2, (DISPLAY_SIZE_Y - 9), buf, FONT_SIZE_1);
 
 	switch (brkState)
 	{
 		case GAME_STATE_START:
-			gameDrawPanel(GT("TUGLA KIRMA", "BREAKOUT", "LADRILLOS"), GT("4/6 Sol-Sag   Ok: Hiz", "4/6 Move   Arrows: Speed", "4/6 Mover  Flechas: Vel."), GT("Yesil: Topu birak  * Dur", "Green: Launch  * Pause", "Verde: Lanzar  * Pausa"),
-					GT("Kirmizi: Geri", "Red: Back", "Rojo: Atr\xE1s"), gamePal.accent);
+			gameDrawPanel(GT("TUGLA KIRMA", "BREAKOUT", "LADRILLOS", "\xC0\xD0\xCA\xC0\xCD\xCE\xC8\xC4"), GT("4/6 Sol-Sag   Ok: Hiz", "4/6 Move   Arrows: Speed", "4/6 Mover  Flechas: Vel.", "4/6 \xD1\xE4\xE2\xE8\xE3  \xD1\xF2\xF0\xE5\xEB\xEA\xE8: \xD1\xEA."), GT("Yesil: Topu birak  * Dur", "Green: Launch  * Pause", "Verde: Lanzar  * Pausa", "\xC7\xE5\xEB: \xCF\xF3\xF1\xEA  * \xCF\xE0\xF3\xE7\xE0"),
+					GT("Kirmizi: Geri", "Red: Back", "Rojo: Atr\xE1s", "\xCA\xF0\xE0\xF1: \xCD\xE0\xE7\xE0\xE4"), gamePal.accent);
 			break;
 
 		case GAME_STATE_PAUSED:
-			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA"), NULL, GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir"), GT("Kirmizi: Cikis", "Red: Exit", "Rojo: Salir"), gamePal.warning);
+			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA", "\xCF\xC0\xD3\xC7\xC0"), NULL, GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir", "* \xE8\xEB\xE8 \xC7\xE5\xEB: \xC4\xE0\xEB\xFC\xF8\xE5"), GT("Kirmizi: Cikis", "Red: Exit", "Rojo: Salir", "\xCA\xF0\xE0\xF1: \xC2\xFB\xF5\xEE\xE4"), gamePal.warning);
 			break;
 
 		case GAME_STATE_GAME_OVER:
 			{
 				char b2[24];
 
-				snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u"), (unsigned) brkScore);
-				snprintf(b2, sizeof(b2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u"), (unsigned) gameScoreGet(GAME_ID_BREAKOUT));
-				gameDrawPanel((brkNewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO")), buf, b2,
-						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir"), (brkNewRecord ? gamePal.success : gamePal.danger));
+				snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u", "\xCE\xF7\xEA\xE8: %u"), (unsigned) brkScore);
+				snprintf(b2, sizeof(b2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u", "\xD0\xE5\xEA\xEE\xF0\xE4: %u"), (unsigned) gameScoreGet(GAME_ID_BREAKOUT));
+				gameDrawPanel((brkNewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!", "\xD0\xC5\xCA\xCE\xD0\xC4!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO", "\xCA\xCE\xCD\xC5\xD6 \xC8\xC3\xD0\xDB")), buf, b2,
+						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir", "\xC7\xE5\xEB: \xC5\xF9\xB8  \xCA\xF0\xE0\xF1: \xC2\xFB\xF5\xEE\xE4"), (brkNewRecord ? gamePal.success : gamePal.danger));
 			}
 			break;
 
 		case GAME_STATE_EXIT_CONFIRM:
-			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No"), gamePal.warning);
+			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR", "\xC2\xDB\xD5\xCE\xC4"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?", "\xC2\xFB\xE9\xF2\xE8 \xE8\xE7 \xE8\xE3\xF0\xFB?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No", "\xC7\xE5\xEB: \xC4\xE0   \xCA\xF0\xE0\xF1: \xCD\xE5\xF2"), gamePal.warning);
 			break;
 
 		default:
@@ -2670,34 +2681,34 @@ static void g48Draw(void)
 
 	if (g48ShowWin)
 	{
-		gameDrawPanel("2048", GT("Kazandin!", "You win!", "Ganaste!"), NULL, GT("Yesil: Devam et", "Green: Continue", "Verde: Seguir"), gamePal.success);
+		gameDrawPanel("2048", GT("Kazandin!", "You win!", "Ganaste!", "\xCF\xEE\xE1\xE5\xE4\xE0!"), NULL, GT("Yesil: Devam et", "Green: Continue", "Verde: Seguir", "\xC7\xE5\xEB: \xC4\xE0\xEB\xFC\xF8\xE5"), gamePal.success);
 	}
 
 	switch (g48State)
 	{
 		case GAME_STATE_START:
-			gameDrawPanel("2048", GT("2/8 Yukari-Asagi", "2/8 Up-Down", "2/8 Arriba-Abajo"), GT("4/6 Sol-Sag   # Geri al", "4/6 Left-Right  # Undo", "4/6 Izq-Der  # Deshacer"),
-					GT("Yesil: Basla   Kirmizi: Geri", "Green: Start   Red: Back", "Verde: Jugar   Rojo: Atr\xE1s"), gamePal.accent);
+			gameDrawPanel("2048", GT("2/8 Yukari-Asagi", "2/8 Up-Down", "2/8 Arriba-Abajo", "2/8 \xC2\xE2\xE5\xF0\xF5-\xC2\xED\xE8\xE7"), GT("4/6 Sol-Sag   # Geri al", "4/6 Left-Right  # Undo", "4/6 Izq-Der  # Deshacer", "4/6 \xCB\xE5\xE2\xEE-\xCF\xF0\xE0\xE2\xEE # \xCE\xF2\xEC\xE5\xED\xE0"),
+					GT("Yesil: Basla   Kirmizi: Geri", "Green: Start   Red: Back", "Verde: Jugar   Rojo: Atr\xE1s", "\xC7\xE5\xEB: \xD1\xF2\xE0\xF0\xF2 \xCA\xF0\xE0\xF1: \xCD\xE0\xE7\xE0\xE4"), gamePal.accent);
 			break;
 
 		case GAME_STATE_PAUSED:
-			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA"), GT("2/8/4/6 Kaydir", "2/8/4/6 Slide", "2/8/4/6 Mover"), GT("# Son hamleyi geri al", "# Undo last move", "# Deshacer jugada"),
-					GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir"), gamePal.warning);
+			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA", "\xCF\xC0\xD3\xC7\xC0"), GT("2/8/4/6 Kaydir", "2/8/4/6 Slide", "2/8/4/6 Mover", "2/8/4/6 \xD1\xE4\xE2\xE8\xE3"), GT("# Son hamleyi geri al", "# Undo last move", "# Deshacer jugada", "# \xCE\xF2\xEC\xE5\xED\xE8\xF2\xFC \xF5\xEE\xE4"),
+					GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir", "* \xE8\xEB\xE8 \xC7\xE5\xEB: \xC4\xE0\xEB\xFC\xF8\xE5"), gamePal.warning);
 			break;
 
 		case GAME_STATE_GAME_OVER:
 			{
 				char b2[24];
 
-				snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u"), (unsigned) g48Score);
-				snprintf(b2, sizeof(b2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u"), (unsigned) gameScoreGet(GAME_ID_2048));
-				gameDrawPanel((g48NewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO")), buf, b2,
-						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir"), (g48NewRecord ? gamePal.success : gamePal.danger));
+				snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u", "\xCE\xF7\xEA\xE8: %u"), (unsigned) g48Score);
+				snprintf(b2, sizeof(b2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u", "\xD0\xE5\xEA\xEE\xF0\xE4: %u"), (unsigned) gameScoreGet(GAME_ID_2048));
+				gameDrawPanel((g48NewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!", "\xD0\xC5\xCA\xCE\xD0\xC4!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO", "\xCA\xCE\xCD\xC5\xD6 \xC8\xC3\xD0\xDB")), buf, b2,
+						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir", "\xC7\xE5\xEB: \xC5\xF9\xB8  \xCA\xF0\xE0\xF1: \xC2\xFB\xF5\xEE\xE4"), (g48NewRecord ? gamePal.success : gamePal.danger));
 			}
 			break;
 
 		case GAME_STATE_EXIT_CONFIRM:
-			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No"), gamePal.warning);
+			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR", "\xC2\xDB\xD5\xCE\xC4"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?", "\xC2\xFB\xE9\xF2\xE8 \xE8\xE7 \xE8\xE3\xF0\xFB?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No", "\xC7\xE5\xEB: \xC4\xE0   \xCA\xF0\xE0\xF1: \xCD\xE5\xF2"), gamePal.warning);
 			break;
 
 		default:
@@ -3165,27 +3176,27 @@ static void dinoDraw(void)
 	switch (dinoState)
 	{
 		case GAME_STATE_START:
-			gameDrawPanel("DINO", GT("2 veya Yesil: Zipla", "2 or Green: Jump", "2 o Verde: Saltar"), GT("8: Egil     * Duraklat", "8: Duck     * Pause", "8: Agachar  * Pausa"),
-					GT("Yesil: Basla   Kirmizi: Geri", "Green: Start   Red: Back", "Verde: Jugar   Rojo: Atr\xE1s"), gamePal.accent);
+			gameDrawPanel("DINO", GT("2 veya Yesil: Zipla", "2 or Green: Jump", "2 o Verde: Saltar", "2 \xE8\xEB\xE8 \xC7\xE5\xEB: \xCF\xF0\xFB\xE6\xEE\xEA"), GT("8: Egil     * Duraklat", "8: Duck     * Pause", "8: Agachar  * Pausa", "8: \xCF\xF0\xE8\xF1\xE5\xF1\xF2\xFC * \xCF\xE0\xF3\xE7\xE0"),
+					GT("Yesil: Basla   Kirmizi: Geri", "Green: Start   Red: Back", "Verde: Jugar   Rojo: Atr\xE1s", "\xC7\xE5\xEB: \xD1\xF2\xE0\xF0\xF2 \xCA\xF0\xE0\xF1: \xCD\xE0\xE7\xE0\xE4"), gamePal.accent);
 			break;
 
 		case GAME_STATE_PAUSED:
-			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA"), NULL, GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir"), GT("Kirmizi: Cikis", "Red: Exit", "Rojo: Salir"), gamePal.warning);
+			gameDrawPanel(GT("DURAKLATILDI", "PAUSED", "PAUSA", "\xCF\xC0\xD3\xC7\xC0"), NULL, GT("* veya Yesil: Devam", "* or Green: Resume", "* o Verde: Seguir", "* \xE8\xEB\xE8 \xC7\xE5\xEB: \xC4\xE0\xEB\xFC\xF8\xE5"), GT("Kirmizi: Cikis", "Red: Exit", "Rojo: Salir", "\xCA\xF0\xE0\xF1: \xC2\xFB\xF5\xEE\xE4"), gamePal.warning);
 			break;
 
 		case GAME_STATE_GAME_OVER:
 			{
 				char b2[24];
 
-				snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u"), (unsigned) dinoScore);
-				snprintf(b2, sizeof(b2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u"), (unsigned) gameScoreGet(GAME_ID_DINO));
-				gameDrawPanel((dinoNewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO")), buf, b2,
-						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir"), (dinoNewRecord ? gamePal.success : gamePal.danger));
+				snprintf(buf, sizeof(buf), GT("Puan: %u", "Score: %u", "Puntos: %u", "\xCE\xF7\xEA\xE8: %u"), (unsigned) dinoScore);
+				snprintf(b2, sizeof(b2), GT("Rekor: %u", "Best: %u", "M\xE1x: %u", "\xD0\xE5\xEA\xEE\xF0\xE4: %u"), (unsigned) gameScoreGet(GAME_ID_DINO));
+				gameDrawPanel((dinoNewRecord ? GT("YENI REKOR", "NEW RECORD", "R\xC9""CORD!", "\xD0\xC5\xCA\xCE\xD0\xC4!") : GT("OYUN BITTI", "GAME OVER", "FIN DEL JUEGO", "\xCA\xCE\xCD\xC5\xD6 \xC8\xC3\xD0\xDB")), buf, b2,
+						GT("Yesil: Tekrar   Kirmizi: Cikis", "Green: Again   Red: Exit", "Verde: Otra  Rojo: Salir", "\xC7\xE5\xEB: \xC5\xF9\xB8  \xCA\xF0\xE0\xF1: \xC2\xFB\xF5\xEE\xE4"), (dinoNewRecord ? gamePal.success : gamePal.danger));
 			}
 			break;
 
 		case GAME_STATE_EXIT_CONFIRM:
-			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No"), gamePal.warning);
+			gameDrawPanel(GT("CIKIS", "EXIT", "SALIR", "\xC2\xDB\xD5\xCE\xC4"), GT("Oyundan cikilsin mi?", "Leave the game?", "Salir del juego?", "\xC2\xFB\xE9\xF2\xE8 \xE8\xE7 \xE8\xE3\xF0\xFB?"), NULL, GT("Yesil: Evet   Kirmizi: Hayir", "Green: Yes   Red: No", "Verde: S\xED   Rojo: No", "\xC7\xE5\xEB: \xC4\xE0   \xCA\xF0\xE0\xF1: \xCD\xE5\xF2"), gamePal.warning);
 			break;
 
 		default:

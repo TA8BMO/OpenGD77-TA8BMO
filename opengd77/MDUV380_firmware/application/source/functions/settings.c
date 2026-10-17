@@ -188,6 +188,7 @@ bool settingsLoadSettings(bool reset)
 	{
 		settingsSetOptionBit(BIT_SECONDARY_LANGUAGE, false);
 		settingsSetOptionBit(BIT_LANGUAGE_SPANISH, false);
+		settingsSetOptionBit(BIT_LANGUAGE_RUSSIAN, false);
 		settingsSetDirty();
 	}
 	else
@@ -195,7 +196,7 @@ bool settingsLoadSettings(bool reset)
 		settingsDirty = false;
 	}
 
-	currentLanguage = &languages[languageGetSavedIndex()];
+	languageApply(languageGetSavedIndex()); // also switches the display to Cyrillic for Russian
 
 	soundBeepVolumeDivider = nonVolatileSettings.beepVolumeDivider;
 

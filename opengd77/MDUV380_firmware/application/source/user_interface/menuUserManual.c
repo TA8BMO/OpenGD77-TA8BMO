@@ -58,15 +58,15 @@ static bool umReading = false; // false: the topic list; true: one topic's text
 // RAM is full to within a few bytes, and remembering it pushed the build over.
 // Turkish, English or Spanish, following the radio's language - the same rule as
 // the firmware info message.
-#define UM_TOPICS  LANG3(umTopicsTR, umTopicsEN, umTopicsES)
-#define UM_COUNT   LANG3(UM_TOPIC_COUNT_TR, UM_TOPIC_COUNT_EN, UM_TOPIC_COUNT_ES)
+#define UM_TOPICS  LANG4(umTopicsTR, umTopicsEN, umTopicsES, umTopicsRU)
+#define UM_COUNT   LANG4(UM_TOPIC_COUNT_TR, UM_TOPIC_COUNT_EN, UM_TOPIC_COUNT_ES, UM_TOPIC_COUNT_RU)
 
 // Line n of the manual. The text is one packed block per language with a table
 // of where each line starts, kept in the flash after the codec (.hiconst) -
 // see userManualText.h.
 static const char *umLine(int n)
 {
-	return LANG3((umTextTR + umOffsTR[n]), (umTextEN + umOffsEN[n]), (umTextES + umOffsES[n]));
+	return LANG4((umTextTR + umOffsTR[n]), (umTextEN + umOffsEN[n]), (umTextES + umOffsES[n]), (umTextRU + umOffsRU[n]));
 }
 static int  umScroll  = 0;     // first line of the topic that is on screen
 
@@ -80,7 +80,7 @@ static int umMaxScroll(int topic)
 static void umDrawList(void)
 {
 	displayClearBuf();
-	menuDisplayTitle(LANG3("KULLANIM KILAVUZU", "USER MANUAL", "MANUAL"));
+	menuDisplayTitle(LANG4("KULLANIM KILAVUZU", "USER MANUAL", "MANUAL", "\xD0\xD3\xCA\xCE\xC2\xCE\xC4\xD1\xD2\xC2\xCE"));
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
 	{

@@ -35,7 +35,9 @@
 #if ! defined(LANGUAGE_BUILD_JAPANESE)
 #include "user_interface/languages/turkish.h" // built-in Turkish (TA8BMO Special Edition)
 #include "user_interface/languages/spanish.h" // built-in Spanish, added in v0.2.0
+#include "user_interface/languages/russian.h" // built-in Russian, added in v0.3.0
 #include "functions/settings.h"
+#include "hardware/HX8353E.h"
 #endif
 
 #if ! defined(LANGUAGE_BUILD_JAPANESE)
@@ -54,14 +56,17 @@ const stringsTable_t userLanguage = { .magicNumber = { LANGUAGE_TAG_MAGIC_NUMBER
  * Add new languages at the end of the list
  *
  */
-const stringsTable_t languages[]=
+// The tables live in the flash after the codec (.hiconst): about 4.7KB each, and
+// the flash below the codec is the tight part.
+const stringsTable_t languages[] __attribute__((section(".hiconst"))) =
 {
 		englishLanguage,        // englishLanguageName
 #if defined(LANGUAGE_BUILD_JAPANESE)
 		japaneseLanguage       // japaneseLanguageName
 #else
 		turkishLanguage, // built-in Turkish (replaces the CPS "User" slot)
-		spanishLanguage  // built-in Spanish - always last, so English and Turkish keep their places
+		spanishLanguage, // built-in Spanish
+		russianLanguage  // built-in Russian - new ones go at the end, so the others keep their places
 #endif
 };
 const stringsTable_t *currentLanguage;
@@ -72,7 +77,7 @@ uint8_t languagesGetCount(void)
 #if ! defined(LANGUAGE_BUILD_JAPANESE)
 	uint8_t magic[3][4] = { LANGUAGE_TAG_MAGIC_NUMBER, LANGUAGE_TAG_VERSION };
 
-	return ((memcmp(languages[1].magicNumber, magic, sizeof(magic)) == 0) ? 3 : 1);
+	return ((memcmp(languages[1].magicNumber, magic, sizeof(magic)) == 0) ? 4 : 1);
 #else
 	return 2;
 #endif
@@ -83,7 +88,11 @@ int languageGetSavedIndex(void)
 {
 	int index = LANGUAGE_INDEX_ENGLISH;
 
-	if (settingsIsOptionBitSet(BIT_LANGUAGE_SPANISH))
+	if (settingsIsOptionBitSet(BIT_LANGUAGE_RUSSIAN))
+	{
+		index = LANGUAGE_INDEX_RUSSIAN;
+	}
+	else if (settingsIsOptionBitSet(BIT_LANGUAGE_SPANISH))
 	{
 		index = LANGUAGE_INDEX_SPANISH;
 	}
@@ -104,7 +113,19 @@ void languageSetIndex(int index)
 
 	settingsSetOptionBit(BIT_SECONDARY_LANGUAGE, (index == LANGUAGE_INDEX_TURKISH));
 	settingsSetOptionBit(BIT_LANGUAGE_SPANISH, (index == LANGUAGE_INDEX_SPANISH));
+	settingsSetOptionBit(BIT_LANGUAGE_RUSSIAN, (index == LANGUAGE_INDEX_RUSSIAN));
+	languageApply(index);
+}
+
+void languageApply(int index)
+{
+	if ((index < 0) || (index >= languagesGetCount()))
+	{
+		index = LANGUAGE_INDEX_ENGLISH;
+	}
+
 	currentLanguage = &languages[index];
+	displaySetCyrillic(index == LANGUAGE_INDEX_RUSSIAN); // Russian text is Windows-1251
 }
 
 // Pointer compares, not string compares: these are asked many times per redraw.
@@ -116,6 +137,11 @@ bool languageIsTurkish(void)
 bool languageIsSpanish(void)
 {
 	return (currentLanguage == &languages[LANGUAGE_INDEX_SPANISH]);
+}
+
+bool languageIsRussian(void)
+{
+	return (currentLanguage == &languages[LANGUAGE_INDEX_RUSSIAN]);
 }
 #endif
 

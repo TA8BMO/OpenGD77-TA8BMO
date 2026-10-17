@@ -251,7 +251,11 @@ static void updateScreen(bool isFirstRun)
 
 		if (mNum < languagesGetCount())
 		{
+			// Each name in its own script, whatever language the radio is in: the
+			// Russian name is Windows-1251 (Cyrillic), the others Latin-1.
+			displaySetCyrillic(mNum == LANGUAGE_INDEX_RUSSIAN);
 			menuDisplayEntry(i, mNum, (char *)languages[mNum].LANGUAGE_NAME, -1, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
+			displaySetCyrillic(languageIsRussian());
 
 			if (i == 0)
 			{

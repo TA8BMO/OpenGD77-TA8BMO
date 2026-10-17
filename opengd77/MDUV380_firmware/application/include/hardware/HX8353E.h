@@ -204,6 +204,10 @@ void displayRenderRows(int16_t startRow, int16_t endRow);
 void displayPrintCentered(uint16_t y, const char *text, ucFont_t fontSize);
 void displayPrintAt(uint16_t x, uint16_t y, const  char *text, ucFont_t fontSize);
 int displayPrintCore(int16_t x, int16_t y, const char *szMsg, ucFont_t fontSize, ucTextAlign_t alignment, bool isInverted);
+#if ! defined(LANGUAGE_BUILD_JAPANESE)
+void displaySetCyrillic(bool on); // draw 0xA8, 0xB8 and 0xC0-0xFF as Windows-1251 Cyrillic (Russian)
+bool displayGetCyrillic(void);
+#endif
 
 int16_t displaySetPixel(int16_t x, int16_t y, bool isInverted);
 

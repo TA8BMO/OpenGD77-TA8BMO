@@ -69,6 +69,7 @@
 #include "interfaces/i2s.h"
 #include "user_interface/uiGlobals.h"
 #include "functions/codeplug.h"
+#include "user_interface/uiLocalisation.h"
 
 #define AX25_FLAG          0x7E
 #define AX25_MIN_FRAME     18    // 2 addresses + control + PID + FCS
@@ -974,6 +975,12 @@ static void aprsCopyText(char *out, const uint8_t *in, int inLen, int outMax)
 		else if (cp < 0x0100)
 		{
 			out[n++] = (char) cp; // other Latin-1, the font has these
+		}
+		else if (languageIsRussian() && (((cp >= 0x0410) && (cp <= 0x044F)) || (cp == 0x0401) || (cp == 0x0451)))
+		{
+			// Cyrillic, as Windows-1251 - only shown right while the radio is
+			// in Russian, so only then; in the other languages it stays a '?'.
+			out[n++] = (char)((cp == 0x0401) ? 0xA8 : ((cp == 0x0451) ? 0xB8 : (cp - 0x0410 + 0xC0)));
 		}
 		else
 		{

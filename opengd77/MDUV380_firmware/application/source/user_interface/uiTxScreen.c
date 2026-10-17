@@ -944,7 +944,7 @@ static void selCallShowScreen(bool sending)
 
 	displayClearBuf();
 	displayThemeResetToDefault();
-	displayPrintCentered(4, LANG3("Secmeli Cagri", "Selective Call", "Llamada selectiva"), FONT_SIZE_3);
+	displayPrintCentered(4, LANG4("Secmeli Cagri", "Selective Call", "Llamada selectiva", "\xD1\xE5\xEB\xE5\xEA\xF2. \xE2\xFB\xE7\xEE\xE2"), FONT_SIZE_3);
 
 	for (int i = 0; i < 5; i++)
 	{
@@ -959,12 +959,12 @@ static void selCallShowScreen(bool sending)
 
 	if (sending)
 	{
-		displayPrintCentered((DISPLAY_SIZE_Y - 20), LANG3("Gonderiliyor...", "Sending...", "Enviando..."), FONT_SIZE_1);
+		displayPrintCentered((DISPLAY_SIZE_Y - 20), LANG4("Gonderiliyor...", "Sending...", "Enviando...", "\xCF\xE5\xF0\xE5\xE4\xE0\xF7\xE0..."), FONT_SIZE_1);
 	}
 	else
 	{
-		displayPrintCentered((DISPLAY_SIZE_Y - 26), LANG3("YESIL = Gonder", "GREEN = Send", "VERDE = Enviar"), FONT_SIZE_1);
-		displayPrintCentered((DISPLAY_SIZE_Y - 14), LANG3("KIRMIZI = Sil / Cikis", "RED = Delete / Exit", "ROJO = Borrar / Salir"), FONT_SIZE_1);
+		displayPrintCentered((DISPLAY_SIZE_Y - 26), LANG4("YESIL = Gonder", "GREEN = Send", "VERDE = Enviar", "\xC7\xC5\xCB = \xCF\xE5\xF0\xE5\xE4\xE0\xF2\xFC"), FONT_SIZE_1);
+		displayPrintCentered((DISPLAY_SIZE_Y - 14), LANG4("KIRMIZI = Sil / Cikis", "RED = Delete / Exit", "ROJO = Borrar / Salir", "\xCA\xD0\xC0\xD1 = \xD3\xE4\xE0\xEB / \xC2\xFB\xF5\xEE\xE4"), FONT_SIZE_1);
 	}
 	displayRender();
 }
@@ -1460,19 +1460,19 @@ static void morseShowScreen(bool sending, char preview)
 
 	displayClearBuf();
 	displayThemeResetToDefault();
-	displayPrintCentered(6, LANG3("Mors Gonder", "Send Morse", "Enviar Morse"), FONT_SIZE_3);
+	displayPrintCentered(6, LANG4("Mors Gonder", "Send Morse", "Enviar Morse", "\xCF\xE5\xF0\xE5\xE4\xE0\xF2\xFC CW"), FONT_SIZE_3);
 	displayPrintCentered(34, line, FONT_SIZE_1);
 
 	if (sending)
 	{
-		displayPrintCentered((DISPLAY_SIZE_Y - 20), LANG3("Gonderiliyor...", "Sending...", "Enviando..."), FONT_SIZE_1);
+		displayPrintCentered((DISPLAY_SIZE_Y - 20), LANG4("Gonderiliyor...", "Sending...", "Enviando...", "\xCF\xE5\xF0\xE5\xE4\xE0\xF7\xE0..."), FONT_SIZE_1);
 	}
 	else
 	{
 		char info[24];
 
 		// Speed, and whatever is part-keyed on the PTT right now.
-		snprintf(info, sizeof(info), LANG3("Hiz: %u WPM", "Speed: %u WPM", "Vel.: %u WPM"), (unsigned int) morseWpm);
+		snprintf(info, sizeof(info), LANG4("Hiz: %u WPM", "Speed: %u WPM", "Vel.: %u WPM", "\xD1\xEA\xEE\xF0.: %u WPM"), (unsigned int) morseWpm);
 		displayPrintCentered(50, info, FONT_SIZE_1);
 
 		{
@@ -1486,10 +1486,10 @@ static void morseShowScreen(bool sending, char preview)
 			}
 		}
 
-		displayPrintCentered((DISPLAY_SIZE_Y - 40), LANG3("PTT = mors yaz", "PTT = key Morse", "PTT = manipular"), FONT_SIZE_1);
-		displayPrintCentered((DISPLAY_SIZE_Y - 30), LANG3("Yukari/Asagi = Hiz", "Up/Down = Speed", "Arriba/Abajo = Vel."), FONT_SIZE_1);
-		displayPrintCentered((DISPLAY_SIZE_Y - 20), LANG3("YESIL = Gonder", "GREEN = Send", "VERDE = Enviar"), FONT_SIZE_1);
-		displayPrintCentered((DISPLAY_SIZE_Y - 10), LANG3("KIRMIZI = Sil / Basili = Cikis", "RED = Delete / Hold = Exit", "ROJO=Borrar / Largo=Salir"), FONT_SIZE_1);
+		displayPrintCentered((DISPLAY_SIZE_Y - 40), LANG4("PTT = mors yaz", "PTT = key Morse", "PTT = manipular", "PTT = \xEA\xEB\xFE\xF7 \xCC\xEE\xF0\xE7\xE5"), FONT_SIZE_1);
+		displayPrintCentered((DISPLAY_SIZE_Y - 30), LANG4("Yukari/Asagi = Hiz", "Up/Down = Speed", "Arriba/Abajo = Vel.", "\xC2\xE2\xE5\xF0\xF5/\xC2\xED\xE8\xE7 = \xD1\xEA\xEE\xF0."), FONT_SIZE_1);
+		displayPrintCentered((DISPLAY_SIZE_Y - 20), LANG4("YESIL = Gonder", "GREEN = Send", "VERDE = Enviar", "\xC7\xC5\xCB = \xCF\xE5\xF0\xE5\xE4\xE0\xF2\xFC"), FONT_SIZE_1);
+		displayPrintCentered((DISPLAY_SIZE_Y - 10), LANG4("KIRMIZI = Sil / Basili = Cikis", "RED = Delete / Hold = Exit", "ROJO=Borrar / Largo=Salir", "\xCA\xD0\xC0\xD1=\xD3\xE4\xE0\xEB / \xC4\xEE\xEB\xE3\xEE=\xC2\xFB\xF5\xEE\xE4"), FONT_SIZE_1);
 	}
 	displayRender();
 }
@@ -1661,14 +1661,14 @@ static void morseLogShowScreen(void)
 	int y;
 
 	displayClearBuf();
-	menuDisplayTitle(LANG3("MORS KAYIT", "MORSE LOG", "REGISTRO MORSE"));
+	menuDisplayTitle(LANG4("MORS KAYIT", "MORSE LOG", "REGISTRO MORSE", "\xC6\xD3\xD0\xCD\xC0\xCB CW"));
 
 	if (morseLogConfirmClear)
 	{
-		displayPrintCentered(40, LANG3("TUM KAYITLAR", "DELETE ALL", "BORRAR TODOS"), FONT_SIZE_3);
-		displayPrintCentered(58, LANG3("SILINSIN MI?", "ENTRIES?", "LOS REGISTROS?"), FONT_SIZE_3);
-		displayPrintCentered(90, LANG3("# Evet", "# Yes", "# S\xED"), FONT_SIZE_3);
-		displayPrintCentered(108, LANG3("Kirmizi Hayir", "Red No", "Rojo No"), FONT_SIZE_3);
+		displayPrintCentered(40, LANG4("TUM KAYITLAR", "DELETE ALL", "BORRAR TODOS", "\xD3\xC4\xC0\xCB\xC8\xD2\xDC \xC2\xD1\xC5"), FONT_SIZE_3);
+		displayPrintCentered(58, LANG4("SILINSIN MI?", "ENTRIES?", "LOS REGISTROS?", "\xC7\xC0\xCF\xC8\xD1\xC8?"), FONT_SIZE_3);
+		displayPrintCentered(90, LANG4("# Evet", "# Yes", "# S\xED", "# \xC4\xE0"), FONT_SIZE_3);
+		displayPrintCentered(108, LANG4("Kirmizi Hayir", "Red No", "Rojo No", "\xCA\xF0\xE0\xF1 \xCD\xE5\xF2"), FONT_SIZE_3);
 		displayRender();
 		return;
 	}
@@ -1676,16 +1676,16 @@ static void morseLogShowScreen(void)
 	// Whatever is being copied right now, before it has been committed.
 	if (live[0] != 0)
 	{
-		displayPrintAt(2, 18, LANG3("Simdi:", "Now:", "Ahora:"), FONT_SIZE_1);
+		displayPrintAt(2, 18, LANG4("Simdi:", "Now:", "Ahora:", "\xD1\xE5\xE9\xF7\xE0\xF1:"), FONT_SIZE_1);
 		snprintf(buf, sizeof(buf), "%.*s", APRS_LINE_CHARS, live);
 		displayPrintAt(2, 27, buf, FONT_SIZE_1);
 	}
 
 	if (count == 0)
 	{
-		displayPrintCentered(60, LANG3("Kayit yok", "No entries", "Sin registros"), FONT_SIZE_3);
-		displayPrintAt(2, 108, LANG3("* Mors gonder", "* Send Morse", "* Enviar Morse"), FONT_SIZE_1);
-		displayPrintAt(2, 117, LANG3("Kirmizi Cikis", "Red Exit", "Rojo Salir"), FONT_SIZE_1);
+		displayPrintCentered(60, LANG4("Kayit yok", "No entries", "Sin registros", "\xCD\xE5\xF2 \xE7\xE0\xEF\xE8\xF1\xE5\xE9"), FONT_SIZE_3);
+		displayPrintAt(2, 108, LANG4("* Mors gonder", "* Send Morse", "* Enviar Morse", "* \xCF\xE5\xF0\xE5\xE4\xE0\xF2\xFC CW"), FONT_SIZE_1);
+		displayPrintAt(2, 117, LANG4("Kirmizi Cikis", "Red Exit", "Rojo Salir", "\xCA\xF0\xE0\xF1 \xC2\xFB\xF5\xEE\xE4"), FONT_SIZE_1);
 		displayRender();
 		return;
 	}
@@ -1695,7 +1695,7 @@ static void morseLogShowScreen(void)
 		morseLogIndex = (count - 1);
 	}
 
-	snprintf(buf, sizeof(buf), LANG3("Kayit %d / %d", "Entry %d / %d", "Registro %d / %d"), (morseLogIndex + 1), count);
+	snprintf(buf, sizeof(buf), LANG4("Kayit %d / %d", "Entry %d / %d", "Registro %d / %d", "\xC7\xE0\xEF\xE8\xF1\xFC %d / %d"), (morseLogIndex + 1), count);
 	displayPrintAt(2, 40, buf, FONT_SIZE_1);
 
 	// 26 characters fit on a line in the small font, so wrap across three.
@@ -1714,9 +1714,9 @@ static void morseLogShowScreen(void)
 		}
 	}
 
-	displayPrintAt(2, 99, LANG3("Yuk/Asa kayitlar", "Up/Down entries", "Arr/Aba registros"), FONT_SIZE_1);
-	displayPrintAt(2, 108, LANG3("# Hepsini sil  * Gonder", "# Delete all  * Send", "# Borrar todo  * Enviar"), FONT_SIZE_1);
-	displayPrintAt(2, 117, LANG3("Kirmizi Cikis", "Red Exit", "Rojo Salir"), FONT_SIZE_1);
+	displayPrintAt(2, 99, LANG4("Yuk/Asa kayitlar", "Up/Down entries", "Arr/Aba registros", "\xC2\xE2\xE5\xF0\xF5/\xC2\xED\xE8\xE7 \xE7\xE0\xEF\xE8\xF1\xE8"), FONT_SIZE_1);
+	displayPrintAt(2, 108, LANG4("# Hepsini sil  * Gonder", "# Delete all  * Send", "# Borrar todo  * Enviar", "# \xD3\xE4\xE0\xEB. \xE2\xF1\xE5  * \xCF\xE5\xF0\xE5\xE4\xE0\xF2\xFC"), FONT_SIZE_1);
+	displayPrintAt(2, 117, LANG4("Kirmizi Cikis", "Red Exit", "Rojo Salir", "\xCA\xF0\xE0\xF1 \xC2\xFB\xF5\xEE\xE4"), FONT_SIZE_1);
 	displayRender();
 }
 
@@ -1826,25 +1826,25 @@ static const char *aprsSymbolName(char code)
 		case '#': return "Digipeater";
 		case '&': return "Gateway";
 		case 'I': return "IGate";
-		case '-': return LANG3("Ev", "House", "Casa");
-		case '>': return LANG3("Araba", "Car", "Coche");
-		case 'k': return LANG3("Kamyon", "Truck", "Cami\xF3n");
-		case 'u': return LANG3("Kamyonet", "Pickup", "Furgoneta");
-		case 'v': return LANG3("Minib\xFC""s", "Van", "Minib\xFAs");
-		case '<': return LANG3("Motosiklet", "Motorcycle", "Moto");
+		case '-': return LANG4("Ev", "House", "Casa", "\xC4\xEE\xEC");
+		case '>': return LANG4("Araba", "Car", "Coche", "\xC0\xE2\xF2\xEE");
+		case 'k': return LANG4("Kamyon", "Truck", "Cami\xF3n", "\xC3\xF0\xF3\xE7\xEE\xE2\xE8\xEA");
+		case 'u': return LANG4("Kamyonet", "Pickup", "Furgoneta", "\xCF\xE8\xEA\xE0\xEF");
+		case 'v': return LANG4("Minib\xFC""s", "Van", "Minib\xFAs", "\xCC\xE8\xEA\xF0\xEE\xE0\xE2\xF2\xEE\xE1\xF3\xF1");
+		case '<': return LANG4("Motosiklet", "Motorcycle", "Moto", "\xCC\xEE\xF2\xEE\xF6\xE8\xEA\xEB");
 		case 'j': return "Jeep";
-		case 'b': return LANG3("Bisiklet", "Bicycle", "Bicicleta");
-		case '[': return LANG3("Yaya", "Person", "Persona");
-		case '_': return LANG3("Hava ist.", "Weather", "Meteo");
-		case 'r': return LANG3("R\xF6""le", "Repeater", "Repetidor");
-		case 'Y': return LANG3("Tekne", "Boat", "Barca");
-		case 's': return LANG3("Gemi", "Ship", "Barco");
-		case '^': return LANG3("U\xE7""ak", "Aircraft", "Avi\xF3n");
-		case 'O': return LANG3("Balon", "Balloon", "Globo");
-		case 'a': return LANG3("Ambulans", "Ambulance", "Ambulancia");
-		case 'f': return LANG3("\x94""tfaiye", "Fire brigade", "Bomberos");
-		case 'P': return LANG3("Polis", "Police", "Polic\xED""a");
-		case '$': return LANG3("Telefon", "Phone", "Tel\xE9""fono");
+		case 'b': return LANG4("Bisiklet", "Bicycle", "Bicicleta", "\xC2\xE5\xEB\xEE\xF1\xE8\xEF\xE5\xE4");
+		case '[': return LANG4("Yaya", "Person", "Persona", "\xD7\xE5\xEB\xEE\xE2\xE5\xEA");
+		case '_': return LANG4("Hava ist.", "Weather", "Meteo", "\xCC\xE5\xF2\xE5\xEE");
+		case 'r': return LANG4("R\xF6""le", "Repeater", "Repetidor", "\xD0\xE5\xF2\xF0\xE0\xED\xF1\xEB\xFF\xF2\xEE\xF0");
+		case 'Y': return LANG4("Tekne", "Boat", "Barca", "\xCB\xEE\xE4\xEA\xE0");
+		case 's': return LANG4("Gemi", "Ship", "Barco", "\xCA\xEE\xF0\xE0\xE1\xEB\xFC");
+		case '^': return LANG4("U\xE7""ak", "Aircraft", "Avi\xF3n", "\xD1\xE0\xEC\xEE\xEB\xB8\xF2");
+		case 'O': return LANG4("Balon", "Balloon", "Globo", "\xD8\xE0\xF0");
+		case 'a': return LANG4("Ambulans", "Ambulance", "Ambulancia", "\xD1\xEA\xEE\xF0\xE0\xFF");
+		case 'f': return LANG4("\x94""tfaiye", "Fire brigade", "Bomberos", "\xCF\xEE\xE6\xE0\xF0\xED\xFB\xE5");
+		case 'P': return LANG4("Polis", "Police", "Polic\xED""a", "\xCF\xEE\xEB\xE8\xF6\xE8\xFF");
+		case '$': return LANG4("Telefon", "Phone", "Tel\xE9""fono", "\xD2\xE5\xEB\xE5\xF4\xEE\xED");
 		default:  return NULL;
 	}
 }
@@ -2055,7 +2055,7 @@ static bool aprsLogOwnPosition(double *lat, double *lon)
 	return false;
 }
 
-#define APRS_TR(tr, en, es) LANG3((tr), (en), (es)) // Turkish, English, Spanish
+#define APRS_TR(tr, en, es, ru) LANG4((tr), (en), (es), (ru)) // Turkish, English, Spanish, Russian
 
 // What can be said about where a station is.
 typedef enum
@@ -2147,8 +2147,9 @@ static const char *aprsLogCompassPoint(int degrees)
 	static const char * const pointsTR[8] = { "K", "KD", "D", "GD", "G", "GB", "B", "KB" };
 	static const char * const pointsEN[8] = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
 	static const char * const pointsES[8] = { "N", "NE", "E", "SE", "S", "SO", "O", "NO" };
+	static const char * const pointsRU[8] = { "\xD1", "\xD1\xC2", "\xC2", "\xDE\xC2", "\xDE", "\xDE\xC7", "\xC7", "\xD1\xC7" };
 
-	return APRS_TR(pointsTR, pointsEN, pointsES)[((degrees + 22) / 45) % 8];
+	return APRS_TR(pointsTR, pointsEN, pointsES, pointsRU)[((degrees + 22) / 45) % 8];
 }
 
 // ---------------------------------------------------------------------------
@@ -2451,8 +2452,8 @@ static void aprsLogDrawBenchScores(void)
 
 	// One row: the signal as this radio actually delivers it, space tone 5dB down.
 	// See BT_TILTS for why the flat row went and this one stayed.
-	aprsLogDrawBenchRow(0, LANG3("E\x98""ik", "Thr.", "Umbral"), 110);
-	displayPrintAt(2, 119, LANG3("SK2 tekrar", "SK2 again", "SK2 repetir"), FONT_SIZE_1);
+	aprsLogDrawBenchRow(0, LANG4("E\x98""ik", "Thr.", "Umbral", "\xCF\xEE\xF0\xEE\xE3"), 110);
+	displayPrintAt(2, 119, LANG4("SK2 tekrar", "SK2 again", "SK2 repetir", "SK2 \xEF\xEE\xE2\xF2\xEE\xF0"), FONT_SIZE_1);
 }
 
 // How long ago a packet was heard, short enough to share a line with the symbol.
@@ -2460,19 +2461,19 @@ static void aprsLogAgeText(char *out, size_t len, uint16_t minutes)
 {
 	if (minutes == 0)
 	{
-		snprintf(out, len, "%s", APRS_TR("\x96imdi", "now", "ahora"));
+		snprintf(out, len, "%s", APRS_TR("\x96imdi", "now", "ahora", "\xF1\xE5\xE9\xF7\xE0\xF1"));
 	}
 	else if (minutes < 60)
 	{
-		snprintf(out, len, APRS_TR("%u dk", "%u min", "%u min"), (unsigned) minutes);
+		snprintf(out, len, APRS_TR("%u dk", "%u min", "%u min", "%u \xEC\xE8\xED"), (unsigned) minutes);
 	}
 	else if (minutes < 1440)
 	{
-		snprintf(out, len, APRS_TR("%u sa", "%u h", "%u h"), (unsigned) (minutes / 60));
+		snprintf(out, len, APRS_TR("%u sa", "%u h", "%u h", "%u \xF7"), (unsigned) (minutes / 60));
 	}
 	else
 	{
-		snprintf(out, len, APRS_TR("%u g\xFCn", "%u d", "%u d"), (unsigned) (minutes / 1440));
+		snprintf(out, len, APRS_TR("%u g\xFCn", "%u d", "%u d", "%u \xE4"), (unsigned) (minutes / 1440));
 	}
 }
 
@@ -2487,7 +2488,7 @@ static void aprsLogDrawList(int count)
 	const int rows = ((MENU_END_ITERATION_VALUE - MENU_START_ITERATION_VALUE) + 1);
 	int top = ((aprsLogIndex < rows) ? 0 : ((aprsLogIndex - rows) + 1));
 
-	snprintf(buf, sizeof(buf), APRS_TR("APRS  %d istasyon", "APRS  %d stations", "APRS  %d estaciones"), count);
+	snprintf(buf, sizeof(buf), APRS_TR("APRS  %d istasyon", "APRS  %d stations", "APRS  %d estaciones", "APRS  %d \xF1\xF2\xE0\xED\xF6\xE8\xE9"), count);
 	menuDisplayTitle(buf);
 
 	menuDataGlobal.currentItemIndex = aprsLogIndex; // what menuDisplayEntry highlights
@@ -2516,7 +2517,7 @@ static void aprsLogDrawList(int count)
 		}
 		else if (aprsDecodeIsMessageForMe(entry))
 		{
-			snprintf(dist, sizeof(dist), "%s", APRS_TR("Mesaj", "Msg", "Msj"));
+			snprintf(dist, sizeof(dist), "%s", APRS_TR("Mesaj", "Msg", "Msj", "\xD1\xEE\xEE\xE1"));
 		}
 		else
 		{
@@ -2554,11 +2555,11 @@ static void aprsLogDrawCard(int count)
 	// The title says how it got here: through which digipeater, or direct.
 	if (via[0] != 0)
 	{
-		snprintf(buf, sizeof(buf), APRS_TR("%d/%d Digi %s", "%d/%d via %s", "%d/%d v\xED""a %s"), (aprsLogIndex + 1), count, via);
+		snprintf(buf, sizeof(buf), APRS_TR("%d/%d Digi %s", "%d/%d via %s", "%d/%d v\xED""a %s", "%d/%d \xF7\xE5\xF0\xE5\xE7 %s"), (aprsLogIndex + 1), count, via);
 	}
 	else
 	{
-		snprintf(buf, sizeof(buf), APRS_TR("%d/%d Direkt", "%d/%d Direct", "%d/%d Directo"), (aprsLogIndex + 1), count);
+		snprintf(buf, sizeof(buf), APRS_TR("%d/%d Direkt", "%d/%d Direct", "%d/%d Directo", "%d/%d \xCF\xF0\xFF\xEC\xEE"), (aprsLogIndex + 1), count);
 	}
 	menuDisplayTitle(buf);
 
@@ -2590,7 +2591,7 @@ static void aprsLogDrawCard(int count)
 	if (aprsDecodeIsMessageForMe(entry))
 	{
 		displayThemeApply(THEME_ITEM_FG_RSSI_BAR_S9P, THEME_ITEM_BG);
-		displayPrintAt(4, y, APRS_TR(">> SANA MESAJ", ">> FOR YOU", ">> PARA TI"), FONT_SIZE_3);
+		displayPrintAt(4, y, APRS_TR(">> SANA MESAJ", ">> FOR YOU", ">> PARA TI", ">> \xC2\xC0\xCC"), FONT_SIZE_3);
 		displayThemeResetToDefault();
 		text = aprsDecodeGetMessageText(entry);
 		y = 64;
@@ -2606,7 +2607,7 @@ static void aprsLogDrawCard(int count)
 		// The compass: north at the top, the arrow pointing at the station.
 		displayThemeApply(THEME_ITEM_FG_DECORATION, THEME_ITEM_BG);
 		displayDrawCircle(134, 62, 21, true);
-		displayPrintAt(132, 43, APRS_TR("K", "N", "N"), FONT_SIZE_1);
+		displayPrintAt(132, 43, APRS_TR("K", "N", "N", "\xD1"), FONT_SIZE_1);
 		displayThemeApply(THEME_ITEM_FG_CHANNEL_CONTACT_INFO, THEME_ITEM_BG);
 		aprsDrawArrow(134, 62, 15, st.degrees, false);
 		displayThemeResetToDefault();
@@ -2614,8 +2615,8 @@ static void aprsLogDrawCard(int count)
 	}
 	else if (st.state == APRS_POS_ZERO)
 	{
-		displayPrintAt(4, 46, APRS_TR("Konum yok", "No position", "Sin posici\xF3n"), FONT_SIZE_3);
-		displayPrintAt(4, 64, APRS_TR("G\xF6nderenin GPS'i yoktu", "The sender had no GPS fix", "El emisor no ten\xED""a GPS"), FONT_SIZE_1);
+		displayPrintAt(4, 46, APRS_TR("Konum yok", "No position", "Sin posici\xF3n", "\xCD\xE5\xF2 \xEF\xEE\xE7\xE8\xF6\xE8\xE8"), FONT_SIZE_3);
+		displayPrintAt(4, 64, APRS_TR("G\xF6nderenin GPS'i yoktu", "The sender had no GPS fix", "El emisor no ten\xED""a GPS", "\xD3 \xEE\xF2\xEF\xF0\xE0\xE2\xE8\xF2\xE5\xEB\xFF \xED\xE5\xF2 GPS"), FONT_SIZE_1);
 		y = 76;
 	}
 	else if (st.state == APRS_POS_NONE)
@@ -2625,12 +2626,12 @@ static void aprsLogDrawCard(int count)
 			char to[10];
 
 			snprintf(to, sizeof(to), "%.9s", (info + 1));
-			snprintf(buf, sizeof(buf), APRS_TR("Mesaj -> %s", "Message -> %s", "Mensaje -> %s"), to);
+			snprintf(buf, sizeof(buf), APRS_TR("Mesaj -> %s", "Message -> %s", "Mensaje -> %s", "\xD1\xEE\xEE\xE1\xF9. -> %s"), to);
 			text = (info + (((int) strlen(info) > 11) ? 11 : (int) strlen(info)));
 		}
 		else if (info[0] == '>')
 		{
-			snprintf(buf, sizeof(buf), "%s", APRS_TR("Durum", "Status", "Estado"));
+			snprintf(buf, sizeof(buf), "%s", APRS_TR("Durum", "Status", "Estado", "\xD1\xF2\xE0\xF2\xF3\xF1"));
 			text = (info + 1);
 		}
 		else
@@ -2651,13 +2652,13 @@ static void aprsLogDrawCard(int count)
 	if (((st.state == APRS_POS_OK) || (st.state == APRS_POS_NO_OWN)) && (aprsDecodeIsMessageForMe(entry) == false))
 	{
 		snprintf(buf, sizeof(buf), "%d.%04d%c %d.%04d%c",
-				st.latDeg, st.latFrac, ((st.latHemi == 'S') ? APRS_TR('G', 'S', 'S') : APRS_TR('K', 'N', 'N')),
-				st.lonDeg, st.lonFrac, ((st.lonHemi == 'W') ? APRS_TR('B', 'W', 'O') : APRS_TR('D', 'E', 'E')));
+				st.latDeg, st.latFrac, ((st.latHemi == 'S') ? APRS_TR('G', 'S', 'S', '\xDE') : APRS_TR('K', 'N', 'N', '\xD1')),
+				st.lonDeg, st.lonFrac, ((st.lonHemi == 'W') ? APRS_TR('B', 'W', 'O', '\xC7') : APRS_TR('D', 'E', 'E', '\xC2')));
 		displayPrintAt(4, ((st.state == APRS_POS_OK) ? 84 : 46), buf, FONT_SIZE_1);
 
 		if (st.state == APRS_POS_NO_OWN)
 		{
-			displayPrintAt(4, 58, APRS_TR("Senin konumun yok", "Your position is unknown", "No s\xE9 tu posici\xF3n"), FONT_SIZE_1);
+			displayPrintAt(4, 58, APRS_TR("Senin konumun yok", "Your position is unknown", "No s\xE9 tu posici\xF3n", "\xC2\xE0\xF8\xE0 \xEF\xEE\xE7\xE8\xF6\xE8\xFF \xED\xE5\xE8\xE7\xE2\xE5\xF1\xF2\xED\xE0"), FONT_SIZE_1);
 			y = 70;
 		}
 		else
@@ -2688,7 +2689,7 @@ static void aprsLogDrawCard(int count)
 	else
 	{
 		displayThemeApply(THEME_ITEM_FG_DECORATION, THEME_ITEM_BG);
-		displayPrintAt(2, 119, APRS_TR("*:mesaj #:sil K\x93rm\x93z\x93:geri", "*:msg  #:clear  Red:back", "*:msj #:borrar Rojo:atr\xE1s"), FONT_SIZE_1);
+		displayPrintAt(2, 119, APRS_TR("*:mesaj #:sil K\x93rm\x93z\x93:geri", "*:msg  #:clear  Red:back", "*:msj #:borrar Rojo:atr\xE1s", "*:\xF1\xEE\xEE\xE1 #:\xF1\xF2\xE5\xF0 \xCA\xF0\xE0\xF1:\xED\xE0\xE7\xE0\xE4"), FONT_SIZE_1);
 		displayThemeResetToDefault();
 	}
 }
@@ -2705,8 +2706,8 @@ static void aprsLogShowScreen(void)
 		aprsCardOpen = false;
 		aprsSelCall[0] = 0;
 		menuDisplayTitle("APRS");
-		displayPrintCentered(50, APRS_TR("Paket yok", "No packets", "Sin paquetes"), FONT_SIZE_3);
-		snprintf(buf, sizeof(buf), APRS_TR("Sinyal %%%d", "Signal %%%d", "Se\xF1""al %%%d"), aprsDecodeGetTonePeakPct());
+		displayPrintCentered(50, APRS_TR("Paket yok", "No packets", "Sin paquetes", "\xCD\xE5\xF2 \xEF\xE0\xEA\xE5\xF2\xEE\xE2"), FONT_SIZE_3);
+		snprintf(buf, sizeof(buf), APRS_TR("Sinyal %%%d", "Signal %%%d", "Se\xF1""al %%%d", "\xD1\xE8\xE3\xED\xE0\xEB %%%d"), aprsDecodeGetTonePeakPct());
 		displayPrintCentered(74, buf, FONT_SIZE_1);
 
 		if (aprsBenchRun)
@@ -2716,7 +2717,7 @@ static void aprsLogShowScreen(void)
 		else
 		{
 			displayThemeApply(THEME_ITEM_FG_DECORATION, THEME_ITEM_BG);
-			displayPrintAt(2, 119, APRS_TR("*:mesaj    K\x93rm\x93z\x93:geri", "*:message    Red:back", "*:mensaje   Rojo:atr\xE1s"), FONT_SIZE_1);
+			displayPrintAt(2, 119, APRS_TR("*:mesaj    K\x93rm\x93z\x93:geri", "*:message    Red:back", "*:mensaje   Rojo:atr\xE1s", "*:\xF1\xEE\xEE\xE1\xF9.   \xCA\xF0\xE0\xF1:\xED\xE0\xE7\xE0\xE4"), FONT_SIZE_1);
 			displayThemeResetToDefault();
 		}
 		displayRender();
@@ -2793,7 +2794,7 @@ enum
 
 static uint8_t logMode = LOG_MODE_HUB;
 
-#define LOG_TR(tr, en, es) LANG3((tr), (en), (es)) // Turkish, English, Spanish
+#define LOG_TR(tr, en, es, ru) LANG4((tr), (en), (es), (ru)) // Turkish, English, Spanish, Russian
 
 // A list drawn from the top, as in Radio Setup: first item on the first row,
 // scrolling only once the cursor reaches the bottom.
@@ -2840,9 +2841,10 @@ static void logDrawHub(void)
 	static const char * const labelsTR[LOG_ITEM_COUNT] = { "APRS Kayd\x93", "\xC7""a\x98r\x93 Kayd\x93", "Mors Kayd\x93", "Dinleme Kayd\x93" };
 	static const char * const labelsEN[LOG_ITEM_COUNT] = { "APRS Log", "Call Log", "Morse Log", "RX Recorder" };
 	static const char * const labelsES[LOG_ITEM_COUNT] = { "Registro APRS", "Llamadas", "Registro Morse", "Grabador RX" };
+	static const char * const labelsRU[LOG_ITEM_COUNT] = { "\xC6\xF3\xF0\xED\xE0\xEB APRS", "\xC6\xF3\xF0\xED\xE0\xEB \xE2\xFB\xE7\xEE\xE2\xEE\xE2", "\xC6\xF3\xF0\xED\xE0\xEB CW", "\xC7\xE0\xEF\xE8\xF1\xFC \xEF\xF0\xE8\xB8\xEC\xE0" };
 
 	displayClearBuf();
-	menuDisplayTitle(LOG_TR("KAYITLAR", "LOGS", "REGISTROS"));
+	menuDisplayTitle(LOG_TR("KAYITLAR", "LOGS", "REGISTROS", "\xC6\xD3\xD0\xCD\xC0\xCB\xDB"));
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
 	{
@@ -2853,7 +2855,7 @@ static void logDrawHub(void)
 			break;
 		}
 
-		menuDisplayEntry(i, mNum, LOG_TR(labelsTR[mNum], labelsEN[mNum], labelsES[mNum]), -1, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
+		menuDisplayEntry(i, mNum, LOG_TR(labelsTR[mNum], labelsEN[mNum], labelsES[mNum], labelsRU[mNum]), -1, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
 	}
 
 	displayRender();
@@ -2875,11 +2877,11 @@ static void logDrawCalls(void)
 	char name[17];
 
 	displayClearBuf();
-	menuDisplayTitle(LOG_TR("\xC7""a\x98r\x93 Kayd\x93", "Call Log", "Llamadas"));
+	menuDisplayTitle(LOG_TR("\xC7""a\x98r\x93 Kayd\x93", "Call Log", "Llamadas", "\xC2\xFB\xE7\xEE\xE2\xFB"));
 
 	if (count == 0)
 	{
-		displayPrintCentered(50, LOG_TR("Kay\x93t yok", "No calls", "Sin llamadas"), FONT_SIZE_3);
+		displayPrintCentered(50, LOG_TR("Kay\x93t yok", "No calls", "Sin llamadas", "\xCD\xE5\xF2 \xE2\xFB\xE7\xEE\xE2\xEE\xE2"), FONT_SIZE_3);
 	}
 
 	for (int i = MENU_START_ITERATION_VALUE; (i <= MENU_END_ITERATION_VALUE) && (count > 0); i++)
@@ -2922,10 +2924,10 @@ static void logDrawCallDetail(void)
 	}
 
 	displayClearBuf();
-	snprintf(buf, sizeof(buf), "%s %d/%d", LOG_TR("\xC7""a\x98r\x93", "Call", "Llamada"), (n + 1), count);
+	snprintf(buf, sizeof(buf), "%s %d/%d", LOG_TR("\xC7""a\x98r\x93", "Call", "Llamada", "\xC2\xFB\xE7\xEE\xE2"), (n + 1), count);
 	menuDisplayTitle(buf);
 
-	snprintf(buf, sizeof(buf), "%s  %u.%04u MHz", ((entry.type == CALL_LOG_TYPE_5T) ? LOG_TR("5-Ton", "5-Tone", "5-Tonos") : "DTMF"),
+	snprintf(buf, sizeof(buf), "%s  %u.%04u MHz", ((entry.type == CALL_LOG_TYPE_5T) ? LOG_TR("5-Ton", "5-Tone", "5-Tonos", "5-\xD2\xEE\xED") : "DTMF"),
 			(unsigned) (entry.rxFreq / 100000U), (unsigned) ((entry.rxFreq % 100000U) / 10U));
 	displayPrintCentered(20, buf, FONT_SIZE_1);
 
@@ -2935,8 +2937,8 @@ static void logDrawCallDetail(void)
 	logFormatTime(entry.time, buf, sizeof(buf), true);
 	displayPrintCentered(76, buf, FONT_SIZE_3);
 
-	displayPrintAt(4, 106, LOG_TR("Yukar\x93/A\x96""a\x98\x93: \xF6nceki/sonraki", "Up/Down: newer/older", "Arriba/Abajo: nueva/vieja"), FONT_SIZE_1);
-	displayPrintAt(4, 116, LOG_TR("K\x93rm\x93z\x93: Geri", "Red: back", "Rojo: atr\xE1s"), FONT_SIZE_1);
+	displayPrintAt(4, 106, LOG_TR("Yukar\x93/A\x96""a\x98\x93: \xF6nceki/sonraki", "Up/Down: newer/older", "Arriba/Abajo: nueva/vieja", "\xC2\xE2\xE5\xF0\xF5/\xC2\xED\xE8\xE7: \xED\xEE\xE2./\xF1\xF2\xE0\xF0."), FONT_SIZE_1);
+	displayPrintAt(4, 116, LOG_TR("K\x93rm\x93z\x93: Geri", "Red: back", "Rojo: atr\xE1s", "\xCA\xF0\xE0\xF1: \xED\xE0\xE7\xE0\xE4"), FONT_SIZE_1);
 	displayRender();
 }
 
@@ -3075,12 +3077,12 @@ static void logRecTitle(const char *idle)
 
 		info.frames = 0;
 		(void) voiceRecorderGet(voiceRecorderPlayingIndex(), &info);
-		snprintf(buf, sizeof(buf), LOG_TR("\xC7""al\x93yor %u/%u sn", "Playing %u/%u s", "Sonando %u/%u s"),
+		snprintf(buf, sizeof(buf), LOG_TR("\xC7""al\x93yor %u/%u sn", "Playing %u/%u s", "Sonando %u/%u s", "\xC8\xE3\xF0\xE0\xE5\xF2 %u/%u \xF1"),
 				(unsigned)(voiceRecorderPlayedFrames() / 50U), (unsigned)(info.frames / 50U));
 	}
 	else if (voiceRecorderIsRecording())
 	{
-		snprintf(buf, sizeof(buf), "%s", LOG_TR("KAYDED\x94L\x94YOR...", "RECORDING...", "GRABANDO..."));
+		snprintf(buf, sizeof(buf), "%s", LOG_TR("KAYDED\x94L\x94YOR...", "RECORDING...", "GRABANDO...", "\xC7\xC0\xCF\xC8\xD1\xDC..."));
 	}
 	else if (voiceRecorderDroppedFrames() > 0)
 	{
@@ -3100,19 +3102,19 @@ static void logDrawRecorderConfirm(void)
 {
 	char label[24];
 
-	menuDisplayTitle(LOG_TR("D\x94NLEME KAYDI", "RX RECORDER", "GRABADOR RX"));
+	menuDisplayTitle(LOG_TR("D\x94NLEME KAYDI", "RX RECORDER", "GRABADOR RX", "\xC7\xC0\xCF\xC8\xD1\xDC \xCF\xD0\xC8\xA8\xCC\xC0"));
 
 	if (logRecConfirm == LOG_REC_CONFIRM_ALL)
 	{
-		displayPrintCentered(40, LOG_TR("T\xFCm kay\x93tlar", "Delete every", "Borrar todo"), FONT_SIZE_3);
+		displayPrintCentered(40, LOG_TR("T\xFCm kay\x93tlar", "Delete every", "Borrar todo", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC \xE2\xF1\xE5"), FONT_SIZE_3);
 	}
 	else
 	{
 		logRecFolderLabel(logRecOpenName, logRecOpenFreq, label, sizeof(label));
 		displayPrintCentered(40, label, FONT_SIZE_3);
 	}
-	displayPrintCentered(58, LOG_TR("silinsin mi?", "recording?", "lo grabado?"), FONT_SIZE_3);
-	displayPrintCentered(96, LOG_TR("Ye\x96il: evet  K\x93rm\x93z\x93: hay\x93r", "Green: yes  Red: no", "Verde: s\xED  Rojo: no"), FONT_SIZE_1);
+	displayPrintCentered(58, LOG_TR("silinsin mi?", "recording?", "lo grabado?", "\xE7\xE0\xEF\xE8\xF1\xE8?"), FONT_SIZE_3);
+	displayPrintCentered(96, LOG_TR("Ye\x96il: evet  K\x93rm\x93z\x93: hay\x93r", "Green: yes  Red: no", "Verde: s\xED  Rojo: no", "\xC7\xE5\xEB: \xE4\xE0  \xCA\xF0\xE0\xF1: \xED\xE5\xF2"), FONT_SIZE_1);
 }
 
 // Top level: the switch, then the folders.
@@ -3141,7 +3143,7 @@ static void logDrawRecorder(void)
 		menuDataGlobal.currentItemIndex = (total - 1); // the oldest went to make room
 	}
 
-	snprintf(buf, sizeof(buf), LOG_TR("D\x94NLEME KAYDI (%d)", "RX RECORDER (%d)", "GRABADOR RX (%d)"), logRecEntries);
+	snprintf(buf, sizeof(buf), LOG_TR("D\x94NLEME KAYDI (%d)", "RX RECORDER (%d)", "GRABADOR RX (%d)", "\xC7\xC0\xCF\xC8\xD1\xDC \xCF\xD0\xC8\xA8\xCC\xC0 (%d)"), logRecEntries);
 	logRecTitle(buf);
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
@@ -3157,20 +3159,20 @@ static void logDrawRecorder(void)
 		{
 			if (status == VOICE_RECORDER_STATUS_OK)
 			{
-				snprintf(buf, sizeof(buf), "%s: %s", LOG_TR("Kay\x93t", "Record", "Grabar"),
-						(voiceRecorderGetEnabled() ? LOG_TR("A\xE7\x93k", "On", "S\xED") : LOG_TR("Kapal\x93", "Off", "No")));
+				snprintf(buf, sizeof(buf), "%s: %s", LOG_TR("Kay\x93t", "Record", "Grabar", "\xC7\xE0\xEF\xE8\xF1\xFC"),
+						(voiceRecorderGetEnabled() ? LOG_TR("A\xE7\x93k", "On", "S\xED", "\xC2\xEA\xEB") : LOG_TR("Kapal\x93", "Off", "No", "\xC2\xFB\xEA\xEB")));
 			}
 			else if (status == VOICE_RECORDER_STATUS_NO_FLASH)
 			{
-				snprintf(buf, sizeof(buf), "%s", LOG_TR("Flash uygun de\x98il", "Unsuitable flash", "Flash no apta"));
+				snprintf(buf, sizeof(buf), "%s", LOG_TR("Flash uygun de\x98il", "Unsuitable flash", "Flash no apta", "Flash \xED\xE5 \xEF\xEE\xE4\xF5\xEE\xE4\xE8\xF2"));
 			}
 			else if (status == VOICE_RECORDER_STATUS_DMRID_OVERLAP)
 			{
-				snprintf(buf, sizeof(buf), "%s", LOG_TR("DMR ID DB b\xFCy\xFCk", "DMR ID DB too big", "BD DMR ID grande"));
+				snprintf(buf, sizeof(buf), "%s", LOG_TR("DMR ID DB b\xFCy\xFCk", "DMR ID DB too big", "BD DMR ID grande", "\xC1\xE0\xE7\xE0 DMR ID \xE2\xE5\xEB\xE8\xEA\xE0"));
 			}
 			else
 			{
-				snprintf(buf, sizeof(buf), "%s", LOG_TR("Haz\x93rlan\x93yor...", "Starting...", "Preparando..."));
+				snprintf(buf, sizeof(buf), "%s", LOG_TR("Haz\x93rlan\x93yor...", "Starting...", "Preparando...", "\xCF\xEE\xE4\xE3\xEE\xF2\xEE\xE2\xEA\xE0..."));
 			}
 			menuDisplayEntry(i, mNum, buf, -1, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
 		}
@@ -3227,7 +3229,7 @@ static void logDrawRecorderFolder(void)
 
 	if (count == 0)
 	{
-		displayPrintCentered(50, LOG_TR("Kay\x93t yok", "No recordings", "Sin grabaciones"), FONT_SIZE_3);
+		displayPrintCentered(50, LOG_TR("Kay\x93t yok", "No recordings", "Sin grabaciones", "\xCD\xE5\xF2 \xE7\xE0\xEF\xE8\xF1\xE5\xE9"), FONT_SIZE_3);
 	}
 
 	for (int i = MENU_START_ITERATION_VALUE; (i <= MENU_END_ITERATION_VALUE) && (count > 0); i++)
@@ -3855,7 +3857,7 @@ static void aprsMsgShowScreen(char preview)
 	int y;
 
 	displayClearBuf();
-	menuDisplayTitle(LANG3("MESAJ G\xD6""NDER", "SEND MESSAGE", "ENVIAR MENSAJE"));
+	menuDisplayTitle(LANG4("MESAJ G\xD6""NDER", "SEND MESSAGE", "ENVIAR MENSAJE", "\xCE\xD2\xCF\xD0\xC0\xC2\xC8\xD2\xDC \xD1\xCE\xCE\xC1\xD9."));
 
 	// Both fields are drawn from a working copy that already has the character
 	// being cycled on the end. Multi-tap is unusable without it: the operator
@@ -3896,7 +3898,7 @@ static void aprsMsgShowScreen(char preview)
 
 		// Addressee
 		displayThemeApply((aprsMsgFieldIsText ? THEME_ITEM_FG_MENU_ITEM : THEME_ITEM_FG_CHANNEL_NAME), THEME_ITEM_BG);
-		snprintf(buf, sizeof(buf), LANG3("Kime: %s", "To: %s", "Para: %s"), toShown);
+		snprintf(buf, sizeof(buf), LANG4("Kime: %s", "To: %s", "Para: %s", "\xCA\xEE\xEC\xF3: %s"), toShown);
 		displayPrintAt(2, 20, buf, FONT_SIZE_1);
 		if (aprsMsgFieldIsText == false)
 		{
@@ -3905,7 +3907,7 @@ static void aprsMsgShowScreen(char preview)
 
 		// Message, wrapped
 		displayThemeApply((aprsMsgFieldIsText ? THEME_ITEM_FG_CHANNEL_NAME : THEME_ITEM_FG_MENU_ITEM), THEME_ITEM_BG);
-		displayPrintAt(2, 36, LANG3("Mesaj:", "Message:", "Mensaje:"), FONT_SIZE_1);
+		displayPrintAt(2, 36, LANG4("Mesaj:", "Message:", "Mensaje:", "\xD1\xEE\xEE\xE1\xF9\xE5\xED\xE8\xE5:"), FONT_SIZE_1);
 		y = 47;
 
 		// Stop on the length, not on finding a terminator at the start of a line.
@@ -3940,23 +3942,23 @@ static void aprsMsgShowScreen(char preview)
 			THEME_ITEM_BG);
 	if (aprsMsgPositionIsAvailable())
 	{
-		snprintf(buf, sizeof(buf), LANG3("Konum: %s", "Position: %s", "Posici\xF3n: %s"), (aprsMsgIncludePosition ? LANG3("EKLE", "ADD", "S\xCD") : LANG3("ekleme", "no", "no")));
+		snprintf(buf, sizeof(buf), LANG4("Konum: %s", "Position: %s", "Posici\xF3n: %s", "\xCF\xEE\xE7\xE8\xF6\xE8\xFF: %s"), (aprsMsgIncludePosition ? LANG4("EKLE", "ADD", "S\xCD", "\xC4\xC0") : LANG4("ekleme", "no", "no", "\xED\xE5\xF2")));
 	}
 	else
 	{
-		snprintf(buf, sizeof(buf), LANG3("Konum: yok (GPS)", "Position: none (GPS)", "Posici\xF3n: no (GPS)"));
+		snprintf(buf, sizeof(buf), LANG4("Konum: yok (GPS)", "Position: none (GPS)", "Posici\xF3n: no (GPS)", "\xCF\xEE\xE7\xE8\xF6\xE8\xFF: \xED\xE5\xF2 (GPS)"));
 	}
 	displayPrintAt(2, 82, buf, FONT_SIZE_1);
 	displayThemeResetToDefault();
 
-	snprintf(buf, sizeof(buf), LANG3("%d/%d karakter   %d g\xF6""nd.", "%d/%d chars   %d sent", "%d/%d caract.  %d env."),
+	snprintf(buf, sizeof(buf), LANG4("%d/%d karakter   %d g\xF6""nd.", "%d/%d chars   %d sent", "%d/%d caract.  %d env.", "%d/%d \xF1\xE8\xEC\xE2.  %d \xEE\xF2\xEF\xF0."),
 			aprsMsgTextLen, APRS_MSG_TEXT_MAX, aprsMsgSentCount);
 	displayThemeApply(THEME_ITEM_FG_DECORATION, THEME_ITEM_BG);
 	displayPrintAt(2, 94, buf, FONT_SIZE_1);
 	displayThemeResetToDefault();
 
-	displayPrintAt(2, 106, LANG3("Yukar\x93""/A\x96""a\x98""\x93"" alan  SK2 konum", "Up/Down field  SK2 pos.", "Arr/Abajo campo  SK2 pos."), FONT_SIZE_1);
-	displayPrintAt(2, 115, LANG3("Ye\x96""il G\xF6""nder  K\x93""rm\x93""z\x93"" sil", "Green send  Red delete", "Verde enviar  Rojo borrar"), FONT_SIZE_1);
+	displayPrintAt(2, 106, LANG4("Yukar\x93""/A\x96""a\x98""\x93"" alan  SK2 konum", "Up/Down field  SK2 pos.", "Arr/Abajo campo  SK2 pos.", "\xC2\xE2\xE5\xF0\xF5/\xC2\xED\xE8\xE7 \xEF\xEE\xEB\xE5 SK2 \xEF\xEE\xE7"), FONT_SIZE_1);
+	displayPrintAt(2, 115, LANG4("Ye\x96""il G\xF6""nder  K\x93""rm\x93""z\x93"" sil", "Green send  Red delete", "Verde enviar  Rojo borrar", "\xC7\xE5\xEB \xEE\xF2\xEF\xF0.  \xCA\xF0\xE0\xF1 \xF3\xE4\xE0\xEB."), FONT_SIZE_1);
 	displayRender();
 }
 
@@ -4254,7 +4256,7 @@ static void waShowScreen(char preview)
 
 	// Number, as typed.
 	displayThemeApply((waFieldIsText ? THEME_ITEM_FG_MENU_ITEM : THEME_ITEM_FG_CHANNEL_NAME), THEME_ITEM_BG);
-	snprintf(buf, sizeof(buf), LANG3("Numara: %s", "Number: %s", "N\xFAmero: %s"), waNum);
+	snprintf(buf, sizeof(buf), LANG4("Numara: %s", "Number: %s", "N\xFAmero: %s", "\xCD\xEE\xEC\xE5\xF0: %s"), waNum);
 	displayPrintAt(2, 20, buf, FONT_SIZE_1);
 	if (waFieldIsText == false)
 	{
@@ -4268,7 +4270,7 @@ static void waShowScreen(char preview)
 
 	// Message, wrapped.
 	displayThemeApply((waFieldIsText ? THEME_ITEM_FG_CHANNEL_NAME : THEME_ITEM_FG_MENU_ITEM), THEME_ITEM_BG);
-	displayPrintAt(2, 36, LANG3("Mesaj:", "Message:", "Mensaje:"), FONT_SIZE_1);
+	displayPrintAt(2, 36, LANG4("Mesaj:", "Message:", "Mensaje:", "\xD1\xEE\xEE\xE1\xF9\xE5\xED\xE8\xE5:"), FONT_SIZE_1);
 	y = 47;
 
 	// Stop on the length. Testing for a terminator every 26 characters looks past
@@ -4291,18 +4293,18 @@ static void waShowScreen(char preview)
 	// on the message it goes back to counting characters.
 	if (waFieldIsText == false)
 	{
-		snprintf(buf, sizeof(buf), LANG3("Yabanc\x93"" no: 1'e 2 kez = +", "Foreign no: 1 twice = +", "Extranjero: 1 dos veces=+"));
+		snprintf(buf, sizeof(buf), LANG4("Yabanc\x93"" no: 1'e 2 kez = +", "Foreign no: 1 twice = +", "Extranjero: 1 dos veces=+", "\xC8\xED\xEE\xF1\xF2\xF0. \xED\xEE\xEC: 1 \xE4\xE2\xE0\xE6\xE4\xFB=+"));
 	}
 	else
 	{
-		snprintf(buf, sizeof(buf), LANG3("%d/%d karakter   %d g\xF6""nd.", "%d/%d chars   %d sent", "%d/%d caract.  %d env."), waTextLen, WA_TEXT_MAX, waSentCount);
+		snprintf(buf, sizeof(buf), LANG4("%d/%d karakter   %d g\xF6""nd.", "%d/%d chars   %d sent", "%d/%d caract.  %d env.", "%d/%d \xF1\xE8\xEC\xE2.  %d \xEE\xF2\xEF\xF0."), waTextLen, WA_TEXT_MAX, waSentCount);
 	}
 	displayThemeApply(THEME_ITEM_FG_DECORATION, THEME_ITEM_BG);
 	displayPrintAt(2, 94, buf, FONT_SIZE_1);
 	displayThemeResetToDefault();
 
-	displayPrintAt(2, 106, LANG3("Yukar\x93""/A\x96""a\x98""\x93"" alan", "Up/Down: field", "Arriba/Abajo: campo"), FONT_SIZE_1);
-	displayPrintAt(2, 115, LANG3("Ye\x96""il G\xF6""nder  K\x93""rm\x93""z\x93"" sil", "Green send  Red delete", "Verde enviar  Rojo borrar"), FONT_SIZE_1);
+	displayPrintAt(2, 106, LANG4("Yukar\x93""/A\x96""a\x98""\x93"" alan", "Up/Down: field", "Arriba/Abajo: campo", "\xC2\xE2\xE5\xF0\xF5/\xC2\xED\xE8\xE7: \xEF\xEE\xEB\xE5"), FONT_SIZE_1);
+	displayPrintAt(2, 115, LANG4("Ye\x96""il G\xF6""nder  K\x93""rm\x93""z\x93"" sil", "Green send  Red delete", "Verde enviar  Rojo borrar", "\xC7\xE5\xEB \xEE\xF2\xEF\xF0.  \xCA\xF0\xE0\xF1 \xF3\xE4\xE0\xEB."), FONT_SIZE_1);
 	displayRender();
 }
 
@@ -4558,7 +4560,7 @@ static void emailShowScreen(char preview)
 	char textShown[EMAIL_TEXT_MAX + 2];
 
 	displayClearBuf();
-	menuDisplayTitle(LANG3("E-POSTA", "E-MAIL", "CORREO"));
+	menuDisplayTitle(LANG4("E-POSTA", "E-MAIL", "CORREO", "E-MAIL"));
 
 	snprintf(addrShown, sizeof(addrShown), "%s", emailAddr);
 	snprintf(textShown, sizeof(textShown), "%s", emailText);
@@ -4580,7 +4582,7 @@ static void emailShowScreen(char preview)
 	}
 
 	displayThemeApply((emailFieldIsText ? THEME_ITEM_FG_MENU_ITEM : THEME_ITEM_FG_CHANNEL_NAME), THEME_ITEM_BG);
-	displayPrintAt(2, 20, LANG3("E-posta:", "E-mail:", "Correo:"), FONT_SIZE_1);
+	displayPrintAt(2, 20, LANG4("E-posta:", "E-mail:", "Correo:", "E-mail:"), FONT_SIZE_1);
 	emailDrawWrapped(addrShown, 31, 49);
 	if (emailFieldIsText == false)
 	{
@@ -4589,18 +4591,18 @@ static void emailShowScreen(char preview)
 	displayThemeResetToDefault();
 
 	displayThemeApply((emailFieldIsText ? THEME_ITEM_FG_CHANNEL_NAME : THEME_ITEM_FG_MENU_ITEM), THEME_ITEM_BG);
-	displayPrintAt(2, 53, LANG3("Mesaj:", "Message:", "Mensaje:"), FONT_SIZE_1);
+	displayPrintAt(2, 53, LANG4("Mesaj:", "Message:", "Mensaje:", "\xD1\xEE\xEE\xE1\xF9\xE5\xED\xE8\xE5:"), FONT_SIZE_1);
 	emailDrawWrapped(textShown, 64, 92);
 	displayThemeResetToDefault();
 
-	snprintf(buf, sizeof(buf), LANG3("%d/%d karakter   %d g\xF6""nd.", "%d/%d chars   %d sent", "%d/%d caract.  %d env."),
+	snprintf(buf, sizeof(buf), LANG4("%d/%d karakter   %d g\xF6""nd.", "%d/%d chars   %d sent", "%d/%d caract.  %d env.", "%d/%d \xF1\xE8\xEC\xE2.  %d \xEE\xF2\xEF\xF0."),
 			emailTextLen, emailTextRoom(), emailSentCount);
 	displayThemeApply(THEME_ITEM_FG_DECORATION, THEME_ITEM_BG);
 	displayPrintAt(2, 94, buf, FONT_SIZE_1);
 	displayThemeResetToDefault();
 
-	displayPrintAt(2, 106, LANG3("Yukar\x93""/A\x96""a\x98""\x93"" alan", "Up/Down: field", "Arriba/Abajo: campo"), FONT_SIZE_1);
-	displayPrintAt(2, 115, LANG3("Ye\x96""il G\xF6""nder  K\x93""rm\x93""z\x93"" sil", "Green send  Red delete", "Verde enviar  Rojo borrar"), FONT_SIZE_1);
+	displayPrintAt(2, 106, LANG4("Yukar\x93""/A\x96""a\x98""\x93"" alan", "Up/Down: field", "Arriba/Abajo: campo", "\xC2\xE2\xE5\xF0\xF5/\xC2\xED\xE8\xE7: \xEF\xEE\xEB\xE5"), FONT_SIZE_1);
+	displayPrintAt(2, 115, LANG4("Ye\x96""il G\xF6""nder  K\x93""rm\x93""z\x93"" sil", "Green send  Red delete", "Verde enviar  Rojo borrar", "\xC7\xE5\xEB \xEE\xF2\xEF\xF0.  \xCA\xF0\xE0\xF1 \xF3\xE4\xE0\xEB."), FONT_SIZE_1);
 	displayRender();
 }
 
@@ -4805,10 +4807,10 @@ static void morseTrainShowScreen(char preview)
 	int y;
 
 	displayClearBuf();
-	menuDisplayTitle(LANG3("MORS ANTRENMAN", "MORSE PRACTICE", "PR\xC1""CTICA MORSE"));
+	menuDisplayTitle(LANG4("MORS ANTRENMAN", "MORSE PRACTICE", "PR\xC1""CTICA MORSE", "\xD2\xD0\xC5\xCD\xC0\xC6\xA8\xD0 CW"));
 
 	snprintf(buf, sizeof(buf), "%s  %u WPM",
-			(morseTrainFollowMode ? LANG3("Takip", "Follow", "Seguir") : LANG3("Serbest", "Free", "Libre")), (unsigned int) morseWpm);
+			(morseTrainFollowMode ? LANG4("Takip", "Follow", "Seguir", "\xCF\xEE\xE2\xF2\xEE\xF0") : LANG4("Serbest", "Free", "Libre", "\xD1\xE2\xEE\xE1\xEE\xE4\xED\xEE")), (unsigned int) morseWpm);
 	displayThemeApply(THEME_ITEM_FG_CHANNEL_CONTACT_INFO, THEME_ITEM_BG);
 	displayPrintAt(2, 17, buf, FONT_SIZE_1);
 	displayThemeResetToDefault();

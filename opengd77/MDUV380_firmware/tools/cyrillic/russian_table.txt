@@ -1,0 +1,276 @@
+# Russian strings for user_interface/languages/russian.h, one per field of
+# stringsTable_t:  field <TAB> text.  UTF-8 here; genRussian.py writes the header in
+# Windows-1251 escapes and checks every string against its 16 byte limit (and the
+# tighter MaxLen given in english.h, where there is one).
+# A field not listed keeps the English text.
+LANGUAGE_NAME	Русский
+menu	Меню
+credits	Авторы
+zone	Зона
+rssi	RSSI
+battery	Батарея
+contacts	Контакты
+last_heard	Последние
+firmware_info	Прошивка
+options	Настройки
+display_options	Дисплей
+sound_options	Звук
+channel_details	Канал
+language	Язык
+new_contact	Новый контакт
+dmr_contacts	DMR контакты
+contact_details	О контакте
+hotspot_mode	Хотспот
+built	Сборка
+zones	Зоны
+keypad	Клав.
+ptt	PTT
+locked	Заблокировано
+press_sk2_plus_star	Нажмите SK2 + *
+to_unlock	для снятия
+unlocked	Разблокировано
+power_off	Выключение...
+error	ОШИБКА
+rx_only	Только приём
+out_of_band	ВНЕ ДИАПАЗОНА
+timeout	ТАЙМАУТ
+tg_entry	Ввод TG
+pc_entry	Ввод PC
+user_dmr_id	Свой DMR ID
+contact	Контакт
+accept_call	Ответить
+private_call	Частный вызов
+squelch	Шумодав
+quick_menu	Быстрое меню
+filter	Фильтр
+all_channels	Все каналы
+gotoChannel	Перейти
+scan	Скан
+channelToVfo	Канал --> VFO
+vfoToChannel	VFO --> Канал
+vfoToNewChannel	VFO --> Нов.кан
+group	Группа
+private	Частный
+all	Все
+type	Тип
+timeSlot	Таймслот
+none	Нет
+contact_saved	Сохранено
+duplicate	Дубликат
+tg	TG
+pc	PC
+ts	TS
+mode	Режим
+colour_code	Цвет. код
+n_a	Н/Д
+bandwidth	Полоса
+stepFreq	Шаг
+tot	TOT
+off	Выкл
+zone_skip	Пропуск зоны
+all_skip	Пропуск всех
+yes	Да
+no	Нет
+tg_list	Сп. TG
+on	Вкл
+timeout_beep	Сигнал TOT
+list_full	Список полон
+dmr_cc_scan	Скан CC
+band_limits	Огр. диап.
+beep_volume	Громк. бип
+dmr_mic_gain	DMR мик
+fm_mic_gain	FM мик
+key_long	Удерж.
+key_repeat	Повтор
+dmr_filter_timeout	Вр. фильтра
+brightness	Яркость
+brightness_off	Мин. яркость
+contrast	Контраст
+screen_invert	Инверсия
+screen_normal	Обычный
+backlight_timeout	Подсветка
+scan_delay	Пауза скан.
+yes___in_uppercase	ДА
+no___in_uppercase	НЕТ
+DISMISS	ЗАКРЫТЬ
+scan_mode	Реж.скан
+hold	Удерж.
+pause	Пауза
+list_empty	Список пуст
+delete_contact_qm	Удалить контакт?
+contact_deleted	Контакт удалён
+contact_used	Контакт исп.
+in_tg_list	в списке TG
+select_tx	Выбрать TX
+edit_contact	Изм. контакт
+delete_contact	Удал. контакт
+group_call	Групповой вызов
+all_call	Общий вызов
+tone_scan	Поиск тона
+low_battery	НИЗКИЙ ЗАРЯД!!!
+Auto	Авто
+manual	Ручной
+ptt_toggle	Фикс. PTT
+private_call_handling	Разреш. PC
+stop	Стоп
+one_line	1 строка
+two_lines	2 строки
+new_channel	Новый канал
+priority_order	Порядок
+dmr_beep	DMR бип
+start	Старт
+both	Оба
+vox_threshold	VOX порог
+vox_tail	VOX хвост
+audio_prompt	Озвучка
+silent	Тихо
+rx_beep	RX бип
+beep	Бип
+voice_prompt_level_1	Голос
+transmitTalkerAliasTS1	TA Tx TS1
+squelch_VHF	Шумодав VHF
+squelch_220	Шумодав 220
+squelch_UHF	Шумодав UHF
+display_screen_invert	Экран
+talkaround	Без ретранс.
+APRS	APRS
+no_keys	Без клавиш
+voice_prompt_level_2	Голос 2
+voice_prompt_level_3	Голос 3
+dmr_filter	DMR фильтр
+talker	Говорящий
+dmr_ts_filter	Фильтр TS
+dtmf_contact_list	FM DTMF конт.
+channel_power	Мощн. кан
+from_master	Общая
+set_quickkey	Быстрая клавиша
+dual_watch	Двойной приём
+info	Инфо
+pwr	Мощн
+user_power	Своя мощн.
+temperature	Температура
+seconds	секунд
+radio_info	О радио
+temperature_calibration	Калибр. темп
+pin_code	PIN-код
+please_confirm	Подтвердите
+vfo_freq_bind_mode	Привязка част
+overwrite_qm	Перезаписать?
+eco_level	Уровень Eco
+buttons	Кнопки
+leds	Светодиоды
+scan_dwell_time	Время скан.
+battery_calibration	Калибр. бат.
+low	Низкая
+high	Высокая
+dmr_id	DMR ID
+scan_on_boot	Скан при вкл.
+dtmf_entry	Ввод DTMF
+name	Имя
+carrier	Несущая
+zone_empty	Зона пуста
+time	Время
+uptime	Работа
+hours	Часы
+minutes	Минуты
+satellite	Спутник
+alarm_time	Будильник
+location	Место
+date	Дата
+timeZone	Час. пояс
+suspend	Пауза
+pass	Пролёт
+elevation	Угл
+azimuth	Аз
+inHHMMSS	через
+predicting	Расчёт
+maximum	Макс
+satellite_short	Спут
+local	Местн.
+not_set	НЕ ЗАДАНО
+general_options	Общие настр.
+radio_options	Настр. радио
+auto_night	Авто ночь
+dmr_rx_agc	DMR Rx АРУ
+speaker_click_suppress	Подавл. щелч.
+end_only	Только конец
+safe_power_on	Безоп. вкл.
+auto_power_off	Автовыкл.
+apo_with_rf	APO с RF
+brightness_night	Ночн. яркость
+freq_set_VHF	Част. VHF
+gps_acquiring	Поиск
+altitude	Выс
+calibration	Калибровка
+freq_set_UHF	Част. UHF
+cal_frequency	Част
+cal_pwr	Уровень мощн.
+pwr_set	Настроить
+factory_reset	Сброс настроек
+rx_tune	Настройка RX
+transmitTalkerAliasTS2	TA Tx TS2
+ta_text	Текст
+daytime_theme_day	Дневная тема
+daytime_theme_night	Ночная тема
+theme_chooser	Выбор темы
+theme_options	Настройки темы
+theme_fg_default	Текст обычн.
+theme_bg	Фон
+theme_fg_decoration	Оформление
+theme_fg_text_input	Ввод текста
+theme_fg_splashscreen	Текст загр.
+theme_bg_splashscreen	Фон загр.
+theme_fg_notification	Текст уведомл.
+theme_fg_warning_notification	Предупрежд.
+theme_fg_error_notification	Ошибка уведомл.
+theme_bg_notification	Фон уведомл.
+theme_fg_menu_name	Назв. меню
+theme_bg_menu_name	Фон назв. меню
+theme_fg_menu_item	Пункт меню
+theme_fg_menu_item_selected	Выбор в меню
+theme_fg_options_value	Значение
+theme_fg_header_text	Заголовок
+theme_bg_header_text	Фон заголовка
+theme_fg_rssi_bar	Шкала RSSI
+theme_fg_rssi_bar_s9p	Шкала S9+
+theme_fg_channel_name	Имя канала
+theme_fg_channel_contact	Контакт
+theme_fg_channel_contact_info	Инфо контакта
+theme_fg_zone_name	Имя зоны
+theme_fg_rx_freq	Част. RX
+theme_fg_tx_freq	Част. TX
+theme_fg_css_sql_values	Знач. CSS/SQL
+theme_fg_tx_counter	Счётчик TX
+theme_fg_polar_drawing	Полярная
+theme_fg_satellite_colour	Спутник
+theme_fg_gps_number	Номер GPS
+theme_fg_gps_colour	Точка GPS
+theme_fg_bd_colour	Точка BeiDou
+theme_colour_picker_red	Красный
+theme_colour_picker_green	Зелёный
+theme_colour_picker_blue	Синий
+volume	Громк.
+distance_sort	Сорт.дист.
+show_distance	Показ дист.
+aprs_options	Настройки APRS
+aprs_smart	Умный
+aprs_channel	Канал
+aprs_decay	Затухание
+aprs_compress	Сжатие
+aprs_interval	Интервал
+aprs_message_interval	Интерв. сообщ
+aprs_slow_rate	Медл. темп
+aprs_fast_rate	Быстр. темп
+aprs_low_speed	Мин.скор
+aprs_high_speed	Макс.скор
+aprs_turn_angle	Угол пов.
+aprs_turn_slope	Накл.пов
+aprs_turn_time	Время пов.
+auto_lock	Автоблок
+trackball	Трекбол
+dmr_force_dmo	Прин. DMO
+games	Игры
+aprsLog	Журналы
+userManual	Руководство
+channelZone	Настройка рации
+fiveToneContacts	Контакты 5T

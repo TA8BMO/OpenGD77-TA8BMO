@@ -63,6 +63,15 @@ function ConvertTo-CLiteral([string]$s)
 			0x00D3 { $esc = 'D3' }  # O acute
 			0x00DA { $esc = 'DA' }  # U acute
 			0x00D1 { $esc = 'D1' }  # N tilde
+			# Russian: Windows-1251, drawn from the Cyrillic fonts while the radio
+			# is in Russian (HX8353E_charset_cyrillic.h).
+			0x0401 { $esc = 'A8' }  # Yo
+			0x0451 { $esc = 'B8' }  # yo
+		}
+
+		if (($code -ge 0x0410) -and ($code -le 0x044F))
+		{
+			$esc = '{0:X2}' -f ($code - 0x0410 + 0xC0)  # A..ya
 		}
 
 		if ($esc)
@@ -262,7 +271,8 @@ function Add-Language([System.Text.StringBuilder]$sb, $topics, [string]$sfx)
 $langs = @(
 	@{ Sfx = 'TR'; Src = (Join-Path $PSScriptRoot 'kilavuz_tr.txt') },
 	@{ Sfx = 'EN'; Src = (Join-Path $PSScriptRoot 'kilavuz_en.txt') },
-	@{ Sfx = 'ES'; Src = (Join-Path $PSScriptRoot 'kilavuz_es.txt') }
+	@{ Sfx = 'ES'; Src = (Join-Path $PSScriptRoot 'kilavuz_es.txt') },
+	@{ Sfx = 'RU'; Src = (Join-Path $PSScriptRoot 'kilavuz_ru.txt') }
 )
 
 $sb = New-Object System.Text.StringBuilder

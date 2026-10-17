@@ -34,6 +34,7 @@
 #include "hardware/HX8353E_charset_JA.h"
 #else
 #include <hardware/HX8353E_charset.h>
+#include "hardware/HX8353E_charset_cyrillic.h"
 #endif
 #include "functions/settings.h"
 #include "user_interface/uiLocalisation.h"
@@ -169,6 +170,92 @@ static uint8_t *getUncompressedChar(uint8_t *dest, uint8_t *currentFont, uint8_t
 }
 #endif
 
+#if ! defined(LANGUAGE_BUILD_JAPANESE)
+// Cyrillic, for Russian.
+//
+// The fonts are Latin-1 and every place in them is taken, so Russian text is
+// written in Windows-1251 and, while this is on, the codes Cyrillic uses there
+// (0xC0-0xFF, 0xA8 Yo, 0xB8 yo) are drawn from HX8353E_charset_cyrillic.h
+// instead. Everything below 0xA8 - ASCII and the Turkish letters at 0x93-0x98 -
+// is drawn as always. While it is off, which is every language but Russian,
+// nothing here runs and the display behaves exactly as before.
+static bool displayCyrillic = false;
+
+void displaySetCyrillic(bool on)
+{
+	displayCyrillic = on;
+}
+
+bool displayGetCyrillic(void)
+{
+	return displayCyrillic;
+}
+
+// The glyph for one Cyrillic code in the given font, or NULL if it is not one.
+// The bold small font uses the plain one (bold is only used for short status
+// words); the big 16x32 font gets the 8x16 letter at double size, built in dest
+// (which holds at least 64 bytes).
+static const uint8_t *cyrillicGlyph(ucFont_t fontSize, uint8_t code, uint8_t *dest)
+{
+	int index;
+
+	if (code >= 0xC0)
+	{
+		index = (code - 0xC0);
+	}
+	else if (code == 0xA8)
+	{
+		index = 64;
+	}
+	else if (code == 0xB8)
+	{
+		index = 65;
+	}
+	else
+	{
+		return NULL;
+	}
+
+	switch (fontSize)
+	{
+		case FONT_SIZE_1:
+		case FONT_SIZE_1_BOLD:
+			return &cyrillicFont6x8[index * 6];
+		case FONT_SIZE_2:
+			return &cyrillicFont8x8[index * 8];
+		case FONT_SIZE_3:
+			return &cyrillicFont8x16[index * 16];
+		case FONT_SIZE_4:
+		{
+			const uint8_t *src = &cyrillicFont8x16[index * 16];
+
+			// 16 columns x 4 pages: every source pixel becomes a 2x2 block.
+			for (int x = 0; x < 16; x++)
+			{
+				uint32_t column = 0;
+				uint16_t srcColumn = (uint16_t)(src[x / 2] | (src[(x / 2) + 8] << 8));
+
+				for (int y = 0; y < 16; y++)
+				{
+					if (srcColumn & (1U << y))
+					{
+						column |= (3UL << (y * 2));
+					}
+				}
+
+				for (int page = 0; page < 4; page++)
+				{
+					dest[x + (page * 16)] = (uint8_t)(column >> (page * 8));
+				}
+			}
+			return dest;
+		}
+		default:
+			return NULL;
+	}
+}
+#endif
+
 int displayPrintCore(int16_t xPos, int16_t yPos, const char *szMsg, ucFont_t fontSize, ucTextAlign_t alignment, bool isInverted)
 {
 #if ! defined(PLATFORM_GD77S)
@@ -271,6 +358,15 @@ int displayPrintCore(int16_t xPos, int16_t yPos, const char *szMsg, ucFont_t fon
 			charOffset = ('?' - startCode); // Substitute unsupported ASCII code by a question mark
 		}
 
+#if ! defined(LANGUAGE_BUILD_JAPANESE)
+		const uint8_t *cyrillicData = (displayCyrillic ? cyrillicGlyph(fontSize, (uint8_t) szMsg[i], &uncompressChar[0]) : NULL);
+
+		if (cyrillicData != NULL)
+		{
+			currentCharData = (uint8_t *) cyrillicData;
+		}
+		else
+#endif
 		if (fontIsCompressed)
 		{
 			currentCharData = getUncompressedChar(&uncompressChar[0], currentFont, charOffset);
