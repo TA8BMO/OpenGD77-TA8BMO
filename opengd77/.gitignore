@@ -20,7 +20,5 @@ MDUV380_firmware/application/source/linkerdata/codec_bin_section_1.bin
 Thumbs.db
 .DS_Store
 
-# The 5W build folder is out of date (it does not list the new source files) and
-# untested here; only MDUV380_10W_PLUS_FW is maintained. IDE workspace prefs too.
-MDUV380_firmware/MDUV380_FW/
+# IDE workspace prefs.
 MDUV380_firmware/.settings/

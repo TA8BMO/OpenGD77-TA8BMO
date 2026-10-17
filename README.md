@@ -45,8 +45,12 @@ There is no extra hardware. Everything below is software.
 
 ## Before you flash it
 
-- **I have only tested this on the MD-UV390 Plus 10W** (`MDUV380_10W_PLUS_FW`). The other
-  build targets are still in the tree, but I have not tried them.
+- **There are two files - pick the one for your radio:**
+  - `..._MD-UV390_PLUS_10W.bin` - the MD-UV390 **Plus 10W**. This is my radio; tested.
+  - `..._MD-UV390_5W_EXPERIMENTAL.bin` - the ordinary 5W MD-UV390 (and MD-UV380). Same
+    code, built with OpenGD77's own 5W settings (power up to 5W, the 5W backlight).
+    **I could not test it** - I have no 5W radio. If you try it, please tell me how it went.
+  - Never flash one model's file on the other: the power and PA settings differ.
 - I did not touch TX power, calibration, the PA or the RF tables. Even so, this is a
   hobby build: use it at your own risk and keep a backup of your codeplug.
 - Never transmit with the programming cable connected.
@@ -62,7 +66,8 @@ You need STM32CubeIDE (it brings the ARM toolchain and `make`).
 1. Run `./prepare` (or `prepare.bat`) in the `opengd77` folder once. It writes an
    empty, 0xFF filled codec section.
 2. Either open `opengd77/MDUV380_firmware` in STM32CubeIDE and build the
-   `MDUV380_10W_PLUS_FW` configuration, or from a shell with the toolchain on the PATH:
+   `MDUV380_10W_PLUS_FW` (Plus 10W) or `MDUV380_FW` (5W) configuration, or from a shell
+   with the toolchain on the PATH:
 
    ```
    cd opengd77/MDUV380_firmware/MDUV380_10W_PLUS_FW
@@ -71,7 +76,8 @@ You need STM32CubeIDE (it brings the ARM toolchain and `make`).
 
    Note the `all`: a bare `make` there quietly builds nothing.
 
-The result is `OpenMDUV380.bin`.
+The result is `OpenMDUV380.bin` in that folder. For the 5W radio do the same in
+`MDUV380_FW`.
 
 **The AMBE codec is not in this source**, and never will be. As with every
 OpenGD77 build, the firmware loader adds it from the official TYT firmware when
@@ -135,7 +141,9 @@ Ek donanım yok, hepsi yazılım.
 - Telsiz içinde Türkçe/İngilizce/İspanyolca/Rusça kullanım kılavuzu ve birkaç oyun
 
 **Önemli**
-- Sadece MD-UV390 Plus 10W'da denedim. Diğer modellerde denemedim.
+- İki dosya var: `PLUS_10W` dosyası MD-UV390 Plus 10W için (denendi). `5W_EXPERIMENTAL`
+  dosyası normal 5W MD-UV390/MD-UV380 için; aynı kod, OpenGD77'nin 5W ayarlarıyla.
+  5W telsizim olmadığı için deneyemedim. Bir modelin dosyasını diğerine yükleme.
 - TX gücüne, kalibrasyona, PA'ya ve RF tablolarına dokunmadım. Yine de hobi
   amaçlı bir sürüm: risk sende, kodplug yedeğini al.
 - Programlama kablosu takılıyken asla yayın yapma.
@@ -180,7 +188,9 @@ convirtió en varios. No hace falta ningún hardware adicional, todo es software
 - Menús y manual de usuario en español, además de turco, inglés y ruso, y algunos juegos
 
 **Importante**
-- Solo lo he probado en el MD-UV390 Plus 10W. No he probado otros modelos.
+- Hay dos archivos: `PLUS_10W` para el MD-UV390 Plus 10W (probado) y `5W_EXPERIMENTAL`
+  para el MD-UV390/MD-UV380 normal de 5W (mismo código, ajustes de 5W de OpenGD77; sin
+  probar, no tengo esa radio). No cargues el archivo de un modelo en el otro.
 - No he tocado la potencia de TX, la calibración, el PA ni las tablas de RF. Aun así es un
   proyecto de aficionado: úsalo bajo tu propia responsabilidad y guarda copia de tu codeplug.
 - Nunca transmitas con el cable de programación conectado.
@@ -221,7 +231,9 @@ compra: no incluye licencia, soporte ni garantía.
 - Меню и руководство на русском (с кириллицей в шрифтах рации), а также на турецком, английском и испанском, и несколько игр
 
 **Важно**
-- Проверено только на MD-UV390 Plus 10W. Другие модели я не проверял.
+- Два файла: `PLUS_10W` для MD-UV390 Plus 10W (проверено) и `5W_EXPERIMENTAL` для
+  обычной MD-UV390/MD-UV380 на 5 Вт (тот же код, настройки 5 Вт от OpenGD77; не
+  проверено - у меня нет такой рации). Не загружайте файл одной модели в другую.
 - Мощность передатчика, калибровку, PA и RF-таблицы я не трогал. И всё же это
   любительский проект: используйте на свой риск и сохраните копию кодплага.
 - Никогда не передавайте с подключённым кабелем программирования.
