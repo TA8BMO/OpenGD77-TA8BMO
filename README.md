@@ -4,8 +4,9 @@ My own build of the OpenGD77 firmware for the **TYT MD-UV390 Plus 10W**.
 
 *Türkçe · Español · Русский: see below.*
 
-> The radio speaks English, Turkish, Spanish and Russian (with Cyrillic letters I
-> drew for its fonts) - all four in the same firmware, picked in Menu > Language.
+> The radio speaks English, Turkish, Spanish, Russian (with Cyrillic letters I
+> drew for its fonts) and German - all five in the same firmware, picked in
+> Menu > Language.
 
 It started with one question: can this radio decode a 5-Tone (CCIR) call by
 itself? Everyone, me included, thought the received FM audio never reaches the
@@ -244,6 +245,49 @@ compra: no incluye licencia, soporte ni garantía.
 **Поддержать проект:** прошивка бесплатна и всегда будет бесплатной. Если она вам
 пригодилась и вы хотите угостить меня чаем, буду очень рад. Это подарок, а не
 покупка: лицензия, поддержка или гарантия не предоставляются.
+[☕ buymeacoffee.com/ta8bmo](https://buymeacoffee.com/ta8bmo)
+
+73 de TA8BMO
+
+---
+
+# Deutsch
+
+Meine eigene OpenGD77-Firmware für das **TYT MD-UV390 Plus 10W**.
+
+Alles begann mit einer Frage: Kann dieses Funkgerät einen 5-Ton-Ruf (CCIR) selbst
+decodieren? Alle, mich eingeschlossen, dachten, das empfangene FM-Audio erreiche
+den Prozessor nie. Es tut es doch: Der Codec des HR-C6000 kann es über I2S
+liefern, und im FM-Betrieb liegt dieser Weg einfach brach. Aus einem Decoder
+wurden mehrere. Keine Zusatzhardware, alles nur Software.
+
+**Was es bringt**
+- 5-Ton (CCIR): Empfang und Senden, ANI pro Kanal, Selektivruf, Auto-Antwort
+- DTMF-Empfang (auch sehr schnelle PTT-IDs, die wie ein einzelnes „Piep" klingen) und Anruf-Log
+- Morse (CW): Empfang, Senden und Übung mit der PTT als Taste (ohne zu senden)
+- APRS: Empfang (letzte 16 Stationen, Entfernung, Richtung, Kompass, über welchen Digi),
+  Nachrichten, WhatsApp und E-Mail über APRS, APRS-Einstellungen direkt am Gerät
+- APRS-Sendekorrekturen: ganzer Frame wird gesendet, längere Präambel, keine 0,0-Baken
+- RX-Recorder: nimmt jede gehörte FM-Aussendung auf (etwa 1 Stunde), nach Kanal in Ordnern
+- Tonsuche CTCSS/DCS, Fuchsjagd, Spektrum-Scan mit Stopp bei Sprache
+- GPS-Uhr, sehr leise Lautstärke für die Nacht, Helligkeit über SK1 + Lautstärkeknopf
+- Kanäle, Zonen und Einschaltpasswort werden am Gerät selbst eingerichtet
+- Menüs und Handbuch auf Deutsch, dazu Türkisch, Englisch, Spanisch und Russisch, und ein paar Spiele
+
+**Wichtig**
+- Zwei Dateien: `PLUS_10W` für das MD-UV390 Plus 10W (getestet) und `5W_EXPERIMENTAL`
+  für das normale 5W MD-UV390/MD-UV380 (gleicher Code, OpenGD77s 5W-Einstellungen;
+  ungetestet - ich habe kein solches Gerät). Lade nie die Datei des einen Modells ins andere.
+- Sendeleistung, Kalibrierung, PA und RF-Tabellen habe ich nicht angetastet. Dennoch ist
+  es ein Hobby-Build: Nutzung auf eigenes Risiko, sichere dein Codeplug.
+- Sende nie mit angeschlossenem Programmierkabel.
+- Der AMBE-Codec ist nicht in diesem Quellcode; der Firmware Loader fügt ihn beim Laden
+  aus der offiziellen TYT-Firmware hinzu. Ohne ihn funktioniert DMR-Sprache nicht.
+- Es gilt die OpenGD77-Lizenz. **Keine kommerzielle Nutzung.**
+
+**Das Projekt unterstützen:** Die Firmware ist und bleibt kostenlos. Wenn sie dir
+nützt und du mir einen Tee ausgeben möchtest, freue ich mich sehr. Es ist ein
+Geschenk, kein Kauf: keine Lizenz, kein Support, keine Garantie.
 [☕ buymeacoffee.com/ta8bmo](https://buymeacoffee.com/ta8bmo)
 
 73 de TA8BMO
