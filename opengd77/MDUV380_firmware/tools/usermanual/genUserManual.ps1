@@ -48,6 +48,9 @@ function ConvertTo-CLiteral([string]$s)
 			0x00F6 { $esc = 'F6' }  # o umlaut
 			0x00DC { $esc = 'DC' }  # U umlaut
 			0x00FC { $esc = 'FC' }  # u umlaut
+			0x00E4 { $esc = 'E4' }  # a umlaut (German)
+			0x00C4 { $esc = 'C4' }  # A umlaut
+			0x00DF { $esc = 'DF' }  # sharp s / eszett
 			# Spanish: these sit at their Latin-1 places in the font. The inverted
 			# question and exclamation marks do not exist there (0xBF is an empty
 			# slot, 0xA1 is u-ring), so the text is written without them.
@@ -272,7 +275,8 @@ $langs = @(
 	@{ Sfx = 'TR'; Src = (Join-Path $PSScriptRoot 'kilavuz_tr.txt') },
 	@{ Sfx = 'EN'; Src = (Join-Path $PSScriptRoot 'kilavuz_en.txt') },
 	@{ Sfx = 'ES'; Src = (Join-Path $PSScriptRoot 'kilavuz_es.txt') },
-	@{ Sfx = 'RU'; Src = (Join-Path $PSScriptRoot 'kilavuz_ru.txt') }
+	@{ Sfx = 'RU'; Src = (Join-Path $PSScriptRoot 'kilavuz_ru.txt') },
+	@{ Sfx = 'DE'; Src = (Join-Path $PSScriptRoot 'kilavuz_de.txt') }
 )
 
 $sb = New-Object System.Text.StringBuilder

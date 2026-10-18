@@ -175,6 +175,35 @@ static const int heartfeltTRLines = (sizeof(heartfeltTR) / sizeof(heartfeltTR[0]
 static const int heartfeltENLines = (sizeof(heartfeltEN) / sizeof(heartfeltEN[0]));
 static const int heartfeltESLines = (sizeof(heartfeltES) / sizeof(heartfeltES[0]));
 static const int heartfeltRULines = (sizeof(heartfeltRU) / sizeof(heartfeltRU[0]));
+static const char * const heartfeltDE[] =
+{
+		"Diese Firmware ist das",
+		"Werk monatelanger",
+		"Leidenschaft, schlafloser",
+		"N\xE4""chte und des Nicht-",
+		"Aufgebens.",
+		"",
+		"Wir schafften, was alle",
+		"f\xFCr hardware-unm\xF6glich",
+		"hielten auf diesem Funk-",
+		"ger\xE4t: es decodiert jetzt",
+		"FM selbst - 5-Ton, Morse",
+		"und APRS, ohne Zusatz-",
+		"hardware, nur Software.",
+		"",
+		"Eine Weltpremiere. Das hat",
+		"vorher niemand auf diesem",
+		"Funkger\xE4t gemacht.",
+		"",
+		"Ein Traum, Zeile f\xFCr Zeile",
+		"wahr geworden, aus reiner",
+		"Beharrlichkeit.",
+		"",
+		"Mit Liebe zum",
+		"Amateurfunk,",
+		"TA8BMO",
+};
+static const int heartfeltDELines = (sizeof(heartfeltDE) / sizeof(heartfeltDE[0]));
 
 // Top of the scrolling column, in pixels. Reset to the bottom of the screen when
 // the page is entered so the text always starts from the bottom.
@@ -461,8 +490,8 @@ static void displayCredits(bool playVP, uint32_t pageNumber)
 		// Page 2: my little message, rolling up like film credits, with my photo
 		// at the very end. No title bar here, so the text gets the whole screen
 		// and reads as one piece.
-		const char * const *lines = LANG4(heartfeltTR, heartfeltEN, heartfeltES, heartfeltRU);
-		int nLines = LANG4(heartfeltTRLines, heartfeltENLines, heartfeltESLines, heartfeltRULines);
+		const char * const *lines = LANG5(heartfeltTR, heartfeltEN, heartfeltES, heartfeltRU, heartfeltDE);
+		int nLines = LANG5(heartfeltTRLines, heartfeltENLines, heartfeltESLines, heartfeltRULines, heartfeltDELines);
 		const int lineH = 9;
 		const int photoGap = 12;                          // blank space between text and photo
 		int photoTop = (heartfeltScrollY + (nLines * lineH) + photoGap);

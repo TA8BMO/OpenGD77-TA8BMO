@@ -65,6 +65,7 @@ char currentLanguageGetSymbol(LanguageSymbol_t s);
 #define LANGUAGE_INDEX_TURKISH 1
 #define LANGUAGE_INDEX_SPANISH 2
 #define LANGUAGE_INDEX_RUSSIAN 3
+#define LANGUAGE_INDEX_GERMAN  4
 
 int languageGetSavedIndex(void);          // what the option bits say, clamped to what exists
 void languageApply(int index);            // currentLanguage and the display's Cyrillic mode, nothing saved
@@ -72,11 +73,14 @@ void languageSetIndex(int index);         // languageApply() plus the option bit
 bool languageIsTurkish(void);
 bool languageIsSpanish(void);
 bool languageIsRussian(void);
+bool languageIsGerman(void);
 
-// My own screens pick their text with these: Turkish, English, Spanish, Russian.
-// Russian text is Windows-1251 (see HX8353E_charset_cyrillic.h). Where there is
-// no Russian yet, LANG3 shows the English.
-#define LANG4(tr, en, es, ru) (languageIsTurkish() ? (tr) : (languageIsSpanish() ? (es) : (languageIsRussian() ? (ru) : (en))))
-#define LANG3(tr, en, es) LANG4((tr), (en), (es), (en))
+// My own screens pick their text with these: Turkish, English, Spanish, Russian,
+// German. Russian text is Windows-1251 (see HX8353E_charset_cyrillic.h); the rest
+// are Latin-1. Where a shorter macro leaves a language out, it falls back to the
+// English text.
+#define LANG5(tr, en, es, ru, de) (languageIsTurkish() ? (tr) : (languageIsSpanish() ? (es) : (languageIsRussian() ? (ru) : (languageIsGerman() ? (de) : (en)))))
+#define LANG4(tr, en, es, ru) LANG5((tr), (en), (es), (ru), (en))
+#define LANG3(tr, en, es) LANG5((tr), (en), (es), (en), (en))
 
 #endif

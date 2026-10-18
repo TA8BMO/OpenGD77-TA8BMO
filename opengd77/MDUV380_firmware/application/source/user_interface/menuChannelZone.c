@@ -219,17 +219,17 @@ static void czEnsureInit(void)
 	}
 }
 
-#define CZ(tr, en, es, ru) LANG4((tr), (en), (es), (ru)) // Turkish, English, Spanish, Russian
+#define CZ(tr, en, es, ru, de) LANG5((tr), (en), (es), (ru), (de)) // Turkish, English, Spanish, Russian, German
 
 const char *menuChannelZoneDeleteLabel(void)
 {
-	return CZ("Kanal\x93 Sil", "Delete Channel", "Borrar canal", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC \xEA\xE0\xED\xE0\xEB");
+	return CZ("Kanal\x93 Sil", "Delete Channel", "Borrar canal", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC \xEA\xE0\xED\xE0\xEB", "Kanal l\xF6schen");
 }
 
 // The notification box holds 15 characters, so every message here is kept to that.
-static void czNotify(const char *tr, const char *en, const char *es, const char *ru)
+static void czNotify(const char *tr, const char *en, const char *es, const char *ru, const char *de)
 {
-	uiNotificationShow(NOTIFICATION_TYPE_MESSAGE, NOTIFICATION_ID_MESSAGE, 1500, CZ(tr, en, es, ru), false);
+	uiNotificationShow(NOTIFICATION_TYPE_MESSAGE, NOTIFICATION_ID_MESSAGE, 1500, CZ(tr, en, es, ru, de), false);
 }
 
 static int czZoneCount(void)
@@ -355,9 +355,13 @@ static void czDrawList(void)
 	{
 		"\xCD\xEE\xE2\xFB\xE9 \xEA\xE0\xED\xE0\xEB", "\xCD\xEE\xE2\xE0\xFF \xE7\xEE\xED\xE0", "\xC8\xE7\xEC\xE5\xED\xE8\xF2\xFC \xE7\xEE\xED\xFB", "\xCF\xEE\xE7\xFB\xE2\xED\xEE\xE9", "\xCD\xE0\xF1\xF2\xF0\xEE\xE9\xEA\xE8 APRS", "\xCF\xE0\xF0\xEE\xEB\xFC \xE2\xEA\xEB\xFE\xF7\xE5\xED\xE8\xFF"
 	};
+	static const char * const labelsDE[CZ_LIST_COUNT] =
+	{
+		"Neuer Kanal", "Neue Zone", "Zonen bearb.", "Rufzeichen", "APRS Einstell.", "Einschaltpasswort"
+	};
 
 	displayClearBuf();
-	menuDisplayTitle(CZ("TELS\x94Z KURULUMU", "RADIO SETUP", "CONFIG. RADIO", "\xCD\xC0\xD1\xD2\xD0\xCE\xC9\xCA\xC0 \xD0\xC0\xD6\xC8\xC8"));
+	menuDisplayTitle(CZ("TELS\x94Z KURULUMU", "RADIO SETUP", "CONFIG. RADIO", "\xCD\xC0\xD1\xD2\xD0\xCE\xC9\xCA\xC0 \xD0\xC0\xD6\xC8\xC8", "FUNK-SETUP"));
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
 	{
@@ -372,7 +376,7 @@ static void czDrawList(void)
 			break;
 		}
 
-		menuDisplayEntry(i, mNum, CZ(labelsTR[mNum], labelsEN[mNum], labelsES[mNum], labelsRU[mNum]),
+		menuDisplayEntry(i, mNum, CZ(labelsTR[mNum], labelsEN[mNum], labelsES[mNum], labelsRU[mNum], labelsDE[mNum]),
 				-1, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
 	}
 
@@ -385,7 +389,7 @@ static void czDrawChannel(char preview)
 	char text[CZ_NAME_MAX + 2];
 
 	displayClearBuf();
-	menuDisplayTitle(CZ("YEN\x94 KANAL", "NEW CHANNEL", "CANAL NUEVO", "\xCD\xCE\xC2\xDB\xC9 \xCA\xC0\xCD\xC0\xCB"));
+	menuDisplayTitle(CZ("YEN\x94 KANAL", "NEW CHANNEL", "CANAL NUEVO", "\xCD\xCE\xC2\xDB\xC9 \xCA\xC0\xCD\xC0\xCB", "NEUER KANAL"));
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
 	{
@@ -404,7 +408,7 @@ static void czDrawChannel(char preview)
 		switch (mNum)
 		{
 			case CZF_NAME:
-				label = CZ("Ad:", "Name:", "Nombre:", "\xC8\xEC\xFF:");
+				label = CZ("Ad:", "Name:", "Nombre:", "\xC8\xEC\xFF:", "Name:");
 				czNameWithPreview(text, sizeof(text), preview);
 				czFormatText(row, sizeof(row), label, text,
 						((mNum == menuDataGlobal.currentItemIndex) && (preview == 0) && (strlen(cz.name) < CZ_NAME_MAX)));
@@ -418,24 +422,24 @@ static void czDrawChannel(char preview)
 				czFormatFreq(row, sizeof(row), label, cz.txFreq, ((cz.freqLen > 0) && (menuDataGlobal.currentItemIndex == CZF_TX)));
 				break;
 			case CZF_RX_TONE:
-				label = CZ("RX Ton:", "RX Tone:", "Tono RX:", "\xD2\xEE\xED RX:");
+				label = CZ("RX Ton:", "RX Tone:", "Tono RX:", "\xD2\xEE\xED RX:", "RX Ton:");
 				czFormatTone(row, sizeof(row), label, cz.rxTone);
 				break;
 			case CZF_TX_TONE:
-				label = CZ("TX Ton:", "TX Tone:", "Tono TX:", "\xD2\xEE\xED TX:");
+				label = CZ("TX Ton:", "TX Tone:", "Tono TX:", "\xD2\xEE\xED TX:", "TX Ton:");
 				czFormatTone(row, sizeof(row), label, cz.txTone);
 				break;
 			case CZF_BANDWIDTH:
-				label = CZ("Bant:", "BW:", "BW:", "\xCF\xEE\xEB:");
+				label = CZ("Bant:", "BW:", "BW:", "\xCF\xEE\xEB:", "BB:");
 				snprintf(row, sizeof(row), "%s%s", label, ((cz.wide != 0) ? "25kHz" : "12.5kHz"));
 				break;
 			case CZF_ZONE:
-				label = CZ("Zon:", "Zone:", "Zona:", "\xC7\xEE\xED\xE0:");
+				label = CZ("Zon:", "Zone:", "Zona:", "\xC7\xEE\xED\xE0:", "Zone:");
 				czZoneName(cz.zoneSel, text);
 				czFormatText(row, sizeof(row), label, text, false);
 				break;
 			case CZF_SAVE:
-				snprintf(row, sizeof(row), "%s", CZ("   * KAYDET *", "   * SAVE *", "  * GUARDAR *", "* \xD1\xCE\xD5\xD0\xC0\xCD\xC8\xD2\xDC *"));
+				snprintf(row, sizeof(row), "%s", CZ("   * KAYDET *", "   * SAVE *", "  * GUARDAR *", "* \xD1\xCE\xD5\xD0\xC0\xCD\xC8\xD2\xDC *", " * SPEICHERN *"));
 				break;
 		}
 
@@ -452,18 +456,18 @@ static void czDrawZone(char preview)
 	char text[CZ_NAME_MAX + 2];
 
 	displayClearBuf();
-	menuDisplayTitle((cz.renaming != 0) ? CZ("ZON ADI", "ZONE NAME", "NOMBRE ZONA", "\xC8\xCC\xDF \xC7\xCE\xCD\xDB") : CZ("YEN\x94 ZON", "NEW ZONE", "ZONA NUEVA", "\xCD\xCE\xC2\xC0\xDF \xC7\xCE\xCD\xC0"));
+	menuDisplayTitle((cz.renaming != 0) ? CZ("ZON ADI", "ZONE NAME", "NOMBRE ZONA", "\xC8\xCC\xDF \xC7\xCE\xCD\xDB", "ZONENNAME") : CZ("YEN\x94 ZON", "NEW ZONE", "ZONA NUEVA", "\xCD\xCE\xC2\xC0\xDF \xC7\xCE\xCD\xC0", "NEUE ZONE"));
 
-	displayPrintAt(4, 22, CZ("Zon ad\x93:", "Zone name:", "Nombre zona:", "\xC8\xEC\xFF \xE7\xEE\xED\xFB:"), FONT_SIZE_3);
+	displayPrintAt(4, 22, CZ("Zon ad\x93:", "Zone name:", "Nombre zona:", "\xC8\xEC\xFF \xE7\xEE\xED\xFB:", "Zonenname:"), FONT_SIZE_3);
 
 	czNameWithPreview(text, sizeof(text), preview);
 	czFormatText(row, sizeof(row), "", text, ((preview == 0) && (strlen(cz.name) < CZ_NAME_MAX)));
 	displayPrintAt(4, 42, row, FONT_SIZE_3);
 
-	snprintf(row, sizeof(row), CZ("Zon say\x93s\x93: %d", "Zones: %d", "Zonas: %d", "\xC7\xEE\xED: %d"), (czZoneCount() - 1));
+	snprintf(row, sizeof(row), CZ("Zon say\x93s\x93: %d", "Zones: %d", "Zonas: %d", "\xC7\xEE\xED: %d", "Zonen: %d"), (czZoneCount() - 1));
 	displayPrintAt(4, 76, row, FONT_SIZE_1);
-	displayPrintAt(4, 94, ((cz.renaming != 0) ? CZ("Ye\x96il: Kaydet", "Green: save", "Verde: guardar", "\xC7\xE5\xEB: \xF1\xEE\xF5\xF0\xE0\xED\xE8\xF2\xFC") : CZ("Ye\x96il: Olu\x96tur", "Green: create", "Verde: crear", "\xC7\xE5\xEB: \xF1\xEE\xE7\xE4\xE0\xF2\xFC")), FONT_SIZE_1);
-	displayPrintAt(4, 106, CZ("K\x93rm\x93z\x93: Sil / Geri", "Red: delete / back", "Rojo: borrar/atr\xE1s", "\xCA\xF0\xE0\xF1: \xF3\xE4\xE0\xEB/\xED\xE0\xE7\xE0\xE4"), FONT_SIZE_1);
+	displayPrintAt(4, 94, ((cz.renaming != 0) ? CZ("Ye\x96il: Kaydet", "Green: save", "Verde: guardar", "\xC7\xE5\xEB: \xF1\xEE\xF5\xF0\xE0\xED\xE8\xF2\xFC", "Gr\xFCn: speich.") : CZ("Ye\x96il: Olu\x96tur", "Green: create", "Verde: crear", "\xC7\xE5\xEB: \xF1\xEE\xE7\xE4\xE0\xF2\xFC", "Gr\xFCn: anlegen")), FONT_SIZE_1);
+	displayPrintAt(4, 106, CZ("K\x93rm\x93z\x93: Sil / Geri", "Red: delete / back", "Rojo: borrar/atr\xE1s", "\xCA\xF0\xE0\xF1: \xF3\xE4\xE0\xEB/\xED\xE0\xE7\xE0\xE4", "Rot: l\xF6sch/zur\xFC""ck"), FONT_SIZE_1);
 
 	displayRender();
 }
@@ -498,24 +502,24 @@ static void czDrawPin(void)
 
 	if (cz.mode == CZ_MODE_PW_NEW)
 	{
-		menuDisplayTitle(CZ("YEN\x94 PAROLA", "NEW PASSWORD", "CLAVE NUEVA", "\xCD\xCE\xC2\xDB\xC9 \xCF\xC0\xD0\xCE\xCB\xDC"));
-		displayPrintCentered(26, CZ("Yeni parola", "New password", "Clave nueva", "\xCD\xEE\xE2\xFB\xE9 \xEF\xE0\xF0\xEE\xEB\xFC"), FONT_SIZE_3);
-		displayPrintAt(4, 82, CZ("0-6 rakam. Bo\x96 b\x93rak\x93rsan", "0-6 digits. Leave it empty", "0-6 cifras. Si la dejas", "0-6 \xF6\xE8\xF4\xF0. \xCF\xF3\xF1\xF2\xEE -"), FONT_SIZE_1);
-		displayPrintAt(4, 92, CZ("parola kald\x93r\x93l\x93r.", "to remove the password.", "vac\xED""a, se quita la clave.", "\xEF\xE0\xF0\xEE\xEB\xFC \xF1\xED\xE8\xEC\xE0\xE5\xF2\xF1\xFF."), FONT_SIZE_1);
+		menuDisplayTitle(CZ("YEN\x94 PAROLA", "NEW PASSWORD", "CLAVE NUEVA", "\xCD\xCE\xC2\xDB\xC9 \xCF\xC0\xD0\xCE\xCB\xDC", "NEUES PASSWORT"));
+		displayPrintCentered(26, CZ("Yeni parola", "New password", "Clave nueva", "\xCD\xEE\xE2\xFB\xE9 \xEF\xE0\xF0\xEE\xEB\xFC", "Neues Passwort"), FONT_SIZE_3);
+		displayPrintAt(4, 82, CZ("0-6 rakam. Bo\x96 b\x93rak\x93rsan", "0-6 digits. Leave it empty", "0-6 cifras. Si la dejas", "0-6 \xF6\xE8\xF4\xF0. \xCF\xF3\xF1\xF2\xEE -", "0-6 Ziffern. Leer lassen"), FONT_SIZE_1);
+		displayPrintAt(4, 92, CZ("parola kald\x93r\x93l\x93r.", "to remove the password.", "vac\xED""a, se quita la clave.", "\xEF\xE0\xF0\xEE\xEB\xFC \xF1\xED\xE8\xEC\xE0\xE5\xF2\xF1\xFF.", "entfernt das Passwort."), FONT_SIZE_1);
 	}
 	else if (cz.mode == CZ_MODE_PW_AGAIN)
 	{
-		menuDisplayTitle(CZ("YEN\x94 PAROLA", "NEW PASSWORD", "CLAVE NUEVA", "\xCD\xCE\xC2\xDB\xC9 \xCF\xC0\xD0\xCE\xCB\xDC"));
-		displayPrintCentered(26, CZ("Tekrar yaz", "Type it again", "Rep\xEDtela", "\xCF\xEE\xE2\xF2\xEE\xF0\xE8\xF2\xE5"), FONT_SIZE_3);
+		menuDisplayTitle(CZ("YEN\x94 PAROLA", "NEW PASSWORD", "CLAVE NUEVA", "\xCD\xCE\xC2\xDB\xC9 \xCF\xC0\xD0\xCE\xCB\xDC", "NEUES PASSWORT"));
+		displayPrintCentered(26, CZ("Tekrar yaz", "Type it again", "Rep\xEDtela", "\xCF\xEE\xE2\xF2\xEE\xF0\xE8\xF2\xE5", "Nochmal eingeben"), FONT_SIZE_3);
 	}
 	else
 	{
-		menuDisplayTitle(CZ("PAROLA", "PASSWORD", "CLAVE", "\xCF\xC0\xD0\xCE\xCB\xDC"));
-		displayPrintCentered(26, CZ("Parolay\x93 girin", "Enter password", "Teclea la clave", "\xC2\xE2\xE5\xE4\xE8\xF2\xE5 \xEF\xE0\xF0\xEE\xEB\xFC"), FONT_SIZE_3);
+		menuDisplayTitle(CZ("PAROLA", "PASSWORD", "CLAVE", "\xCF\xC0\xD0\xCE\xCB\xDC", "PASSWORT"));
+		displayPrintCentered(26, CZ("Parolay\x93 girin", "Enter password", "Teclea la clave", "\xC2\xE2\xE5\xE4\xE8\xF2\xE5 \xEF\xE0\xF0\xEE\xEB\xFC", "Passwort eingeb."), FONT_SIZE_3);
 	}
 
 	displayPrintCentered(50, typed, FONT_SIZE_3);
-	displayPrintAt(4, 106, CZ("Ye\x96il: Tamam  K\x93rm\x93z\x93: Sil", "Green: OK  Red: delete", "Verde: OK  Rojo: borrar", "\xC7\xE5\xEB: OK  \xCA\xF0\xE0\xF1: \xF3\xE4\xE0\xEB."), FONT_SIZE_1);
+	displayPrintAt(4, 106, CZ("Ye\x96il: Tamam  K\x93rm\x93z\x93: Sil", "Green: OK  Red: delete", "Verde: OK  Rojo: borrar", "\xC7\xE5\xEB: OK  \xCA\xF0\xE0\xF1: \xF3\xE4\xE0\xEB.", "Gr\xFCn: OK  Rot: l\xF6sch"), FONT_SIZE_1);
 	displayRender();
 }
 
@@ -555,8 +559,8 @@ static void czDrawConfirmBox(const char *title, const char *name, const char *li
 	{
 		displayPrintCentered(84, note, FONT_SIZE_1);
 	}
-	czDrawButton(14, CZ("EVET", "YES", "S\xCD", "\xC4\xC0"), (cz.confirmYes != 0));
-	czDrawButton(86, CZ("HAYIR", "NO", "NO", "\xCD\xC5\xD2"), (cz.confirmYes == 0));
+	czDrawButton(14, CZ("EVET", "YES", "S\xCD", "\xC4\xC0", "JA"), (cz.confirmYes != 0));
+	czDrawButton(86, CZ("HAYIR", "NO", "NO", "\xCD\xC5\xD2", "NEIN"), (cz.confirmYes == 0));
 	displayRender();
 }
 
@@ -568,7 +572,7 @@ static void czDrawConfirm(void)
 	codeplugChannelGetDataForIndex(cz.deleteChannel, &channel);
 	codeplugUtilConvertBufToString(channel.name, name, 16);
 
-	czDrawConfirmBox(CZ("KANALI S\x94L", "DELETE CHANNEL", "BORRAR CANAL", "\xD3\xC4\xC0\xCB\xC8\xD2\xDC \xCA\xC0\xCD\xC0\xCB"), name, CZ("Kanal\x93 silmek", "Delete this", "Borrar", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC"), CZ("istiyor musun?", "channel?", "este canal?", "\xFD\xF2\xEE\xF2 \xEA\xE0\xED\xE0\xEB?"), NULL);
+	czDrawConfirmBox(CZ("KANALI S\x94L", "DELETE CHANNEL", "BORRAR CANAL", "\xD3\xC4\xC0\xCB\xC8\xD2\xDC \xCA\xC0\xCD\xC0\xCB", "KANAL L\xD6SCHEN"), name, CZ("Kanal\x93 silmek", "Delete this", "Borrar", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC", "Diesen Kanal"), CZ("istiyor musun?", "channel?", "este canal?", "\xFD\xF2\xEE\xF2 \xEA\xE0\xED\xE0\xEB?", "l\xF6schen?"), NULL);
 }
 
 // ---------------------------------------------------------------------------
@@ -588,7 +592,7 @@ static void czDrawFtList(void)
 	int count = (codeplugDTMFContactsGetCount() + 1); // row 0 is "new contact"
 
 	displayClearBuf();
-	menuDisplayTitle(CZ("5T K\x94\x95\x94LER\x94", "5T CONTACTS", "CONTACTOS 5T", "\xCA\xCE\xCD\xD2\xC0\xCA\xD2\xDB 5T"));
+	menuDisplayTitle(CZ("5T K\x94\x95\x94LER\x94", "5T CONTACTS", "CONTACTOS 5T", "\xCA\xCE\xCD\xD2\xC0\xCA\xD2\xDB 5T", "5T KONTAKTE"));
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
 	{
@@ -606,7 +610,7 @@ static void czDrawFtList(void)
 
 		if (mNum == 0)
 		{
-			snprintf(row, sizeof(row), "%s", CZ("+ Yeni Ki\x96i", "+ New Contact", "+ Nuevo contacto", "+ \xCD\xEE\xE2\xFB\xE9 \xEA\xEE\xED\xF2\xE0\xEA\xF2"));
+			snprintf(row, sizeof(row), "%s", CZ("+ Yeni Ki\x96i", "+ New Contact", "+ Nuevo contacto", "+ \xCD\xEE\xE2\xFB\xE9 \xEA\xEE\xED\xF2\xE0\xEA\xF2", "+ Neuer Kontakt"));
 		}
 		else
 		{
@@ -643,7 +647,7 @@ static void czDrawFtEdit(char preview)
 	int rows = czFtEditRows();
 
 	displayClearBuf();
-	menuDisplayTitle((cz.ftIndex != 0) ? CZ("K\x94\x95\x94 D\xDCZENLE", "EDIT CONTACT", "EDITAR CONTACTO", "\xC8\xC7\xCC. \xCA\xCE\xCD\xD2\xC0\xCA\xD2") : CZ("YEN\x94 K\x94\x95\x94", "NEW CONTACT", "CONTACTO NUEVO", "\xCD\xCE\xC2\xDB\xC9 \xCA\xCE\xCD\xD2\xC0\xCA\xD2"));
+	menuDisplayTitle((cz.ftIndex != 0) ? CZ("K\x94\x95\x94 D\xDCZENLE", "EDIT CONTACT", "EDITAR CONTACTO", "\xC8\xC7\xCC. \xCA\xCE\xCD\xD2\xC0\xCA\xD2", "KONTAKT BEARB.") : CZ("YEN\x94 K\x94\x95\x94", "NEW CONTACT", "CONTACTO NUEVO", "\xCD\xCE\xC2\xDB\xC9 \xCA\xCE\xCD\xD2\xC0\xCA\xD2", "NEUER KONTAKT"));
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
 	{
@@ -662,21 +666,21 @@ static void czDrawFtEdit(char preview)
 		switch (mNum)
 		{
 			case CZE_NAME:
-				label = CZ("Ad:", "Name:", "Nombre:", "\xC8\xEC\xFF:");
+				label = CZ("Ad:", "Name:", "Nombre:", "\xC8\xEC\xFF:", "Name:");
 				czNameWithPreview(text, sizeof(text), preview);
 				czFormatText(row, sizeof(row), label, text,
 						((mNum == menuDataGlobal.currentItemIndex) && (preview == 0) && (strlen(cz.name) < CZ_NAME_MAX)));
 				break;
 			case CZE_CODE:
-				label = CZ("Kod:", "Code:", "C\xF3""digo:", "\xCA\xEE\xE4:");
+				label = CZ("Kod:", "Code:", "C\xF3""digo:", "\xCA\xEE\xE4:", "Code:");
 				czFormatText(row, sizeof(row), label, cz.code,
 						((mNum == menuDataGlobal.currentItemIndex) && (strlen(cz.code) < CZ_NAME_MAX)));
 				break;
 			case CZE_SAVE:
-				snprintf(row, sizeof(row), "%s", CZ("   * KAYDET *", "   * SAVE *", "  * GUARDAR *", "* \xD1\xCE\xD5\xD0\xC0\xCD\xC8\xD2\xDC *"));
+				snprintf(row, sizeof(row), "%s", CZ("   * KAYDET *", "   * SAVE *", "  * GUARDAR *", "* \xD1\xCE\xD5\xD0\xC0\xCD\xC8\xD2\xDC *", " * SPEICHERN *"));
 				break;
 			case CZE_DELETE:
-				snprintf(row, sizeof(row), "%s", CZ("   * S\x94L *", "   * DELETE *", "  * BORRAR *", "  * \xD3\xC4\xC0\xCB\xC8\xD2\xDC *"));
+				snprintf(row, sizeof(row), "%s", CZ("   * S\x94L *", "   * DELETE *", "  * BORRAR *", "  * \xD3\xC4\xC0\xCB\xC8\xD2\xDC *", "  * L\xD6SCHEN *"));
 				break;
 		}
 
@@ -741,7 +745,7 @@ static void czDrawZonePick(void)
 	int count = (czZoneCount() - 1); // real zones; All Channels cannot be edited
 
 	displayClearBuf();
-	menuDisplayTitle(CZ("ZONLAR", "ZONES", "ZONAS", "\xC7\xCE\xCD\xDB"));
+	menuDisplayTitle(CZ("ZONLAR", "ZONES", "ZONAS", "\xC7\xCE\xCD\xDB", "ZONEN"));
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
 	{
@@ -765,6 +769,7 @@ static void czDrawZoneMenu(void)
 	static const char * const labelsEN[CZM_COUNT] = { "Rename", "Channels", "Delete Zone" };
 	static const char * const labelsES[CZM_COUNT] = { "Renombrar", "Canales", "Borrar zona" };
 	static const char * const labelsRU[CZM_COUNT] = { "\xCF\xE5\xF0\xE5\xE8\xEC\xE5\xED\xEE\xE2\xE0\xF2\xFC", "\xCA\xE0\xED\xE0\xEB\xFB", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC \xE7\xEE\xED\xF3" };
+	static const char * const labelsDE[CZM_COUNT] = { "Umbenennen", "Kan\xE4le", "Zone l\xF6schen" };
 	char name[CZ_NAME_MAX + 1];
 
 	czZoneName(cz.zoneEdit, name);
@@ -780,7 +785,7 @@ static void czDrawZoneMenu(void)
 			break;
 		}
 
-		menuDisplayEntry(i, mNum, CZ(labelsTR[mNum], labelsEN[mNum], labelsES[mNum], labelsRU[mNum]), -1, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
+		menuDisplayEntry(i, mNum, CZ(labelsTR[mNum], labelsEN[mNum], labelsES[mNum], labelsRU[mNum], labelsDE[mNum]), -1, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
 	}
 
 	displayRender();
@@ -804,7 +809,7 @@ static void czDrawZoneChannels(void)
 
 	if (count == 0)
 	{
-		displayPrintCentered(50, CZ("Kanal yok", "No channels", "Sin canales", "\xCD\xE5\xF2 \xEA\xE0\xED\xE0\xEB\xEE\xE2"), FONT_SIZE_3);
+		displayPrintCentered(50, CZ("Kanal yok", "No channels", "Sin canales", "\xCD\xE5\xF2 \xEA\xE0\xED\xE0\xEB\xEE\xE2", "Keine Kan\xE4le"), FONT_SIZE_3);
 	}
 
 	for (int i = MENU_START_ITERATION_VALUE; (i <= MENU_END_ITERATION_VALUE) && (count > 0); i++)
@@ -846,29 +851,30 @@ typedef struct
 	const char *nameEN;
 	const char *nameES;
 	const char *nameRU;
+	const char *nameDE;
 } czSymbol_t;
 
 static const czSymbol_t czSymbols[] =
 {
-	{ '/', '[',  "Yaya",          "Person",     "Persona", "\xD7\xE5\xEB\xEE\xE2\xE5\xEA" },
-	{ '/', '>',  "Araba",         "Car",        "Coche", "\xC0\xE2\xF2\xEE" },
-	{ '/', '-',  "Ev",            "House",      "Casa", "\xC4\xEE\xEC" },
-	{ '/', 'y',  "Ev+Anten",      "Yagi house", "Casa+antena", "\xC4\xEE\xEC+\xE0\xED\xF2\xE5\xED\xED\xE0" },
-	{ '/', '<',  "Motosiklet",    "Motorcycle", "Moto", "\xCC\xEE\xF2\xEE\xF6\xE8\xEA\xEB" },
-	{ '/', 'b',  "Bisiklet",      "Bicycle",    "Bicicleta", "\xC2\xE5\xEB\xEE\xF1\xE8\xEF\xE5\xE4" },
-	{ '/', 'k',  "Kamyon",        "Truck",      "Cami\xF3n", "\xC3\xF0\xF3\xE7\xEE\xE2\xE8\xEA" },
-	{ '/', 'j',  "Jeep",          "Jeep",       "Jeep", "\xC4\xE6\xE8\xEF" },
-	{ '/', 'U',  "Otob\xFCs",     "Bus",        "Autob\xFAs", "\xC0\xE2\xF2\xEE\xE1\xF3\xF1" },
-	{ '/', 'R',  "Karavan",       "RV",         "Autocaravana", "\xC0\xE2\xF2\xEE\xE4\xEE\xEC" },
-	{ '/', 's',  "Gemi",          "Ship",       "Barco", "\xCA\xEE\xF0\xE0\xE1\xEB\xFC" },
-	{ '/', 'Y',  "Yat",           "Yacht",      "Yate", "\xDF\xF5\xF2\xE0" },
-	{ '/', '\'', "U\xE7""ak",     "Aircraft",   "Avi\xF3n", "\xD1\xE0\xEC\xEE\xEB\xB8\xF2" },
-	{ '/', 'O',  "Balon",         "Balloon",    "Globo", "\xD8\xE0\xF0" },
-	{ '/', 'r',  "R\xF6le",       "Repeater",   "Repetidor", "\xD0\xE5\xF2\xF0\xE0\xED\xF1\xEB\xFF\xF2\xEE\xF0" },
-	{ '/', '#',  "Digi",          "Digi",       "Digi", "Digi" },
-	{ '\\', '&', "I-Gate",        "I-Gate",     "I-Gate", "I-Gate" },
-	{ '/', '_',  "Hava ist.",     "Weather",    "Meteo", "\xCC\xE5\xF2\xE5\xEE" },
-	{ '/', '$',  "Telefon",       "Phone",      "Tel\xE9""fono", "\xD2\xE5\xEB\xE5\xF4\xEE\xED" },
+	{ '/', '[',  "Yaya",          "Person",     "Persona", "\xD7\xE5\xEB\xEE\xE2\xE5\xEA", "Person" },
+	{ '/', '>',  "Araba",         "Car",        "Coche", "\xC0\xE2\xF2\xEE", "Auto" },
+	{ '/', '-',  "Ev",            "House",      "Casa", "\xC4\xEE\xEC", "Haus" },
+	{ '/', 'y',  "Ev+Anten",      "Yagi house", "Casa+antena", "\xC4\xEE\xEC+\xE0\xED\xF2\xE5\xED\xED\xE0", "Haus+Yagi" },
+	{ '/', '<',  "Motosiklet",    "Motorcycle", "Moto", "\xCC\xEE\xF2\xEE\xF6\xE8\xEA\xEB", "Motorrad" },
+	{ '/', 'b',  "Bisiklet",      "Bicycle",    "Bicicleta", "\xC2\xE5\xEB\xEE\xF1\xE8\xEF\xE5\xE4", "Fahrrad" },
+	{ '/', 'k',  "Kamyon",        "Truck",      "Cami\xF3n", "\xC3\xF0\xF3\xE7\xEE\xE2\xE8\xEA", "LKW" },
+	{ '/', 'j',  "Jeep",          "Jeep",       "Jeep", "\xC4\xE6\xE8\xEF", "Jeep" },
+	{ '/', 'U',  "Otob\xFCs",     "Bus",        "Autob\xFAs", "\xC0\xE2\xF2\xEE\xE1\xF3\xF1", "Bus" },
+	{ '/', 'R',  "Karavan",       "RV",         "Autocaravana", "\xC0\xE2\xF2\xEE\xE4\xEE\xEC", "Wohnmobil" },
+	{ '/', 's',  "Gemi",          "Ship",       "Barco", "\xCA\xEE\xF0\xE0\xE1\xEB\xFC", "Schiff" },
+	{ '/', 'Y',  "Yat",           "Yacht",      "Yate", "\xDF\xF5\xF2\xE0", "Yacht" },
+	{ '/', '\'', "U\xE7""ak",     "Aircraft",   "Avi\xF3n", "\xD1\xE0\xEC\xEE\xEB\xB8\xF2", "Flugzeug" },
+	{ '/', 'O',  "Balon",         "Balloon",    "Globo", "\xD8\xE0\xF0", "Ballon" },
+	{ '/', 'r',  "R\xF6le",       "Repeater",   "Repetidor", "\xD0\xE5\xF2\xF0\xE0\xED\xF1\xEB\xFF\xF2\xEE\xF0", "Repeater" },
+	{ '/', '#',  "Digi",          "Digi",       "Digi", "Digi", "Digi" },
+	{ '\\', '&', "I-Gate",        "I-Gate",     "I-Gate", "I-Gate", "I-Gate" },
+	{ '/', '_',  "Hava ist.",     "Weather",    "Meteo", "\xCC\xE5\xF2\xE5\xEE", "Wetter" },
+	{ '/', '$',  "Telefon",       "Phone",      "Tel\xE9""fono", "\xD2\xE5\xEB\xE5\xF4\xEE\xED", "Telefon" },
 };
 #define CZ_SYMBOL_COUNT ((int) (sizeof(czSymbols) / sizeof(czSymbols[0])))
 
@@ -998,7 +1004,7 @@ static void czDrawAprsList(void)
 	call[6] = 0; // APRS sends the first six
 
 	displayClearBuf();
-	menuDisplayTitle(CZ("APRS AYARLARI", "APRS SETTINGS", "AJUSTES APRS", "\xCD\xC0\xD1\xD2\xD0\xCE\xC9\xCA\xC8 APRS"));
+	menuDisplayTitle(CZ("APRS AYARLARI", "APRS SETTINGS", "AJUSTES APRS", "\xCD\xC0\xD1\xD2\xD0\xCE\xC9\xCA\xC8 APRS", "APRS EINSTELL."));
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
 	{
@@ -1012,7 +1018,7 @@ static void czDrawAprsList(void)
 
 		if (czAprsHasNewRow() && (mNum == 0))
 		{
-			snprintf(row, sizeof(row), "%s", CZ("+ Yeni APRS Ayar\x93", "+ New APRS Setting", "+ Nuevo ajuste APRS", "+ \xCD\xEE\xE2\xE0\xFF \xED\xE0\xF1\xF2\xF0."));
+			snprintf(row, sizeof(row), "%s", CZ("+ Yeni APRS Ayar\x93", "+ New APRS Setting", "+ Nuevo ajuste APRS", "+ \xCD\xEE\xE2\xE0\xFF \xED\xE0\xF1\xF2\xF0.", "+ Neue APRS Einst."));
 		}
 		else
 		{
@@ -1035,7 +1041,7 @@ static void czDrawAprsEdit(void)
 	char text[CZ_TEXT_MAX + 2];
 
 	displayClearBuf();
-	menuDisplayTitle((cz.aprsIndex != 0) ? CZ("APRS AYARI", "APRS SETTING", "AJUSTE APRS", "\xCD\xC0\xD1\xD2\xD0\xCE\xC9\xCA\xC0 APRS") : CZ("YEN\x94 APRS AYARI", "NEW APRS SETTING", "NUEVO AJUSTE APRS", "\xCD\xCE\xC2\xC0\xDF \xCD\xC0\xD1\xD2\xD0.APRS"));
+	menuDisplayTitle((cz.aprsIndex != 0) ? CZ("APRS AYARI", "APRS SETTING", "AJUSTE APRS", "\xCD\xC0\xD1\xD2\xD0\xCE\xC9\xCA\xC0 APRS", "APRS EINSTELL.") : CZ("YEN\x94 APRS AYARI", "NEW APRS SETTING", "NUEVO AJUSTE APRS", "\xCD\xCE\xC2\xC0\xDF \xCD\xC0\xD1\xD2\xD0.APRS", "NEUE APRS EINST."));
 
 	for (int i = MENU_START_ITERATION_VALUE; i <= MENU_END_ITERATION_VALUE; i++)
 	{
@@ -1050,7 +1056,7 @@ static void czDrawAprsEdit(void)
 		switch (mNum)
 		{
 			case CZA_NAME:
-				label = CZ("Ad:", "Name:", "Nombre:", "\xC8\xEC\xFF:");
+				label = CZ("Ad:", "Name:", "Nombre:", "\xC8\xEC\xFF:", "Name:");
 				czFieldToString(cz.aprs.name, 8, text);
 				snprintf(row, sizeof(row), "%s%s", label, text);
 				break;
@@ -1062,26 +1068,26 @@ static void czDrawAprsEdit(void)
 				break;
 			case CZA_PATH1:
 			case CZA_PATH2:
-				label = ((mNum == CZA_PATH1) ? CZ("Yol 1:", "Path 1:", "Ruta 1:", "\xCF\xF3\xF2\xFC 1:") : CZ("Yol 2:", "Path 2:", "Ruta 2:", "\xCF\xF3\xF2\xFC 2:"));
+				label = ((mNum == CZA_PATH1) ? CZ("Yol 1:", "Path 1:", "Ruta 1:", "\xCF\xF3\xF2\xFC 1:", "Pfad 1:") : CZ("Yol 2:", "Path 2:", "Ruta 2:", "\xCF\xF3\xF2\xFC 2:", "Pfad 2:"));
 				czPathToString((mNum - CZA_PATH1), text);
-				snprintf(row, sizeof(row), "%s%s", label, ((text[0] != 0) ? text : CZ("Yok", "None", "Ninguno", "\xCD\xE5\xF2")));
+				snprintf(row, sizeof(row), "%s%s", label, ((text[0] != 0) ? text : CZ("Yok", "None", "Ninguno", "\xCD\xE5\xF2", "Keine")));
 				break;
 			case CZA_SYMBOL:
 			{
 				int s = czSymbolFind();
 
-				label = CZ("Simge:", "Icon:", "Icono:", "\xC7\xED\xE0\xEA:");
-				snprintf(row, sizeof(row), "%s%s %c%c", label, ((s >= 0) ? CZ(czSymbols[s].nameTR, czSymbols[s].nameEN, czSymbols[s].nameES, czSymbols[s].nameRU) : "?"),
+				label = CZ("Simge:", "Icon:", "Icono:", "\xC7\xED\xE0\xEA:", "Symbol:");
+				snprintf(row, sizeof(row), "%s%s %c%c", label, ((s >= 0) ? CZ(czSymbols[s].nameTR, czSymbols[s].nameEN, czSymbols[s].nameES, czSymbols[s].nameRU, czSymbols[s].nameDE) : "?"),
 						((cz.aprs.iconTable == 0) ? '/' : '\\'), (char) (cz.aprs.iconIndex + '!'));
 			}
 				break;
 			case CZA_COMMENT:
-				label = CZ("Yorum:", "Comment:", "Coment.:", "\xCA\xEE\xEC\xEC.:");
+				label = CZ("Yorum:", "Comment:", "Coment.:", "\xCA\xEE\xEC\xEC.:", "Komm.:");
 				czFieldToString(cz.aprs.comment, CZ_TEXT_MAX, text);
 				czFormatText(row, sizeof(row), label, text, false);
 				break;
 			case CZA_POSITION:
-				label = CZ("Konum:", "Pos:", "Pos:", "\xCF\xEE\xE7:");
+				label = CZ("Konum:", "Pos:", "Pos:", "\xCF\xEE\xE7:", "Pos:");
 				if ((cz.aprs.flags & CZ_APRS_FLAG_FIXED_POSITION) != 0)
 				{
 					char lat[10];
@@ -1097,10 +1103,10 @@ static void czDrawAprsEdit(void)
 				}
 				break;
 			case CZA_SAVE:
-				snprintf(row, sizeof(row), "%s", CZ("   * KAYDET *", "   * SAVE *", "  * GUARDAR *", "* \xD1\xCE\xD5\xD0\xC0\xCD\xC8\xD2\xDC *"));
+				snprintf(row, sizeof(row), "%s", CZ("   * KAYDET *", "   * SAVE *", "  * GUARDAR *", "* \xD1\xCE\xD5\xD0\xC0\xCD\xC8\xD2\xDC *", " * SPEICHERN *"));
 				break;
 			case CZA_DELETE:
-				snprintf(row, sizeof(row), "%s", CZ("   * S\x94L *", "   * DELETE *", "  * BORRAR *", "  * \xD3\xC4\xC0\xCB\xC8\xD2\xDC *"));
+				snprintf(row, sizeof(row), "%s", CZ("   * S\x94L *", "   * DELETE *", "  * BORRAR *", "  * \xD3\xC4\xC0\xCB\xC8\xD2\xDC *", "  * L\xD6SCHEN *"));
 				break;
 		}
 
@@ -1142,6 +1148,9 @@ static void czDrawText(char preview)
 	static const char * const titlesRU[] = { "\xC8\xCC\xDF APRS", "\xCF\xD3\xD2\xDC 1", "\xCF\xD3\xD2\xDC 2", "\xCA\xCE\xCC\xCC\xC5\xCD\xD2\xC0\xD0\xC8\xC9", "\xCF\xCE\xC7\xDB\xC2\xCD\xCE\xC9" };
 	static const char * const hintsRU[]  = { "\xC4\xEE 8 \xF1\xE8\xEC\xE2\xEE\xEB\xEE\xE2", "\xCF\xF0\xE8\xEC\xE5\xF0: WIDE1-1", "\xED\xE0\xEF\xF0. WIDE2-1, \xEF\xF3\xF1\xF2\xEE=\xED\xE5\xF2",
 			"\xC4\xEE 23 \xF1\xE8\xEC\xE2\xEE\xEB\xEE\xE2", "\xC1\xF3\xEA\xE2\xFB/\xF6\xE8\xF4\xF0\xFB, \xE4\xEE 8" };
+	static const char * const titlesDE[] = { "APRS NAME", "PFAD 1", "PFAD 2", "KOMMENTAR", "RUFZEICHEN" };
+	static const char * const hintsDE[]  = { "Bis 8 Zeichen", "Beispiel: WIDE1-1", "z.B. WIDE2-1, leer=kein",
+			"Bis 23 Zeichen", "Buchst./Ziffern, bis 8" };
 	char shown[CZ_TEXT_MAX + 3];
 	int len;
 
@@ -1154,7 +1163,7 @@ static void czDrawText(char preview)
 	}
 
 	displayClearBuf();
-	menuDisplayTitle(CZ(titlesTR[cz.textTarget], titlesEN[cz.textTarget], titlesES[cz.textTarget], titlesRU[cz.textTarget]));
+	menuDisplayTitle(CZ(titlesTR[cz.textTarget], titlesEN[cz.textTarget], titlesES[cz.textTarget], titlesRU[cz.textTarget], titlesDE[cz.textTarget]));
 
 	if (len > 18)
 	{
@@ -1170,9 +1179,9 @@ static void czDrawText(char preview)
 		displayPrintAt(4, 34, shown, FONT_SIZE_3);
 	}
 
-	displayPrintAt(4, 80, CZ(hintsTR[cz.textTarget], hintsEN[cz.textTarget], hintsES[cz.textTarget], hintsRU[cz.textTarget]), FONT_SIZE_1);
-	displayPrintAt(4, 94, CZ("Ye\x96il: Tamam", "Green: OK", "Verde: OK", "\xC7\xE5\xEB: OK"), FONT_SIZE_1);
-	displayPrintAt(4, 106, CZ("K\x93rm\x93z\x93: Sil / Geri", "Red: delete / back", "Rojo: borrar/atr\xE1s", "\xCA\xF0\xE0\xF1: \xF3\xE4\xE0\xEB/\xED\xE0\xE7\xE0\xE4"), FONT_SIZE_1);
+	displayPrintAt(4, 80, CZ(hintsTR[cz.textTarget], hintsEN[cz.textTarget], hintsES[cz.textTarget], hintsRU[cz.textTarget], hintsDE[cz.textTarget]), FONT_SIZE_1);
+	displayPrintAt(4, 94, CZ("Ye\x96il: Tamam", "Green: OK", "Verde: OK", "\xC7\xE5\xEB: OK", "Gr\xFCn: OK"), FONT_SIZE_1);
+	displayPrintAt(4, 106, CZ("K\x93rm\x93z\x93: Sil / Geri", "Red: delete / back", "Rojo: borrar/atr\xE1s", "\xCA\xF0\xE0\xF1: \xF3\xE4\xE0\xEB/\xED\xE0\xE7\xE0\xE4", "Rot: l\xF6sch/zur\xFC""ck"), FONT_SIZE_1);
 	displayRender();
 }
 
@@ -1199,8 +1208,8 @@ static void czRedraw(char preview)
 			czDrawFtEdit(preview);
 			break;
 		case CZ_MODE_FT_DELETE:
-			czDrawConfirmBox(CZ("K\x94\x95\x94Y\x94 S\x94L", "DELETE CONTACT", "BORRAR CONTACTO", "\xD3\xC4\xC0\xCB. \xCA\xCE\xCD\xD2\xC0\xCA\xD2"), cz.name,
-					CZ("Ki\x96iyi silmek", "Delete this", "Borrar", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC"), CZ("istiyor musun?", "contact?", "este contacto?", "\xFD\xF2\xEE\xF2 \xEA\xEE\xED\xF2\xE0\xEA\xF2?"), NULL);
+			czDrawConfirmBox(CZ("K\x94\x95\x94Y\x94 S\x94L", "DELETE CONTACT", "BORRAR CONTACTO", "\xD3\xC4\xC0\xCB. \xCA\xCE\xCD\xD2\xC0\xCA\xD2", "KONTAKT L\xD6SCHEN"), cz.name,
+					CZ("Ki\x96iyi silmek", "Delete this", "Borrar", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC", "Diesen Kanal"), CZ("istiyor musun?", "contact?", "este contacto?", "\xFD\xF2\xEE\xF2 \xEA\xEE\xED\xF2\xE0\xEA\xF2?", "Kontakt l\xF6schen?"), NULL);
 			break;
 		case CZ_MODE_ZONE_PICK:
 			czDrawZonePick();
@@ -1216,8 +1225,8 @@ static void czRedraw(char preview)
 			char name[CZ_NAME_MAX + 1];
 
 			czZoneName(cz.zoneEdit, name);
-			czDrawConfirmBox(CZ("ZONU S\x94L", "DELETE ZONE", "BORRAR ZONA", "\xD3\xC4\xC0\xCB\xC8\xD2\xDC \xC7\xCE\xCD\xD3"), name, CZ("Zonu silmek", "Delete this", "Borrar", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC"), CZ("istiyor musun?", "zone?", "esta zona?", "\xFD\xF2\xF3 \xE7\xEE\xED\xF3?"),
-					CZ("Kanallar silinmez", "Its channels are kept", "Los canales se quedan", "\xCA\xE0\xED\xE0\xEB\xFB \xEE\xF1\xF2\xE0\xED\xF3\xF2\xF1\xFF"));
+			czDrawConfirmBox(CZ("ZONU S\x94L", "DELETE ZONE", "BORRAR ZONA", "\xD3\xC4\xC0\xCB\xC8\xD2\xDC \xC7\xCE\xCD\xD3", "ZONE L\xD6SCHEN"), name, CZ("Zonu silmek", "Delete this", "Borrar", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC", "Diesen Kanal"), CZ("istiyor musun?", "zone?", "esta zona?", "\xFD\xF2\xF3 \xE7\xEE\xED\xF3?", "diese Zone?"),
+					CZ("Kanallar silinmez", "Its channels are kept", "Los canales se quedan", "\xCA\xE0\xED\xE0\xEB\xFB \xEE\xF1\xF2\xE0\xED\xF3\xF2\xF1\xFF", "Kan\xE4le bleiben"));
 		}
 			break;
 		case CZ_MODE_PW_NEW:
@@ -1238,8 +1247,8 @@ static void czRedraw(char preview)
 			char name[9];
 
 			czFieldToString(cz.aprs.name, 8, name);
-			czDrawConfirmBox(CZ("APRS S\x94L", "DELETE APRS", "BORRAR APRS", "\xD3\xC4\xC0\xCB\xC8\xD2\xDC APRS"), name, CZ("Ayar\x93 silmek", "Delete this", "Borrar", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC"), CZ("istiyor musun?", "setting?", "este ajuste?", "\xFD\xF2\xF3 \xED\xE0\xF1\xF2\xF0\xEE\xE9\xEA\xF3?"),
-					CZ("Kullanan kanalda APRS kapan\x93r", "Channels using it: no APRS", "Canales que lo usan: sin APRS", "\xCA\xE0\xED\xE0\xEB\xFB \xF1 \xED\xE5\xE9: \xE1\xE5\xE7 APRS"));
+			czDrawConfirmBox(CZ("APRS S\x94L", "DELETE APRS", "BORRAR APRS", "\xD3\xC4\xC0\xCB\xC8\xD2\xDC APRS", "APRS L\xD6SCHEN"), name, CZ("Ayar\x93 silmek", "Delete this", "Borrar", "\xD3\xE4\xE0\xEB\xE8\xF2\xFC", "Diesen Kanal"), CZ("istiyor musun?", "setting?", "este ajuste?", "\xFD\xF2\xF3 \xED\xE0\xF1\xF2\xF0\xEE\xE9\xEA\xF3?", "Einstellung?"),
+					CZ("Kullanan kanalda APRS kapan\x93r", "Channels using it: no APRS", "Canales que lo usan: sin APRS", "\xCA\xE0\xED\xE0\xEB\xFB \xF1 \xED\xE5\xE9: \xE1\xE5\xE7 APRS", "Kan\xE4le damit: kein APRS"));
 		}
 			break;
 		default:
@@ -1346,7 +1355,7 @@ static bool czStartZonePick(int item)
 
 	if (count <= 0)
 	{
-		czNotify("Zon yok", "No zones", "Sin zonas", "\xCD\xE5\xF2 \xE7\xEE\xED");
+		czNotify("Zon yok", "No zones", "Sin zonas", "\xCD\xE5\xF2 \xE7\xEE\xED", "Keine Zonen");
 		return false;
 	}
 
@@ -1494,14 +1503,14 @@ static bool czSaveFtContact(void)
 	if (cz.name[0] == 0)
 	{
 		menuDataGlobal.currentItemIndex = CZE_NAME;
-		czNotify("Ad gerekli", "Name needed", "Falta nombre", "\xCD\xF3\xE6\xED\xEE \xE8\xEC\xFF");
+		czNotify("Ad gerekli", "Name needed", "Falta nombre", "\xCD\xF3\xE6\xED\xEE \xE8\xEC\xFF", "Name n\xF6tig");
 		return false;
 	}
 
 	if (cz.code[0] == 0)
 	{
 		menuDataGlobal.currentItemIndex = CZE_CODE;
-		czNotify("Kod gerekli", "Code needed", "Falta c\xF3""digo", "\xCD\xF3\xE6\xE5\xED \xEA\xEE\xE4");
+		czNotify("Kod gerekli", "Code needed", "Falta c\xF3""digo", "\xCD\xF3\xE6\xE5\xED \xEA\xEE\xE4", "Code n\xF6tig");
 		return false;
 	}
 
@@ -1516,7 +1525,7 @@ static bool czSaveFtContact(void)
 			if (strcmp(code, cz.code) == 0)
 			{
 				menuDataGlobal.currentItemIndex = CZE_CODE;
-				czNotify("Kod zaten var", "Code exists", "C\xF3""digo repetido", "\xCA\xEE\xE4 \xF3\xE6\xE5 \xE5\xF1\xF2\xFC");
+				czNotify("Kod zaten var", "Code exists", "C\xF3""digo repetido", "\xCA\xEE\xE4 \xF3\xE6\xE5 \xE5\xF1\xF2\xFC", "Code belegt");
 				return false;
 			}
 		}
@@ -1524,7 +1533,7 @@ static bool czSaveFtContact(void)
 
 	if (codeplugDTMFContactWrite(cz.ftIndex, cz.name, cz.code) == 0)
 	{
-		czNotify(((cz.ftIndex == 0) ? "Liste dolu" : "Yazma hatas\x93"), ((cz.ftIndex == 0) ? "List full" : "Write failed"), ((cz.ftIndex == 0) ? "Lista llena" : "Error escritura"), ((cz.ftIndex == 0) ? "\xD1\xEF\xE8\xF1\xEE\xEA \xEF\xEE\xEB\xEE\xED" : "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8"));
+		czNotify(((cz.ftIndex == 0) ? "Liste dolu" : "Yazma hatas\x93"), ((cz.ftIndex == 0) ? "List full" : "Write failed"), ((cz.ftIndex == 0) ? "Lista llena" : "Error escritura"), ((cz.ftIndex == 0) ? "\xD1\xEF\xE8\xF1\xEE\xEA \xEF\xEE\xEB\xEE\xED" : "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8"), ((cz.ftIndex == 0) ? "Liste voll" : "Schreibfehler"));
 		return false;
 	}
 
@@ -1549,7 +1558,7 @@ static bool czCommitFreq(void)
 
 	if (trxGetBandFromFrequency(freq) == FREQUENCY_OUT_OF_BAND)
 	{
-		czNotify("Bant d\x93\x96\x93", "Out of band", "Fuera de banda", "\xC2\xED\xE5 \xE4\xE8\xE0\xEF\xE0\xE7\xEE\xED\xE0");
+		czNotify("Bant d\x93\x96\x93", "Out of band", "Fuera de banda", "\xC2\xED\xE5 \xE4\xE8\xE0\xEF\xE0\xE7\xEE\xED\xE0", "Ausser Band");
 		return false;
 	}
 
@@ -1585,14 +1594,14 @@ static bool czSaveChannel(void)
 	if (cz.name[0] == 0)
 	{
 		menuDataGlobal.currentItemIndex = CZF_NAME;
-		czNotify("Ad gerekli", "Name needed", "Falta nombre", "\xCD\xF3\xE6\xED\xEE \xE8\xEC\xFF");
+		czNotify("Ad gerekli", "Name needed", "Falta nombre", "\xCD\xF3\xE6\xED\xEE \xE8\xEC\xFF", "Name n\xF6tig");
 		return false;
 	}
 
 	if (cz.rxFreq == 0)
 	{
 		menuDataGlobal.currentItemIndex = CZF_RX;
-		czNotify("RX gerekli", "RX needed", "Falta RX", "\xCD\xF3\xE6\xED\xE0 RX");
+		czNotify("RX gerekli", "RX needed", "Falta RX", "\xCD\xF3\xE6\xED\xE0 RX", "RX n\xF6tig");
 		return false;
 	}
 
@@ -1611,7 +1620,7 @@ static bool czSaveChannel(void)
 
 	if (index > CODEPLUG_CHANNELS_MAX)
 	{
-		czNotify("Kanal yeri yok", "No free channel", "Sin canal libre", "\xCD\xE5\xF2 \xEC\xE5\xF1\xF2");
+		czNotify("Kanal yeri yok", "No free channel", "Sin canal libre", "\xCD\xE5\xF2 \xEC\xE5\xF1\xF2", "Kein Platz");
 		return false;
 	}
 
@@ -1619,14 +1628,14 @@ static bool czSaveChannel(void)
 	{
 		if ((codeplugZoneGetDataForNumber(cz.zoneSel, &zone) == false) || (zone.NOT_IN_CODEPLUGDATA_indexNumber < 0))
 		{
-			czNotify("Zon okunamad\x93", "Zone read error", "Error leer zona", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xEE\xED\xFB");
+			czNotify("Zon okunamad\x93", "Zone read error", "Error leer zona", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xEE\xED\xFB", "Zonenlesefehler");
 			return false;
 		}
 
 		if (zone.NOT_IN_CODEPLUGDATA_numChannelsInZone >= codeplugChannelsPerZone)
 		{
 			menuDataGlobal.currentItemIndex = CZF_ZONE;
-			czNotify("Zon dolu", "Zone is full", "Zona llena", "\xC7\xEE\xED\xE0 \xEF\xEE\xEB\xED\xE0");
+			czNotify("Zon dolu", "Zone is full", "Zona llena", "\xC7\xEE\xED\xE0 \xEF\xEE\xEB\xED\xE0", "Zone voll");
 			return false;
 		}
 	}
@@ -1646,7 +1655,7 @@ static bool czSaveChannel(void)
 
 	if (codeplugChannelSaveDataForIndex(index, &channel) == false)
 	{
-		czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8");
+		czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8", "Schreibfehler");
 		return false;
 	}
 
@@ -1656,7 +1665,7 @@ static bool czSaveChannel(void)
 	if (intoZone && (codeplugZoneAddChannelToZoneAndSave(index, &zone) == false))
 	{
 		// The channel exists - it is in All Channels - but not in the zone.
-		czNotify("Zona eklenemedi", "Zone add failed", "Error a\xF1""adir zona", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xEE\xED\xFB");
+		czNotify("Zona eklenemedi", "Zone add failed", "Error a\xF1""adir zona", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xEE\xED\xFB", "Zonenfehler");
 		return false;
 	}
 
@@ -1693,13 +1702,13 @@ static bool czSaveZone(void)
 
 	if (cz.name[0] == 0)
 	{
-		czNotify("Ad gerekli", "Name needed", "Falta nombre", "\xCD\xF3\xE6\xED\xEE \xE8\xEC\xFF");
+		czNotify("Ad gerekli", "Name needed", "Falta nombre", "\xCD\xF3\xE6\xED\xEE \xE8\xEC\xFF", "Name n\xF6tig");
 		return false;
 	}
 
 	if (czZoneNameExists(cz.name, ((cz.renaming != 0) ? cz.zoneEdit : -1)))
 	{
-		czNotify("Ayn\x93 isim var", "Name exists", "Nombre repetido", "\xC8\xEC\xFF \xE7\xE0\xED\xFF\xF2\xEE");
+		czNotify("Ayn\x93 isim var", "Name exists", "Nombre repetido", "\xC8\xEC\xFF \xE7\xE0\xED\xFF\xF2\xEE", "Name belegt");
 		return false;
 	}
 
@@ -1707,7 +1716,7 @@ static bool czSaveZone(void)
 	{
 		if (codeplugZoneRename(cz.zoneEdit, cz.name) == false)
 		{
-			czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8");
+			czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8", "Schreibfehler");
 			return false;
 		}
 
@@ -1719,7 +1728,7 @@ static bool czSaveZone(void)
 
 	if (zoneNum < 0)
 	{
-		czNotify("Zon yeri yok", "No zone slot", "Sin hueco zona", "\xCD\xE5\xF2 \xEC\xE5\xF1\xF2");
+		czNotify("Zon yeri yok", "No zone slot", "Sin hueco zona", "\xCD\xE5\xF2 \xEC\xE5\xF1\xF2", "Kein Zonenplatz");
 		return false;
 	}
 
@@ -1885,7 +1894,7 @@ static menuStatus_t czHandleChannel(uiEvent_t *ev, bool down, bool up, bool righ
 			if (czSaveChannel())
 			{
 				nextKeyBeepMelody = (int16_t *) MELODY_ACK_BEEP;
-				czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE");
+				czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE", "Gespeichert");
 				czBackToList(CZ_LIST_CHANNEL);
 			}
 			else
@@ -2016,12 +2025,12 @@ static menuStatus_t czHandleZone(uiEvent_t *ev)
 
 			if (cz.renaming != 0)
 			{
-				czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE");
+				czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE", "Gespeichert");
 				czStartZoneMenu(CZM_RENAME);
 			}
 			else
 			{
-				czNotify("Zon olu\x96turuldu", "Zone created", "Zona creada", "\xC7\xEE\xED\xE0 \xF1\xEE\xE7\xE4\xE0\xED\xE0");
+				czNotify("Zon olu\x96turuldu", "Zone created", "Zona creada", "\xC7\xEE\xED\xE0 \xF1\xEE\xE7\xE4\xE0\xED\xE0", "Zone angelegt");
 				czBackToList(CZ_LIST_CHANNEL); // next step is usually a channel for it
 			}
 			czRedraw(0);
@@ -2107,7 +2116,7 @@ static menuStatus_t czHandlePin(uiEvent_t *ev)
 
 			if (same == false)
 			{
-				czNotify("Uyu\x96muyor", "No match", "No coinciden", "\xCD\xE5 \xF1\xEE\xE2\xEF\xE0\xE4\xE0\xE5\xF2");
+				czNotify("Uyu\x96muyor", "No match", "No coinciden", "\xCD\xE5 \xF1\xEE\xE2\xEF\xE0\xE4\xE0\xE5\xF2", "Stimmt nicht");
 				czSetMode(CZ_MODE_PW_NEW);
 				czRedraw(0);
 				return MENU_STATUS_ERROR;
@@ -2115,14 +2124,14 @@ static menuStatus_t czHandlePin(uiEvent_t *ev)
 
 			if (codeplugSetPasswordPin(cz.pinFirst, cz.pinFirstLen) == false)
 			{
-				czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8");
+				czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8", "Schreibfehler");
 				czBackToList(CZ_LIST_PASSWORD);
 				czRedraw(0);
 				return MENU_STATUS_ERROR;
 			}
 
 			nextKeyBeepMelody = (int16_t *) MELODY_ACK_BEEP;
-			czNotify(((cz.pinFirstLen > 0) ? "Kaydedildi" : "Parola silindi"), ((cz.pinFirstLen > 0) ? "Saved" : "Password off"), ((cz.pinFirstLen > 0) ? "Guardado" : "Clave quitada"), ((cz.pinFirstLen > 0) ? "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE" : "\xCF\xE0\xF0\xEE\xEB\xFC \xF1\xED\xFF\xF2"));
+			czNotify(((cz.pinFirstLen > 0) ? "Kaydedildi" : "Parola silindi"), ((cz.pinFirstLen > 0) ? "Saved" : "Password off"), ((cz.pinFirstLen > 0) ? "Guardado" : "Clave quitada"), ((cz.pinFirstLen > 0) ? "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE" : "\xCF\xE0\xF0\xEE\xEB\xFC \xF1\xED\xFF\xF2"), ((cz.pinFirstLen > 0) ? "Gespeichert" : "Passwort aus"));
 			czBackToList(CZ_LIST_PASSWORD);
 		}
 		else
@@ -2142,7 +2151,7 @@ static menuStatus_t czHandlePin(uiEvent_t *ev)
 			{
 				cz.pinLen = 0;
 				cz.pinTyped = 0;
-				czNotify("Parola hatal\x93", "Wrong password", "Clave err\xF3nea", "\xCD\xE5\xE2\xE5\xF0\xED\xFB\xE9 \xEF\xE0\xF0\xEE\xEB\xFC");
+				czNotify("Parola hatal\x93", "Wrong password", "Clave err\xF3nea", "\xCD\xE5\xE2\xE5\xF0\xED\xFB\xE9 \xEF\xE0\xF0\xEE\xEB\xFC", "Falsches Passw.");
 				czRedraw(0);
 				return MENU_STATUS_ERROR;
 			}
@@ -2175,11 +2184,11 @@ static menuStatus_t czHandleConfirm(uiEvent_t *ev, bool down, bool up, bool righ
 		if (deleted)
 		{
 			nextKeyBeepMelody = (int16_t *) MELODY_ACK_BEEP;
-			czNotify("Kanal silindi", "Channel deleted", "Canal borrado", "\xCA\xE0\xED\xE0\xEB \xF3\xE4\xE0\xEB\xB8\xED");
+			czNotify("Kanal silindi", "Channel deleted", "Canal borrado", "\xCA\xE0\xED\xE0\xEB \xF3\xE4\xE0\xEB\xB8\xED", "Kanal gel\xF6scht");
 		}
 		else
 		{
-			czNotify("Silinemedi", "Delete failed", "Error al borrar", "\xCE\xF8\xE8\xE1\xEA\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE8\xFF");
+			czNotify("Silinemedi", "Delete failed", "Error al borrar", "\xCE\xF8\xE8\xE1\xEA\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE8\xFF", "L\xF6schfehler");
 		}
 
 		czLeave(); // to the channel screen, which now shows the next channel
@@ -2275,7 +2284,7 @@ static menuStatus_t czHandleFtEdit(uiEvent_t *ev, bool down, bool up, bool right
 			if (czSaveFtContact())
 			{
 				nextKeyBeepMelody = (int16_t *) MELODY_ACK_BEEP;
-				czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE");
+				czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE", "Gespeichert");
 				czStartFtList(cz.ftListItem);
 			}
 			else
@@ -2373,11 +2382,11 @@ static menuStatus_t czHandleFtDelete(uiEvent_t *ev, bool down, bool up, bool rig
 		if (deleted)
 		{
 			nextKeyBeepMelody = (int16_t *) MELODY_ACK_BEEP;
-			czNotify("Ki\x96i silindi", "Deleted", "Borrado", "\xD3\xE4\xE0\xEB\xE5\xED\xEE");
+			czNotify("Ki\x96i silindi", "Deleted", "Borrado", "\xD3\xE4\xE0\xEB\xE5\xED\xEE", "Gel\xF6scht");
 		}
 		else
 		{
-			czNotify("Silinemedi", "Delete failed", "Error al borrar", "\xCE\xF8\xE8\xE1\xEA\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE8\xFF");
+			czNotify("Silinemedi", "Delete failed", "Error al borrar", "\xCE\xF8\xE8\xE1\xEA\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE8\xFF", "L\xF6schfehler");
 		}
 
 		czStartFtList(0);
@@ -2498,26 +2507,26 @@ static menuStatus_t czHandleZoneChannels(uiEvent_t *ev, bool down, bool up)
 		{
 			if (codeplugZoneRemoveChannel(cz.zoneEdit, ch))
 			{
-				czNotify("\xC7\x93kar\x93ld\x93", "Removed", "Quitado", "\xD3\xE1\xF0\xE0\xED\xEE");
+				czNotify("\xC7\x93kar\x93ld\x93", "Removed", "Quitado", "\xD3\xE1\xF0\xE0\xED\xEE", "Entfernt");
 			}
 			else
 			{
-				czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8");
+				czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8", "Schreibfehler");
 				status = MENU_STATUS_ERROR;
 			}
 		}
 		else if (zone.NOT_IN_CODEPLUGDATA_numChannelsInZone >= codeplugChannelsPerZone)
 		{
-			czNotify("Zon dolu", "Zone is full", "Zona llena", "\xC7\xEE\xED\xE0 \xEF\xEE\xEB\xED\xE0");
+			czNotify("Zon dolu", "Zone is full", "Zona llena", "\xC7\xEE\xED\xE0 \xEF\xEE\xEB\xED\xE0", "Zone voll");
 			status = MENU_STATUS_ERROR;
 		}
 		else if (codeplugZoneAddChannelToZoneAndSave(ch, &zone))
 		{
-			czNotify("Eklendi", "Added", "A\xF1""adido", "\xC4\xEE\xE1\xE0\xE2\xEB\xE5\xED\xEE");
+			czNotify("Eklendi", "Added", "A\xF1""adido", "\xC4\xEE\xE1\xE0\xE2\xEB\xE5\xED\xEE", "Hinzugef\xFCgt");
 		}
 		else
 		{
-			czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8");
+			czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8", "Schreibfehler");
 			status = MENU_STATUS_ERROR;
 		}
 
@@ -2555,11 +2564,11 @@ static menuStatus_t czHandleZoneDelete(uiEvent_t *ev, bool down, bool up, bool r
 			cz.dirty = 1;
 			cz.newZone = -1; // zone numbers above it have moved
 			nextKeyBeepMelody = (int16_t *) MELODY_ACK_BEEP;
-			czNotify("Zon silindi", "Zone deleted", "Zona borrada", "\xC7\xEE\xED\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE0");
+			czNotify("Zon silindi", "Zone deleted", "Zona borrada", "\xC7\xEE\xED\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE0", "Zone gel\xF6scht");
 		}
 		else
 		{
-			czNotify("Silinemedi", "Delete failed", "Error al borrar", "\xCE\xF8\xE8\xE1\xEA\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE8\xFF");
+			czNotify("Silinemedi", "Delete failed", "Error al borrar", "\xCE\xF8\xE8\xE1\xEA\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE8\xFF", "L\xF6schfehler");
 		}
 
 		if (czStartZonePick(cz.zoneEdit) == false) // the next zone along, or the list if none are left
@@ -2612,13 +2621,13 @@ static bool czSaveAprs(void)
 
 	if (index > CZ_APRS_MAX)
 	{
-		czNotify("Liste dolu", "List full", "Lista llena", "\xD1\xEF\xE8\xF1\xEE\xEA \xEF\xEE\xEB\xEE\xED");
+		czNotify("Liste dolu", "List full", "Lista llena", "\xD1\xEF\xE8\xF1\xEE\xEA \xEF\xEE\xEB\xEE\xED", "Liste voll");
 		return false;
 	}
 
 	if (codeplugAPRSSetDataForIndex(index, &cz.aprs) == false)
 	{
-		czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8");
+		czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8", "Schreibfehler");
 		return false;
 	}
 
@@ -2670,7 +2679,7 @@ static menuStatus_t czHandleAprsEdit(uiEvent_t *ev, bool down, bool up, bool rig
 			{
 				if (czAprsTakePosition() == false)
 				{
-					czNotify("Konum yok", "No position", "Sin posici\xF3n", "\xCD\xE5\xF2 \xEF\xEE\xE7\xE8\xF6\xE8\xE8");
+					czNotify("Konum yok", "No position", "Sin posici\xF3n", "\xCD\xE5\xF2 \xEF\xEE\xE7\xE8\xF6\xE8\xE8", "Keine Position");
 					czRedraw(0);
 					return MENU_STATUS_ERROR;
 				}
@@ -2706,11 +2715,11 @@ static menuStatus_t czHandleAprsEdit(uiEvent_t *ev, bool down, bool up, bool rig
 				// Green takes where the radio is now as the fixed position.
 				if (czAprsTakePosition())
 				{
-					czNotify("Konum al\x93nd\x93", "Position set", "Posici\xF3n tomada", "\xCF\xEE\xE7\xE8\xF6\xE8\xFF \xE7\xE0\xE4\xE0\xED\xE0");
+					czNotify("Konum al\x93nd\x93", "Position set", "Posici\xF3n tomada", "\xCF\xEE\xE7\xE8\xF6\xE8\xFF \xE7\xE0\xE4\xE0\xED\xE0", "Position gesetzt");
 				}
 				else
 				{
-					czNotify("Konum yok", "No position", "Sin posici\xF3n", "\xCD\xE5\xF2 \xEF\xEE\xE7\xE8\xF6\xE8\xE8");
+					czNotify("Konum yok", "No position", "Sin posici\xF3n", "\xCD\xE5\xF2 \xEF\xEE\xE7\xE8\xF6\xE8\xE8", "Keine Position");
 					status = MENU_STATUS_ERROR;
 				}
 				break;
@@ -2718,7 +2727,7 @@ static menuStatus_t czHandleAprsEdit(uiEvent_t *ev, bool down, bool up, bool rig
 				if (czSaveAprs())
 				{
 					nextKeyBeepMelody = (int16_t *) MELODY_ACK_BEEP;
-					czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE");
+					czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE", "Gespeichert");
 					czStartAprsList(cz.aprsIndex - (czAprsHasNewRow() ? 0 : 1));
 				}
 				else
@@ -2764,12 +2773,12 @@ static menuStatus_t czHandleAprsDelete(uiEvent_t *ev, bool down, bool up, bool r
 		if (deleted)
 		{
 			nextKeyBeepMelody = (int16_t *) MELODY_ACK_BEEP;
-			czNotify("Silindi", "Deleted", "Borrado", "\xD3\xE4\xE0\xEB\xE5\xED\xEE");
+			czNotify("Silindi", "Deleted", "Borrado", "\xD3\xE4\xE0\xEB\xE5\xED\xEE", "Gel\xF6scht");
 			aprsBeaconingResetTimers(); // the beacon re-reads its channel's config, which may be gone
 		}
 		else
 		{
-			czNotify("Silinemedi", "Delete failed", "Error al borrar", "\xCE\xF8\xE8\xE1\xEA\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE8\xFF");
+			czNotify("Silinemedi", "Delete failed", "Error al borrar", "\xCE\xF8\xE8\xE1\xEA\xE0 \xF3\xE4\xE0\xEB\xE5\xED\xE8\xFF", "L\xF6schfehler");
 		}
 
 		cz.aprsIndex = 0;
@@ -2827,7 +2836,7 @@ static bool czCommitText(void)
 		case CZT_APRS_NAME:
 			if (len == 0)
 			{
-				czNotify("Ad gerekli", "Name needed", "Falta nombre", "\xCD\xF3\xE6\xED\xEE \xE8\xEC\xFF");
+				czNotify("Ad gerekli", "Name needed", "Falta nombre", "\xCD\xF3\xE6\xED\xEE \xE8\xEC\xFF", "Name n\xF6tig");
 				return false;
 			}
 			codeplugUtilConvertStringToBuf(t, cz.aprs.name, 8);
@@ -2846,7 +2855,7 @@ static bool czCommitText(void)
 				// The beacon always sends the first path, so only the second may be empty.
 				if (cz.textTarget == CZT_PATH1)
 				{
-					czNotify("Yol 1 gerekli", "Path 1 needed", "Falta ruta 1", "\xCD\xF3\xE6\xE5\xED \xEF\xF3\xF2\xFC 1");
+					czNotify("Yol 1 gerekli", "Path 1 needed", "Falta ruta 1", "\xCD\xF3\xE6\xE5\xED \xEF\xF3\xF2\xFC 1", "Pfad 1 n\xF6tig");
 					return false;
 				}
 				memset(path, 0, sizeof(*path));
@@ -2876,7 +2885,7 @@ static bool czCommitText(void)
 
 			if (ok == false)
 			{
-				czNotify("Ge\xE7""ersiz yol", "Invalid path", "Ruta no v\xE1lida", "\xCD\xE5\xE2\xE5\xF0\xED\xFB\xE9 \xEF\xF3\xF2\xFC");
+				czNotify("Ge\xE7""ersiz yol", "Invalid path", "Ruta no v\xE1lida", "\xCD\xE5\xE2\xE5\xF0\xED\xFB\xE9 \xEF\xF3\xF2\xFC", "Pfad ung\xFCltig");
 				return false;
 			}
 
@@ -2902,13 +2911,13 @@ static bool czCommitText(void)
 
 			if (ok == false)
 			{
-				czNotify("Ge\xE7""ersiz", "Invalid", "No v\xE1lido", "\xCD\xE5\xE2\xE5\xF0\xED\xEE");
+				czNotify("Ge\xE7""ersiz", "Invalid", "No v\xE1lido", "\xCD\xE5\xE2\xE5\xF0\xED\xEE", "Ung\xFCltig");
 				return false;
 			}
 
 			if (codeplugSetRadioName(t) == false)
 			{
-				czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8");
+				czNotify("Yazma hatas\x93", "Write failed", "Error escritura", "\xCE\xF8\xE8\xE1\xEA\xE0 \xE7\xE0\xEF\xE8\xF1\xE8", "Schreibfehler");
 				return false;
 			}
 			return true;
@@ -2977,7 +2986,7 @@ static menuStatus_t czHandleText(uiEvent_t *ev)
 		if (cz.textTarget == CZT_CALLSIGN)
 		{
 			nextKeyBeepMelody = (int16_t *) MELODY_ACK_BEEP;
-			czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE"); // APRS settings are saved with the whole config
+			czNotify("Kaydedildi", "Saved", "Guardado", "\xD1\xEE\xF5\xF0\xE0\xED\xE5\xED\xEE", "Gespeichert"); // APRS settings are saved with the whole config
 		}
 		czTextBack();
 		czRedraw(0);

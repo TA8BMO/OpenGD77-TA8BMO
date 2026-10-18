@@ -36,16 +36,15 @@
 #include "user_interface/languages/turkish.h" // built-in Turkish (TA8BMO Special Edition)
 #include "user_interface/languages/spanish.h" // built-in Spanish, added in v0.2.0
 #include "user_interface/languages/russian.h" // built-in Russian, added in v0.3.0
+#include "user_interface/languages/german.h" // built-in German, added in v1.1
 #include "functions/settings.h"
 #include "hardware/HX8353E.h"
 #endif
 
-#if ! defined(LANGUAGE_BUILD_JAPANESE)
-#if defined(PLATFORM_GD77) || defined(PLATFORM_GD77S) || defined(PLATFORM_DM1801) || defined(PLATFORM_DM1801A) || defined(PLATFORM_RD5R)
-__attribute__((section(".upper_text")))
-#endif
-const stringsTable_t userLanguage = { .magicNumber = { LANGUAGE_TAG_MAGIC_NUMBER, { 0x00, 0x00, 0x00, 0x00 } }, .LANGUAGE_NAME = "User" }; // Don't change the version number
-#endif
+// The upstream "User" language slot (a stringsTable_t the CPS could fill with a
+// downloaded language) is gone here: this build ships the languages built in, so
+// nothing referenced it and it only wasted a whole table's worth of flash
+// (~4.7KB). The languages[] list below uses the built-in tables directly.
 
 
 /*
@@ -56,9 +55,10 @@ const stringsTable_t userLanguage = { .magicNumber = { LANGUAGE_TAG_MAGIC_NUMBER
  * Add new languages at the end of the list
  *
  */
-// The tables live in the flash after the codec (.hiconst): about 4.7KB each, and
-// the flash below the codec is the tight part.
-const stringsTable_t languages[] __attribute__((section(".hiconst"))) =
+// Five tables, about 4.7KB each. They sit in the normal flash before the codec:
+// the manuals now fill the flash after the codec (.hiconst), so the five language
+// tables go back here where there is still room.
+const stringsTable_t languages[] =
 {
 		englishLanguage,        // englishLanguageName
 #if defined(LANGUAGE_BUILD_JAPANESE)
@@ -66,7 +66,8 @@ const stringsTable_t languages[] __attribute__((section(".hiconst"))) =
 #else
 		turkishLanguage, // built-in Turkish (replaces the CPS "User" slot)
 		spanishLanguage, // built-in Spanish
-		russianLanguage  // built-in Russian - new ones go at the end, so the others keep their places
+		russianLanguage, // built-in Russian
+		germanLanguage   // built-in German - new ones go at the end, so the others keep their places
 #endif
 };
 const stringsTable_t *currentLanguage;
@@ -77,7 +78,7 @@ uint8_t languagesGetCount(void)
 #if ! defined(LANGUAGE_BUILD_JAPANESE)
 	uint8_t magic[3][4] = { LANGUAGE_TAG_MAGIC_NUMBER, LANGUAGE_TAG_VERSION };
 
-	return ((memcmp(languages[1].magicNumber, magic, sizeof(magic)) == 0) ? 4 : 1);
+	return ((memcmp(languages[1].magicNumber, magic, sizeof(magic)) == 0) ? 5 : 1);
 #else
 	return 2;
 #endif
@@ -88,7 +89,11 @@ int languageGetSavedIndex(void)
 {
 	int index = LANGUAGE_INDEX_ENGLISH;
 
-	if (settingsIsOptionBitSet(BIT_LANGUAGE_RUSSIAN))
+	if (settingsIsOptionBitSet(BIT_LANGUAGE_GERMAN))
+	{
+		index = LANGUAGE_INDEX_GERMAN;
+	}
+	else if (settingsIsOptionBitSet(BIT_LANGUAGE_RUSSIAN))
 	{
 		index = LANGUAGE_INDEX_RUSSIAN;
 	}
@@ -114,6 +119,7 @@ void languageSetIndex(int index)
 	settingsSetOptionBit(BIT_SECONDARY_LANGUAGE, (index == LANGUAGE_INDEX_TURKISH));
 	settingsSetOptionBit(BIT_LANGUAGE_SPANISH, (index == LANGUAGE_INDEX_SPANISH));
 	settingsSetOptionBit(BIT_LANGUAGE_RUSSIAN, (index == LANGUAGE_INDEX_RUSSIAN));
+	settingsSetOptionBit(BIT_LANGUAGE_GERMAN, (index == LANGUAGE_INDEX_GERMAN));
 	languageApply(index);
 }
 
@@ -142,6 +148,11 @@ bool languageIsSpanish(void)
 bool languageIsRussian(void)
 {
 	return (currentLanguage == &languages[LANGUAGE_INDEX_RUSSIAN]);
+}
+
+bool languageIsGerman(void)
+{
+	return (currentLanguage == &languages[LANGUAGE_INDEX_GERMAN]);
 }
 #endif
 

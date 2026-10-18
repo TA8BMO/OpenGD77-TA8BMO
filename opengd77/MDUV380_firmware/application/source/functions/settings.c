@@ -189,6 +189,7 @@ bool settingsLoadSettings(bool reset)
 		settingsSetOptionBit(BIT_SECONDARY_LANGUAGE, false);
 		settingsSetOptionBit(BIT_LANGUAGE_SPANISH, false);
 		settingsSetOptionBit(BIT_LANGUAGE_RUSSIAN, false);
+		settingsSetOptionBit(BIT_LANGUAGE_GERMAN, false);
 		settingsSetDirty();
 	}
 	else

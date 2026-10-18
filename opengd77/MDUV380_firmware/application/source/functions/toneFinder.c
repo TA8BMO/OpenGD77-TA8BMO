@@ -80,7 +80,7 @@ static struct
 	uint8_t  carrier;        // last pass had a carrier, for repainting when that changes
 } tf;
 
-#define TF(tr, en, es, ru) LANG4((tr), (en), (es), (ru)) // Turkish, English, Spanish, Russian
+#define TF(tr, en, es, ru, de) LANG5((tr), (en), (es), (ru), (de)) // Turkish, English, Spanish, Russian, German
 
 static int tfCandidateCount(void)
 {
@@ -247,7 +247,7 @@ void toneFinderTick(void)
 			tfRestore();
 
 			tfFormatTone(toneText, sizeof(toneText), candidate);
-			snprintf(message, sizeof(message), TF("Ton %s", "Tone %s", "Tono %s", "\xD2\xEE\xED %s"), toneText);
+			snprintf(message, sizeof(message), TF("Ton %s", "Tone %s", "Tono %s", "\xD2\xEE\xED %s", "Ton %s"), toneText);
 			uiNotificationShow(NOTIFICATION_TYPE_MESSAGE, NOTIFICATION_ID_MESSAGE, 2500, message, false);
 			soundSetMelody(MELODY_ACK_BEEP);
 			tfRepaint();
@@ -267,7 +267,7 @@ void toneFinderTick(void)
 		tf.state = TF_NOT_FOUND;
 		tf.resultMs = now;
 		tfRestore();
-		uiNotificationShow(NOTIFICATION_TYPE_MESSAGE, NOTIFICATION_ID_MESSAGE, 2500, TF("Ton yok", "No tone", "Sin tono", "\xCD\xE5\xF2 \xF2\xEE\xED\xE0"), false);
+		uiNotificationShow(NOTIFICATION_TYPE_MESSAGE, NOTIFICATION_ID_MESSAGE, 2500, TF("Ton yok", "No tone", "Sin tono", "\xCD\xE5\xF2 \xF2\xEE\xED\xE0", "Kein Ton"), false);
 		tfRepaint();
 		return;
 	}
@@ -300,11 +300,11 @@ bool toneFinderGetText(char *buf, size_t len, uint32_t *ageMs, bool *active)
 		case TF_CONFIRMING:
 			if (tf.carrier == 0)
 			{
-				snprintf(buf, len, "%s", TF("Ton: sinyal yok", "Tone: no signal", "Tono: sin se\xF1""al", "\xD2\xEE\xED: \xED\xE5\xF2 \xF1\xE8\xE3\xED."));
+				snprintf(buf, len, "%s", TF("Ton: sinyal yok", "Tone: no signal", "Tono: sin se\xF1""al", "\xD2\xEE\xED: \xED\xE5\xF2 \xF1\xE8\xE3\xED.", "Ton: kein Signal"));
 			}
 			else
 			{
-				snprintf(buf, len, "%s %s %d%%", TF("Ton", "Tone", "Tono", "\xD2\xEE\xED"), ((tf.index < TRX_NUM_CTCSS) ? "CTCSS" : "DCS"),
+				snprintf(buf, len, "%s %s %d%%", TF("Ton", "Tone", "Tono", "\xD2\xEE\xED", "Ton"), ((tf.index < TRX_NUM_CTCSS) ? "CTCSS" : "DCS"),
 						((tf.index * 100) / tfCandidateCount()));
 			}
 			return true;
@@ -314,12 +314,12 @@ bool toneFinderGetText(char *buf, size_t len, uint32_t *ageMs, bool *active)
 			char toneText[12];
 
 			tfFormatTone(toneText, sizeof(toneText), tf.result);
-			snprintf(buf, len, "%s %s", TF("Ton", "Tone", "Tono", "\xD2\xEE\xED"), toneText);
+			snprintf(buf, len, "%s %s", TF("Ton", "Tone", "Tono", "\xD2\xEE\xED", "Ton"), toneText);
 		}
 			return true;
 
 		case TF_NOT_FOUND:
-			snprintf(buf, len, "%s", TF("Ton yok", "No tone", "Sin tono", "\xCD\xE5\xF2 \xF2\xEE\xED\xE0"));
+			snprintf(buf, len, "%s", TF("Ton yok", "No tone", "Sin tono", "\xCD\xE5\xF2 \xF2\xEE\xED\xE0", "Kein Ton"));
 			return true;
 
 		default:

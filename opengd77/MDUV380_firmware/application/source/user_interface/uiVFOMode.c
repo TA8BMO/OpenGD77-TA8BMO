@@ -3424,11 +3424,11 @@ static void sweepListenDrawInfo(void)
 	}
 	else if (sweepListenToneDone)
 	{
-		snprintf(buf, SCREEN_LINE_BUFFER_SIZE, LANG4("Ton yok", "No tone", "Sin tono", "\xCD\xE5\xF2 \xF2\xEE\xED\xE0"));
+		snprintf(buf, SCREEN_LINE_BUFFER_SIZE, LANG5("Ton yok", "No tone", "Sin tono", "\xCD\xE5\xF2 \xF2\xEE\xED\xE0", "Kein Ton"));
 	}
 	else
 	{
-		snprintf(buf, SCREEN_LINE_BUFFER_SIZE, LANG4("Ton araniyor", "Finding tone", "Buscando tono", "\xCF\xEE\xE8\xF1\xEA \xF2\xEE\xED\xE0"));
+		snprintf(buf, SCREEN_LINE_BUFFER_SIZE, LANG5("Ton araniyor", "Finding tone", "Buscando tono", "\xCF\xEE\xE8\xF1\xEA \xF2\xEE\xED\xE0", "Tonsuche"));
 	}
 	displayPrintCentered((VFO_SWEEP_GRAPH_START_Y + 19), buf, FONT_SIZE_3);
 

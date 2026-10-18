@@ -423,12 +423,12 @@ static void updateScreen(bool isFirstRun, bool allowedToSpeakUpdate)
 					case CH_DETAILS_FIVE_TONE_REPLY:
 						if (tmpChannel.chMode == RADIO_MODE_ANALOG)
 						{
-							snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, LANG4("5T Cevap:%s", "5T Reply:%s", "5T Resp.:%s", "5T \xCE\xF2\xE2\xE5\xF2:%s"),
+							snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, LANG5("5T Cevap:%s", "5T Reply:%s", "5T Resp.:%s", "5T \xCE\xF2\xE2\xE5\xF2:%s", "5T Antw.:%s"),
 									(codeplugChannelGetFiveToneReply(&tmpChannel) ? currentLanguage->on : currentLanguage->off));
 						}
 						else
 						{
-							snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, LANG4("5T Cevap:%s", "5T Reply:%s", "5T Resp.:%s", "5T \xCE\xF2\xE2\xE5\xF2:%s"), currentLanguage->n_a);
+							snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, LANG5("5T Cevap:%s", "5T Reply:%s", "5T Resp.:%s", "5T \xCE\xF2\xE2\xE5\xF2:%s", "5T Antw.:%s"), currentLanguage->n_a);
 						}
 						break;
 					case CH_DETAILS_RXFREQ:

@@ -2008,7 +2008,7 @@ const uint8_t font_16x32[] = {
 #endif // BUILD_FONT_TOOL
 
 #if ! defined(PLATFORM_RD5R)
-const uint8_t font_16x32_compressed[] = {
+const uint8_t font_16x32_compressed[] __attribute__((section(".hiconst"))) = {  // after the codec: the big font is 9KB and the flash before the codec is tight
    0x01, 0x00, // Compressed, ignored.
    33        , // first char ASCII code.
    255       , // last char ASCII code.

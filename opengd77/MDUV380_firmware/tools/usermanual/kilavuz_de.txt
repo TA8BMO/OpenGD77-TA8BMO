@@ -1,0 +1,495 @@
+@@ Überblick
+Dieses Funkgerät läuft mit einer speziellen OpenGD77-Firmware (Special Edition) von TA8BMO.
+
+Die wichtigste Besonderheit: Es decodiert analoges FM-Audio im Gerät selbst. Das geschieht rein per Software, ohne Zusatzhardware, und ist für dieses Gerät eine Weltpremiere.
+
+Dadurch kann das Funkgerät:
+- 5-Ton-Rufe (CCIR) empfangen und senden
+- Morse (CW) empfangen und senden, mit Übungsmodus
+- APRS-Pakete empfangen und APRS-Nachrichten senden
+- WhatsApp- und E-Mail-Nachrichten über APRS senden
+
+Außerdem: Fuchsjagd-Helfer, Spektrum-Scan mit Stopp bei Sprache, GPS-Uhr, sehr leise Lautstärke für die Nacht, Helligkeits-Shortcut, Kanäle und Zonen anlegen und Kanäle löschen direkt am Gerät, und Spiele.
+
+5-Ton, Morse und APRS funktionieren nur auf analogen FM-Kanälen.
+
+Wenn du neu bist, lies zuerst "Lesen" und "Tasten".
+
+@@ Lesen
+In der Themenliste:
+- Pfeil hoch/runter oder Kanalknopf: Thema wählen
+- Grün: Thema öffnen
+- Rot: zurück zum Hauptmenü
+
+Innerhalb eines Themas:
+- Pfeil hoch/runter: Zeile für Zeile. Halten für schnelles Blättern.
+- Kanalknopf drehen: eine Bildschirmseite weiter
+- Grün: nächstes Thema
+- Rot: zurück zur Themenliste
+
+Der schmale Balken rechts zeigt, wo du im Text bist.
+
+Das Handbuch ist immer über Menü > Handbuch erreichbar.
+
+@@ Tasten
+Tastennamen in diesem Handbuch:
+- Grün: Menü-, Bestätigungs- und Sendetaste
+- Rot: Zurück-, Lösch- und Abbruchtaste
+- Pfeil hoch/runter: die Pfeiltasten in der oberen Tastenreihe
+- SK1, SK2: die zwei kleinen Tasten an der Seite
+- PTT: die Sendetaste
+- Kanalknopf: der Kanalwähler oben. Im Menü ändert er Werte.
+- Lautstärkeknopf: der Ein/Aus- und Lautstärkeknopf oben
+
+Kurzer Druck: drücken und loslassen. Langer Druck: etwa eine Sekunde halten.
+
+[TEXT EINGEBEN]
+Auf Texteingabe-Bildschirmen arbeiten die Tasten wie am Handy: dieselbe Taste mehrmals drücken, um den Buchstaben zu wählen.
+- 2: a b c 2 A B C
+- 3: d e f 3 D E F (die anderen Tasten genauso)
+- 0: 0 und Leerzeichen
+- 1: 1 . ! , @ - : ? und weitere Zeichen
+Kurz warten, der Buchstabe wird übernommen, dann weiter zum nächsten.
+
+@@ Kanalbildschirm
+Auf dem Kanal- oder VFO-Bildschirm, auf einem analogen FM-Kanal:
+- 0 kurz: Tonsuche (zeigt CTCSS/DCS der Station)
+- 0 lang: 5-Ton-Selektivruf-Bildschirm
+- * kurz: Morse-Sende-Bildschirm
+- * lang: Fuchsjagd-Bildschirm
+- SK1 halten + Lautstärkeknopf drehen: Bildschirmhelligkeit
+- # lang (im VFO): Spektrum-Scan
+
+Was auf dem Bildschirm zu sehen ist:
+- Unter dem Kanalnamen: der Code des letzten 5-Ton-Rufs
+- Rotes "CW" über dem Kanalnamen: eine neue decodierte Morse-Nachricht
+- Uhr (HH:MM): per GPS automatisch gestellt
+- Signalstärke-Balken
+
+Hinweis: Diese Tastenkürzel gelten nur auf analogen Kanälen. Auf einem digitalen (DMR) Kanal wechselt * den Zeitschlitz (TS).
+
+@@ 5-Ton senden
+5-Ton ist das CCIR-Selektivrufsystem, das auch Aselsan-Geräte nutzen. Jeder Kanal kann einen 5-stelligen Identcode (ANI) bekommen.
+
+[CODE SETZEN]
+In Menü > Kanal die Zeile "5T:" aufrufen und die 5 Ziffern eingeben. Führende Nullen bleiben erhalten (Beispiel: 03310). Nach der fünften Ziffer wird der Code gespeichert und das Senden wechselt auf "St". Beim Eingeben speichert Grün, Rot bricht ab.
+
+Sendemodus mit dem Kanalknopf ändern:
+- St: senden beim PTT-Druck
+- En: senden beim PTT-Loslassen
+- St+En: in beiden Fällen senden
+- Aus: nicht senden
+
+[SO FUNKTIONIERT ES]
+Beim PTT-Druck wartet das Gerät etwa 0,25 Sekunden und sendet dann die 5 Töne zu je 100 Millisekunden. Nach dem letzten Ton werden noch 100 ms stille Trägerwelle gehalten. So kommt selbst bei kurzem Antippen die letzte Ziffer vollständig beim anderen Gerät an.
+
+Beim normalen Sprechen stoppt die Aussendung sofort beim Loslassen der PTT.
+
+Kommt dieselbe Ziffer zweimal hintereinander, wird die zweite als CCIR-Wiederholton gesendet, wie die Norm es verlangt. Der Code auf dem Bildschirm ändert sich nicht.
+
+@@ 5-Ton Empfang
+5-Ton-Rufe auf einem analogen FM-Kanal werden automatisch decodiert. Der Code des Anrufers erscheint unter dem Kanalnamen und bleibt, bis der Kanal gewechselt, das Gerät ausgeschaltet wird oder ein neuer Ruf kommt.
+
+[NAMEN]
+Statt des Codes kann der Name angezeigt werden: 5T Ahmet statt 5T 12345. Speichere die Person als Kontakt im Gerät, mit Name und 5-Ton- oder DTMF-Code (z.B. 12345). Das Gleiche gilt für DTMF-Codes. Kontakte werden am Gerät angelegt (Menü > Kontakte > 5T Kontakte) oder in der DTMF-Liste der CPS; beides ist dieselbe Liste.
+
+[MENÜ 5T KONTAKTE]
+Menü > Kontakte > 5T Kontakte. Die Liste zeigt Name und Code jedes Kontakts.
+- "+ Neuer Kontakt" fügt einen hinzu; Grün auf einem Kontakt bearbeitet ihn.
+- Name: mit der Tastatur eingeben. Rot löscht das letzte Zeichen.
+- Code: Ziffern eingeben; * und # gehen auch. Für A-D blättert der Kanalknopf oder die Pfeile links/rechts das letzte Zeichen durch 0-9, A-D, *, #. Rot löscht das letzte Zeichen.
+- SPEICHERN speichert. Ein zweiter Kontakt mit gleichem Code wird abgelehnt.
+- LÖSCHEN (nur bei bestehendem Kontakt): die Löschfrage erscheint, beginnend bei NEIN.
+- Langer Druck auf Rot kehrt ohne Speichern zur Liste zurück.
+Bis zu 63 Kontakte sind möglich. Sie erscheinen auch in Kontakte > DTMF und können von dort als DTMF gesendet werden.
+- Zuerst wird der genaue Code gesucht.
+- Sonst zählt auch ein Kontaktcode mit 4 oder mehr Ziffern innerhalb der empfangenen Zeichen (z.B. 1234 in *1234#).
+- Ein Code ohne Kontakt wird als Zahl angezeigt.
+
+[ANRUF-LOG]
+Menü > Logs > Anruf-Log. Jeder 5-Ton-Ruf und jede empfangene DTMF-Folge wird mit Zeit und Frequenz gespeichert und bleibt nach dem Ausschalten erhalten. Der neueste oben; bis zu 32 Anrufe (ist es voll, wird der älteste überschrieben).
+- Eine Zeile zeigt Zeit, Typ (5T oder DT) und Name (bei Kontakt) oder Code.
+- Grün: der Anruf vollständig - Typ, Frequenz, Code, Name, Datum und Zeit. Hoch/Runter zum neueren und älteren Anruf.
+- # halten löscht das Log.
+Eine einzelne DTMF-Ziffer wird nicht geloggt (könnte aus Sprache stammen); eine DTMF-Folge nach 2 Sekunden Stille. War die Uhr nicht gestellt, zeigt die Zeit --:--.
+
+[AUTOMATISCHE ANTWORT]
+In Menü > Kanal die Zeile "5T Antw." mit dem Kanalknopf auf An stellen. Der Kanal braucht auch einen ANI-Code.
+
+Wenn dich jemand ruft, das Gerät:
+- wartet etwa 1,2 Sekunden,
+- sendet einmal seinen eigenen ANI-Code,
+- piept dreimal (damit du es hörst, wenn du weg bist).
+
+Damit sich zwei Geräte nicht endlos antworten, werden nur wenige Antworten in Folge gesendet. Echte, getrennte Rufe werden weiter beantwortet.
+
+@@ DTMF Empfang
+DTMF-Töne auf einem analogen FM-Kanal werden ebenfalls automatisch decodiert und erscheinen mit "DT" in der Zeile des 5-Ton-Codes, z.B.: DT 1234*#. Angezeigt wird, was zuletzt kam, 5-Ton oder DTMF.
+
+Ziffern werden beim Eintreffen angehängt. Eine Ziffer nach über 2 Sekunden Pause beginnt eine neue Folge. Es werden höchstens die letzten 16 Zeichen gezeigt. Der Code bleibt bis zum Kanalwechsel oder einer neuen Folge.
+
+[SCHNELLES DTMF]
+Manche Geräte senden ihre Kennung (PTT-ID, ANI) als sehr schnelles DTMF. Der ganze Code dauert unter einer halben Sekunde und klingt wie ein einzelnes "Piep". Dieser Decoder fängt auch die: immer ab 40 ms pro Ziffer, meist ab 30-40 ms.
+
+Sprache kann hin und wieder als DTMF-Ziffer gewertet werden, daher erscheint manchmal eine einzelne Ziffer.
+
+Ein "brrrt"-Geräusch ist kein DTMF, sondern ein Datenpaket (MDC-1200, FleetSync u.ä.). Dieser Decoder decodiert es nicht.
+
+Während DTMF läuft, warten die 5-Ton- und Morse-Decoder, damit DTMF keinen falschen 5-Ton-Code oder Morse hinterlässt.
+
+@@ RX Recorder
+Nimmt jede gehörte FM-Aussendung selbst auf, zum späteren Anhören. Aufnahmen bleiben nach dem Ausschalten erhalten.
+
+Öffnen: Menü > Logs > RX Recorder. Oberste Zeile ist "Aufnahme: An/Aus", Grün schaltet um. Startet ausgeschaltet.
+
+[WIE ES AUFNIMMT]
+- Die Aufnahme beginnt beim Öffnen des Squelch und endet beim Schließen; jede Aussendung ist eine Aufnahme.
+- Unter 1 Sekunde (ein auftastender Repeater) wird nicht aufgenommen.
+- Wird während einer Aussendung ein 5-Ton- oder DTMF-Code decodiert, zeigt die Aufnahme auch, wer sprach.
+- Bei eingeschaltetem Recorder zeigt ein rotes REC links vom Signalbalken auf Kanal- und VFO-Bildschirm, mit rotem Punkt während der Aufnahme. Es bleibt auch im invertierten (schwarzen) Modus rot.
+- Während der Aufnahme warten APRS- und Morse-Decoder; 5-Ton und DTMF laufen weiter.
+- Auf der APRS-Frequenz (144.800) und in DMR wird nicht aufgenommen.
+- Bei angeschlossenem USB-Computer wird nicht aufgenommen.
+
+[ORDNER]
+Aufnahmen werden nach Kanal in Ordner sortiert: einer je Kanal, mit dessen Namen, oder mit der Frequenz bei VFO-Aufnahme. Der Ordner mit der neuesten Aufnahme steht oben. Beispiel: "14:32 KATRAD (12)" - Zeit der neuesten Aufnahme, Ordner und Anzahl.
+- Hoch/Runter: zwischen Ordnern
+- Grün: Ordner öffnen. Beim Öffnen ist schon der neueste gewählt.
+- #: alle Aufnahmen des Ordners löschen (fragt vorher). In der obersten Zeile: alle Aufnahmen löschen (fragt vorher).
+- Rot: zurück
+
+[IN EINEM ORDNER]
+Die Aufnahmen dieses Kanals, neueste oben: Zeit, Dauer und wer sprach, falls ein Code gehört wurde. Beispiel: "14:32 12s 5T Ahmet".
+- Hoch/Runter: zwischen Aufnahmen
+- Grün: gewählte Aufnahme abspielen oder stoppen. Beim Öffnen ist die neueste gewählt.
+- #: gewählte Aufnahme löschen (sofort)
+- Rot: zurück zu den Ordnern
+
+Öffnet sich während des Hörens der Kanal (jemand spricht), stoppt die Wiedergabe: du hörst die Live-Aussendung, und sie wird ebenfalls aufgenommen.
+
+[KAPAZITÄT]
+Aufnahmen werden komprimiert in den oberen 2MB des externen Flash gespeichert: etwa 1 Stunde gesamt. Ist es voll, werden die ältesten überschrieben. Die Liste zeigt die letzten 96. Das Audio wird wie bei DMR komprimiert: sauber bei starkem Signal, kann bei schwachem, verrauschtem Signal roboterhaft klingen.
+
+[SICHERHEIT]
+Bei jedem Einschalten prüft das Gerät, dass der Flash 16MB hat und die DMR-ID-Datenbank nicht in den Aufnahmebereich reicht. Sonst bleibt die Aufnahme aus, die oberste Zeile nennt den Grund ("Flash falsch" oder "DMR ID DB zu gross"), und nichts wird gelöscht.
+
+@@ Tonsuche
+Findet heraus, mit welchem CTCSS- oder DCS-Ton eine Station sendet. Nützlich beim Einrichten eines Repeaters oder neuen Kanals.
+
+Öffnen: auf dem Kanal- oder VFO-Bildschirm, in FM, 0 kurz drücken. Erneut drücken stoppt die Suche.
+- Während der Suche zeigt der Fortschritt in der 5-Ton-Zeile, z.B. "Ton CTCSS 40%".
+- Zuerst die 50 CTCSS-Töne, dann die 83 DCS-Codes, dann die invertierten DCS.
+- Wird ein Ton gefunden, piept das Gerät und zeigt ihn, wie "Ton 88.5Hz" oder "Ton D023N".
+- Wird keiner gefunden, zeigt es "Kein Ton".
+
+Ein Ton kann nur gefunden werden, während die Station sendet. Hört sie auf, wartet die Suche ("Ton: kein Signal") und macht weiter, wenn sie zurückkommt. CTCSS in etwa 10 Sekunden, DCS in unter einer Minute.
+
+Die Station bleibt während der Suche hörbar. Die Toneinstellung des Kanals oder VFO ändert sich nicht; das Ergebnis wird nur angezeigt. Kanal- oder Frequenzwechsel löscht es; PTT stoppt die Suche.
+
+@@ Selektivruf
+Dient zum Senden des 5-Ton-Codes beliebiger Stationen, ohne den im Kanal gespeicherten Code zu ändern.
+
+Öffnen: 0 lang auf einem analogen Kanal.
+- Zifferntasten: die 5 Ziffern eingeben
+- Grün: die 5 Töne einmal senden. Erst mit allen 5 Ziffern wird gesendet; sonst ein Warnton.
+- Rot: letzte Ziffer löschen. Ist es leer, verlässt es den Bildschirm.
+
+Nach dem Senden bleibst du auf dem Bildschirm, um denselben Code erneut zu senden oder zu korrigieren.
+
+@@ Morse senden
+Öffnen: * kurz auf einem analogen Kanal.
+
+Nachricht mit der Tastatur eingeben (höchstens 20 Zeichen). Grün drücken, und die Nachricht wird als Morse gesendet (700-Hz-Ton). Nach dem Senden bleibst du auf dem Bildschirm, um erneut zu senden oder zu korrigieren.
+- Pfeil hoch/runter: Tempo, 5 bis 30 WPM, Start bei 12.
+- Rot kurz: letzten Buchstaben löschen. Ist es leer, verlassen.
+- Rot lang: alles löschen und verlassen.
+- *: zum Morse-Log (auch Menü > Logs > Morse Log).
+
+[MIT PTT EINGEBEN]
+Auf diesem Bildschirm arbeitet die PTT als Taste. Gibst du Morse mit der PTT, SENDET das Gerät NICHT; es decodiert deine Tastung und fügt sie als Buchstaben hinzu. Ist die Nachricht fertig, sende sie mit Grün.
+
+Die Tempoeinstellung gilt für gesendetes Morse und für den Übungsbildschirm.
+
+@@ Morse Empfang
+Auf einem analogen FM-Kanal gehörtes Morse (CW) wird automatisch decodiert; nichts muss eingeschaltet werden. Töne von 400 bis 900 Hz und verschiedene Tempi werden automatisch erkannt. Funktioniert auch im VFO.
+
+Bei einer neuen decodierten Nachricht erscheint ein rotes "CW" über dem Kanalnamen.
+
+[MORSE LOG]
+Öffnen: den Morse-Sende-Bildschirm mit * öffnen, dann * nochmal.
+- Pfeil hoch/runter: zwischen Einträgen
+- #: fragt, ob das ganze Log gelöscht werden soll. # nochmal bestätigt, Rot bricht ab.
+- *: zur Morse-Übung
+- Rot: zurück
+
+Unsinnige Ergebnisse, fast nur aus unerkannten Zeichen, werden nicht geloggt. Das Log bleibt auch nach dem Ausschalten erhalten.
+
+@@ Morse Übung
+Öffnen: * auf dem Morse-Log-Bildschirm drücken. Kurz: * > * > * auf dem Kanal.
+
+Auf diesem Bildschirm wird NICHTS GESENDET. Du hörst nur den Mithörton aus dem Lautsprecher. Die PTT dient als Taste.
+
+Zwei Modi, mit SK2 umschaltbar:
+- Frei: tasten, wie du willst, und als Buchstaben auf dem Bildschirm sehen.
+- Folgen: ein Zielwort mit der Tastatur eingeben. Darunter erscheinen seine Punkte und Striche. Mit der PTT tasten und sehen, wie viel richtig war.
+
+Tasten:
+- SK1 kurz: letzten Buchstaben des Ziels löschen (Folgen)
+- SK1 lang: Ziel löschen (Folgen)
+- Grün kurz: letzten getasteten Buchstaben löschen
+- Grün lang: Getastetes löschen und neu versuchen
+- Pfeil hoch/runter: Tempo (WPM)
+- Rot: verlassen
+
+@@ APRS Empfang
+Das Gerät decodiert automatisch die APRS-Pakete, die es auf 144.800 MHz auf einem analogen FM-Kanal hört. Auf dieser Frequenz wird das Energiesparen (Eco) automatisch abgeschaltet, um kurze Pakete nicht zu verpassen.
+
+Öffnen: Menü > Logs > APRS Log.
+
+Die letzten 16 Stationen werden gespeichert. Eine erneut gehörte Station ersetzt ihren alten Eintrag und rückt nach oben, so kann eine viel bakende Station die anderen nicht verdrängen. Nachrichten an dich werden so nie entfernt. Die betrachtete Station bleibt gewählt, während die Liste sich aktualisiert. Der Bildschirm hat zwei Ansichten.
+
+[LISTE]
+Was zuerst öffnet. Jede Zeile hat das Stationssymbol, das Rufzeichen, die Entfernung zu dir und einen kleinen Pfeil zu ihr. Die neueste oben. Eine Station ohne Position zeigt "--" als Entfernung; eine Nachricht an dich zeigt "Nachr".
+- Pfeil hoch/runter oder Kanalknopf: zwischen Stationen
+- Grün: gewählte Station öffnen (Karte)
+- Rot: zurück zu Logs
+
+[KARTE]
+Eine Station vollständig: großes Symbol, Rufzeichen, was es ist (Auto, Haus, Repeater...) und wie lange her gehört; darunter groß Entfernung und Richtung, rechts ein Kompass. Norden ist oben am Kompass, der Pfeil dreht zur Station - richte die Antenne dorthin. Unten die Koordinaten und der Kommentar der Station.
+Der Titel zeigt, welche Station und wie das Paket kam: "3/16 via TA8XX-1" heißt über diesen Digi gehört, "3/16 Direkt" direkt von der Station. Auch sichtbar, welcher Digi deine eigene Bake wiederholte.
+- Pfeil hoch/runter oder Kanalknopf: vorige/nächste Station
+- Rot: zurück zur Liste
+In beiden Ansichten:
+- *: eine Nachricht schreiben. Hat die gewählte Station dir geschrieben, ist die Adresse schon gesetzt, Antworten ist eine Taste.
+- #: Liste löschen
+
+[ENTFERNUNG UND RICHTUNG]
+Die Richtung ist die Kompasspeilung von dir zur Station: N, NO, O, SO, S, SW, W, NW; die Zahl in Grad (0 = Nord, 90 = Ost).
+- Deine Position: die Live-GPS-Position bei Fix, sonst die zuletzt gespeicherte. Hatte das Gerät nie eine Position, zeigt die Karte "Deine Position unbekannt".
+- Ein Paket auf 0,0 (eine Station ohne GPS-Fix) wird als "Keine Position" gezeigt, ohne Entfernung.
+- Unter 10 km auf 100 Meter genau, darüber in ganzen Kilometern.
+- Positionen im Mic-E-Format, das viele Kenwood- und Yaesu-Geräte nutzen, werden auch decodiert.
+
+[BUCHSTABEN MIT ZEICHEN]
+Ist das Gerät auf Russisch, können Buchstaben mit diakritischen Zeichen (türkische, spanische usw.) in fremden Kommentaren wie russische Buchstaben aussehen: in dem Modus zeigt der Zeichensatz an ihrer Stelle Kyrillisch. Lateinische Buchstaben und Ziffern erscheinen immer richtig.
+
+[TEST]
+SK2 decodiert ein festes Testpaket mit mehreren Rauschpegeln; das Ergebnis unten am Bildschirm. Dient zum Vergleich von Firmware-Änderungen, kein echtes Empfangsmaß. Ohne Pakete zeigt der Bildschirm "Signal %": über 90 ist gut.
+
+@@ APRS Nachricht
+Öffnen: * auf dem APRS-Log-Bildschirm drücken.
+
+Zwei Felder: An (das Rufzeichen der anderen Station, höchstens 9 Zeichen) und Nachricht (höchstens 60 Zeichen). Zwischen Feldern mit Pfeil hoch/runter.
+- Grün: Nachricht senden
+- SK2: deine Position zur Nachricht hinzufügen oder entfernen. Ohne GPS-Position ein Warnton.
+- Rot kurz: letztes Zeichen löschen. Ist das Feld leer, zum anderen Feld; sind beide leer, verlassen.
+- Rot lang: beide Felder löschen
+- * oder SK1: zum WhatsApp-Bildschirm
+
+Am Ende der Nachricht wird eine Folgenummer angehängt, damit die andere Station bestätigen kann.
+
+@@ WhatsApp
+Sendet eine WhatsApp-Nachricht an eine Telefonnummer über APRS. Weitergeleitet vom WTSAPP-Gateway im APRS-Netz. Dafür muss es in deiner Nähe eine Station geben, die APRS mit dem Internet verbindet (ein iGate).
+
+Öffnen: * oder SK1 auf dem APRS-Nachricht-Bildschirm.
+
+[NUMMER]
+Nur Ziffern. Die türkische Nummer als 05xx eingeben; das Gerät wandelt sie selbst ins internationale Format. Beispiel: 05551234567 sendet @905551234567. Mindestens 10 Ziffern nötig.
+
+Für ein anderes Land die Taste 1 zweimal bei leerer Nummer drücken: ein + erscheint. Dann Ländervorwahl und Nummer eingeben (Beispiel: +491701234567). Eine Nummer mit + wird so gesendet, ohne die türkische 90. Mindestens 7 Ziffern nötig.
+
+[NACHRICHT]
+Höchstens 50 Zeichen. Buchstaben durch wiederholtes Drücken.
+
+Tasten:
+- Pfeil hoch/runter: Feld wechseln
+- Grün: senden
+- Rot kurz: löschen; ist das Feld leer, zum anderen; sind beide leer, verlassen
+- Rot lang: alles löschen
+- *: zum E-Mail-Bildschirm
+
+Der Zähler unten zeigt, wie viele Nachrichten du gesendet hast.
+
+@@ E-Mail
+Sendet eine Nachricht an eine E-Mail-Adresse über APRS (EMAIL-2-Gateway). Wie bei WhatsApp wird ein iGate in der Nähe gebraucht.
+
+Öffnen: * auf dem WhatsApp-Bildschirm drücken.
+
+In beiden Feldern werden Buchstaben eingegeben. Sonderzeichen auf der Taste 1:
+- @: 1 fünfmal drücken
+- . (Punkt): 1 zweimal drücken
+- - (Bindestrich): 1 sechsmal drücken
+
+Wie lang die Nachricht sein darf, hängt von der Adresslänge ab, bis 50 Zeichen. Das "x/y Zei." am Bildschirm zeigt den Restplatz.
+
+Ist die Adresse unvollständig (kein @, oder kein Punkt nach dem @), wird nicht gesendet und ein Warnton ertönt.
+
+Tasten wie beim WhatsApp-Bildschirm: Hoch/Runter wechselt das Feld, Grün sendet, Rot löscht oder verlässt, Rot lang löscht alles.
+
+@@ APRS Bake
+Die Bake sendet deine Position in Abständen ins APRS-Netz. Einstellungen: Menü > Optionen > APRS Einstell.
+
+Die gesendete Position wird in dieser Reihenfolge gewählt: die feste Position aus der APRS-Einstellung (falls gesetzt), sonst der GPS-Fix. Ergibt das 0,0 (feste Position auf null, oder GPS noch ohne Fix), sendet das Gerät nicht 0,0: es sendet den aktuellen GPS-Fix, sonst die zuletzt gespeicherte Position (letzter GPS-Fix oder von Hand eingegeben). Das ist wichtig, weil aprs.fi 0,0 als ungültig behandelt und dich nicht auf der Karte zeigt. Hatte das Gerät nie eine Position, geht die Bake trotzdem mit 0,0 raus; hole einmal einen GPS-Fix oder gib eine feste Position ein, um auf der Karte zu erscheinen.
+
+Welche APRS-Einstellung die Bake nutzt, wird pro Kanal gewählt: Menü > Kanal > die APRS-Zeile.
+
+[APRS EINSTELLUNGEN]
+Menü > Funk-Setup > APRS Einstell. APRS-Einstellungen werden ohne CPS angelegt und geändert (bis zu 8). "+ Neue APRS Einst." ist oben; eine neue beginnt mit SSID 7, WIDE1-1, WIDE2-1 und dem Personensymbol.
+- Name: der Name der Einstellung (bis 8). Mit Grün bearbeiten.
+- SSID: 0-15 mit links/rechts. Die Zeile zeigt, wie es aussieht, z.B. TA8BMO-7.
+- Pfad 1 / Pfad 2: mit Grün bearbeiten, z.B. WIDE1-1. Pfad 2 darf leer sein; Pfad 1 ist nötig.
+- Symbol: mit links/rechts - Person, Auto, Haus, Motorrad, Fahrrad, LKW, Bus, Schiff, Flugzeug, Repeater, I-Gate u.a.
+- Kommentar: mit Grün bearbeiten, bis 23 Zeichen.
+- Pos: GPS oder feste Position mit links/rechts. Grün nimmt die aktuelle Position (letzter GPS-Fix) als feste. Mit 2 Nachkommastellen gezeigt, mit 4 gespeichert.
+- SPEICHERN: die Einstellung wird nur mit SPEICHERN geschrieben; Rot verlässt ohne Speichern. Danach nutzt die Bake sofort die neue Einstellung.
+- LÖSCHEN: am Ende des Formulars bei bestehender Einstellung; fragt ja/nein (beginnend bei nein). Kanäle, die sie nutzten, bleiben ohne APRS; die folgenden Einstellungen rücken einen Platz auf, und Kanäle behalten dieselbe Einstellung.
+Beim Textbearbeiten löscht Rot das letzte Zeichen und kehrt bei leerem Feld unverändert zurück. Pfade und Rufzeichen werden großgeschrieben.
+
+[RUFZEICHEN]
+Menü > Funk-Setup > Rufzeichen. Ändert das Rufzeichen des Geräts (Buchstaben und Ziffern, bis 8). APRS nutzt die ersten 6 Zeichen. Wirkt sofort.
+
+Für Nachrichten, WhatsApp und E-Mail wird keine Position gebraucht.
+
+@@ Fuchsjagd
+Ein Signalmesser, der hilft, einen versteckten Sender (den Fuchs) zu finden.
+
+Öffnen: * lang auf einem analogen Kanal.
+
+Auf dem Bildschirm: Frequenz, Live-Signalstärke (dBm und S-Stufen), T: der höchste gemessene Wert (Spitze), ein Pfeil für steigend/fallend und eine geschätzte Entfernung.
+
+[SO NUTZEN]
+Drehe eine Richtantenne langsam. Ohne solche Antenne das Gerät an die Brust halten und sich drehen; dein Körper blockt das Signal. Die Richtung, wo das Signal am stärksten ist, ist die Richtung zum Fuchs.
+
+[EINSTELLUNGEN]
+Eine Einstellung mit Pfeil hoch/runter wählen:
+- Frequenz: in kHz eingeben (145500 für 145.500 MHz), mit Grün übernehmen. 130 bis 470 MHz.
+- Leistung: die Sendeleistung des Fuchses in Watt eingeben, mit Grün übernehmen. Die Schätzung basiert darauf.
+- Ton: die Tonführung (Piepen) mit Grün ein- oder ausschalten.
+
+Weitere Tasten:
+- #: Spitze zurücksetzen
+- Rot: einen halb getippten Wert löschen; ist es leer, verlassen. Beim Verlassen kehrt die Kanalfrequenz zurück.
+
+Die Entfernung ist nur eine grobe Schätzung; Gelände und Hindernisse beeinflussen sie stark. Zwei Werte werden gezeigt: normales Gelände und freies Feld (Bestfall).
+
+@@ Spektrum-Scan
+# lang auf dem VFO-Bildschirm: der Spektrum-Scan beginnt und die Signale des Bandes werden als Grafik gezeigt.
+
+In dieser Firmware stoppt der Scan selbst bei Sprache:
+- Bei einem Signal stoppt er mindestens 15 Sekunden und lässt hören
+- Zeigt die Frequenz und, falls vorhanden, den CTCSS-Ton
+- Macht 3 Sekunden nach Audioende weiter (wartet höchstens 60 Sekunden)
+
+Während des Stopps * drücken, um diese Frequenz zu überspringen und weiterzumachen. Nützlich etwa, um den Repeater-Ausgang zu überspringen und die Frequenz der wirklich sprechenden Station zu finden.
+
+Die Liste übersprungener Frequenzen wird gelöscht, wenn du den Scan-Bildschirm verlässt und zurückkehrst.
+
+@@ Lautst./Anzeige
+[SEHR LEISE]
+In der unteren Hälfte des Lautstärkeknopfs wird das FM-Audio viel stärker als normal gedämpft. In einem stillen Raum nachts nur für dich hörbar. In der oberen Hälfte steigt die Lautstärke wie gewohnt. Ganz unten ist der Ton aus. Diese Einstellung gilt für analoges FM.
+
+[HELLIGKEIT]
+SK1 halten und den Lautstärkeknopf drehen: nicht die Lautstärke, sondern die Bildschirmhelligkeit ändert sich (etwa 3% pro Schritt). Beim Loslassen von SK1 bleibt die Lautstärke, wo sie war. Die Helligkeit wird gespeichert.
+
+@@ Uhr und GPS
+Die Uhr (HH:MM) erscheint auf Kanal- und VFO-Bildschirm.
+
+Ist GPS an, wird die Uhr selbst gestellt, sobald ein Satelliten-Fix da ist. Ein 2D-Fix genügt. Auch wenn das Gerät lange aus war oder der Akku entfernt und die Uhr zurückgesetzt wurde, wird sie korrigiert, sobald GPS einen Fix hat.
+
+Ist keine Zeitzone gesetzt, wird türkische Zeit (UTC+3) genutzt. Für eine andere Zone: Menü > Optionen > Anzeige > Zeitzone.
+
+Für einen GPS-Fix einige Minuten im Freien mit Himmelssicht warten. Drinnen gibt es evtl. keinen Fix.
+
+Der "Log"-Modus (Track) der GPS-Einstellung ist in dieser Firmware aus; sein Flash-Platz gehört dem RX Recorder.
+
+@@ Kanäle/Zonen
+Menü > Funk-Setup. Kanäle und Zonen werden angelegt, Zonen bearbeitet, und Rufzeichen, APRS-Einstellungen (siehe APRS Bake) und Einschaltpasswort werden am Gerät selbst gesetzt, ohne Computer oder CPS. Die Listen in diesem Menü beginnen oben.
+
+[NEUE ZONE]
+"Neue Zone" wählen und Grün drücken. Zonennamen mit der Tastatur eingeben (bis 16 Zeichen). Rot löscht das letzte Zeichen; bei leerem Namen geht Rot zurück. Grün legt die Zone an. Eine zweite Zone mit gleichem Namen wird abgelehnt. Die neue Zone wird zuerst für den nächsten neuen Kanal angeboten.
+
+[NEUER KANAL]
+"Neuer Kanal" wählen und Grün drücken. Zwischen Zeilen mit Pfeil hoch/runter. Grün geht zur nächsten Zeile:
+- Name: Kanalnamen eingeben (bis 16 Zeichen). Rot löscht das letzte Zeichen.
+- RX: Empfangsfrequenz als Ziffern. Beispiel: 14550000 für 145.500 MHz. Nach 8 Ziffern selbst übernommen. Weniger eingeben und Grün: der Rest ist 0 (145 + Grün = 145.00000). Rot löscht die letzte Ziffer. Eine nicht nutzbare Frequenz wird abgelehnt.
+- TX: die Sendefrequenz. Leer = gleich RX (Simplex). Für einen Repeater auch TX eingeben.
+- RX Ton / TX Ton: mit Kanalknopf oder Pfeilen links/rechts. Reihenfolge: Keiner, die CTCSS-Töne, die DCS-Codes, die invertierten DCS.
+- BB: 25 kHz oder 12,5 kHz mit links/rechts.
+- Zone: die Zone für den Kanal (links/rechts). Bei "All Channels" kommt der Kanal in keine Zone und erscheint nur in All Channels.
+- SPEICHERN: Grün speichert den Kanal.
+
+Der neue Kanal ist analog FM. Leistung und Squelch folgen den allgemeinen Einstellungen, 5-Ton und APRS sind aus. Alles später in Menü > Kanal änderbar. Langer Druck auf Rot schließt das Formular ohne Speichern. Ist die Zone voll (80 Kanäle), wird nicht gespeichert.
+
+[KANAL LÖSCHEN]
+Auf den zu löschenden Kanal gehen. In Menü > Kanal zur Zeile "Kanal löschen" am Listenende und Grün drücken.
+- Hat das Gerät ein Einschaltpasswort (in der CPS gesetzt), wird es zuerst gefragt. Ziffern eingeben und mit Grün bestätigen. Rot löscht die letzte Ziffer, ohne Eingabe geht es zurück.
+- Dann erscheint die Löschfrage, mit NEIN gewählt. Pfeile links/rechts oder Kanalknopf wechseln JA und NEIN; Grün bestätigt.
+- JA: der Kanal wird gelöscht und aus allen Zonen entfernt. Das Gerät kehrt zum Kanalbildschirm zurück, auf den nächsten Kanal.
+- NEIN oder Rot: nichts wird gelöscht.
+Im VFO-Modus und in einer leeren Zone gibt es nichts zu löschen, die Zeile tut nichts.
+
+Wichtig: Löschen ist nicht rückgängig. Sichere wichtige Kanäle am Computer mit der CPS.
+
+[ZONEN BEARBEITEN]
+Funk-Setup > Zonen bearb. Zuerst eine Zone wählen, dann:
+- Umbenennen: neuen Namen eingeben und mit Grün speichern. Zwei Zonen dürfen nicht gleich heißen.
+- Kanäle: alle Kanäle des Geräts sind gelistet. Die in der Zone beginnen mit [*]. Grün fügt den Kanal am Cursor der Zone hinzu oder entfernt ihn. Ein hinzugefügter Kanal kommt ans Zonenende. Nichts wird gelöscht - der Kanal verlässt nur die Zone. Eine Zone fasst bis 80 Kanäle.
+- Zone löschen: zuerst das Passwort, falls vorhanden, dann die Löschfrage (beginnend bei NEIN). Die Kanäle der Zone werden nicht gelöscht; sie bleiben in All Channels und anderen Zonen. War das Gerät in der gelöschten Zone, wechselt es zu All Channels.
+All Channels ist nicht bearbeitbar und nicht in der Liste.
+
+[EINSCHALTPASSWORT]
+Funk-Setup > Einschaltpasswort. Setzt, ändert oder entfernt das Passwort, das beim Einschalten gefragt wird.
+- Gibt es schon eines, wird es zuerst gefragt.
+- Dann das neue Passwort (bis 6 Ziffern) eingeben und Grün, nochmal eingeben und Grün. Stimmen beide, wird es gespeichert.
+- Grün zweimal ohne Ziffern entfernt das Passwort.
+Vergiss kein neues Passwort: das Gerät fragt es beim Einschalten. Dasselbe Passwort wird beim Löschen von Kanälen und Zonen gefragt.
+
+@@ Spiele
+Menü > Spiele. Mit Pfeil hoch/runter wählen und mit Grün starten, oder ein Spiel direkt mit den Tasten 1-5 öffnen. Rekorde bleiben dauerhaft.
+
+In jedem Spiel:
+- Grün: Start, weiter, nochmal spielen
+- *: Pause / weiter
+- Rot: fragt, ob verlassen (Grün ja, Rot nein)
+- Rot lang: sofort verlassen
+
+Spricht jemand auf dem Kanal während des Spiels, kommt das Audio aus dem Lautsprecher.
+
+[SNAKE]
+2/8/4/6: hoch, runter, links, rechts.
+
+[TETRIS]
+4/6: links/rechts, 2: drehen, 8 oder 0: ganz fallen. Der Kanalknopf bewegt das Teil auch. Beim Schließen geht das Spiel weiter, wo du warst.
+
+[BREAKOUT]
+Grün: Ball starten. 4/6 halten: Schläger bewegen. Der Kanalknopf gibt Feinsteuerung.
+
+[2048]
+2/8/4/6: Kacheln schieben. #: einen Zug zurück.
+
+[DINO]
+Grün oder 2: springen. 8 halten: ducken.
+
+@@ Firmware-Info
+Menü > Firmware-Info. Seiten mit Pfeil runter blättern:
+- Seite 1: Firmware-Version, Build-Datum und Prozessor
+- Seite 2: "Developed by TA8BMO - Special Edition" und die türkische Flagge
+- Seite 3: eine laufende Nachricht mit der Geschichte dieser Firmware, am Ende das Foto von TA8BMO
+
+Ist die Gerätesprache Deutsch, wird die Nachricht auf Deutsch gezeigt.
+
+@@ Probleme
+[APRS DECODIERT WENIG]
+Sieh den T%-Wert auf dem APRS-Log-Bildschirm. Unter 90 liegt es an der Signalqualität: bessere oder längere Antenne, oder ein offenerer Ort. Halte die Kanalbandbreite bei 12,5 kHz.
+
+[UHR FALSCH]
+Prüfe, dass GPS an ist und draußen einen Fix hat. Geht die Uhr um ganze Stunden falsch, prüfe die Zeitzone.
+
+[BAKENPOSITION FALSCH]
+Das Gerät hatte nie eine Position: hole einmal einen GPS-Fix oder gib eine feste Position in der APRS-Einstellung ein. Eine falsch eingegebene feste Position wird so gesendet. Siehe "APRS Bake".
+
+[FUNKTION GEHT NICHT]
+5-Ton, Morse und APRS gehen nur auf analogen FM-Kanälen; auf DMR-Kanälen nicht.
+
+[SICHERHEIT]
+Nicht senden (TX), solange das Programmierkabel angeschlossen ist.

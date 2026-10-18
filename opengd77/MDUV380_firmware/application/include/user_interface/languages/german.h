@@ -321,6 +321,11 @@ const stringsTable_t germanLanguage =
 .auto_lock				= "Auto Lock", // MaxLen 16 (with ':' + .off or 0.5..15 (.5 step) + 'min')
 .trackball				= "Trackball", // MaxLen 16 (with ':' + .on or .off)
 .dmr_force_dmo				= "DMO Zwang", // MaxLen 16 (with ':' + .n_a or .on or .off)
+.games					= "Spiele", // MaxLen 16
+.aprsLog				= "Logs", // MaxLen 16 - APRS, call and Morse logs
+.userManual				= "Handbuch", // MaxLen 16
+.channelZone			= "Funk-Setup", // MaxLen 16
+.fiveToneContacts		= "5T Kontakte"
 };
 /********************************************************************
  *
