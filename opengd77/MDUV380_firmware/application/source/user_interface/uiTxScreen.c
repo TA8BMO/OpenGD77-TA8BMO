@@ -2501,11 +2501,28 @@ static void aprsLogDrawList(int count)
 		snprintf(buf, sizeof(buf), "  %-9.9s %s", aprsDecodeGetFrom(entry), dist);
 		menuDisplayEntry(i, row, buf, 12, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
 
-		displayThemeApply(THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_BG);
-		aprsDrawIcon(DISPLAY_X_POS_MENU_TEXT_OFFSET, (y + 2), st.symbol, 1, focused);
-		if (st.state == APRS_POS_OK)
+		if (uiUtilityNewScreen())
 		{
-			aprsDrawArrow((DISPLAY_SIZE_X - 7), (y + 8), 5, st.degrees, focused);
+			// The colour menus: picture and arrow in the row's text colour - white
+			// on the blue bar, where the theme's background colour came out black -
+			// and the arrow pulled in so it stays inside the bar's rounded end.
+			uint16_t c = (focused ? uiUtilityScreenColour(0xFFFFFFU, 0xFFFFFFU) : uiUtilityScreenColour(0xC8D2E6U, 0x203050U));
+
+			displaySetForegroundAndBackgroundColours(c, c);
+			aprsDrawIcon(DISPLAY_X_POS_MENU_TEXT_OFFSET, (y + 2), st.symbol, 1, focused);
+			if (st.state == APRS_POS_OK)
+			{
+				aprsDrawArrow((DISPLAY_SIZE_X - 12), (y + 8), 5, st.degrees, focused);
+			}
+		}
+		else
+		{
+			displayThemeApply(THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_BG);
+			aprsDrawIcon(DISPLAY_X_POS_MENU_TEXT_OFFSET, (y + 2), st.symbol, 1, focused);
+			if (st.state == APRS_POS_OK)
+			{
+				aprsDrawArrow((DISPLAY_SIZE_X - 7), (y + 8), 5, st.degrees, focused);
+			}
 		}
 		displayThemeResetToDefault();
 	}
@@ -3161,8 +3178,17 @@ static void logDrawRecorder(void)
 			logRecFolderLabel(logRecKeyName[first], logRecKeyFreq[first], label, sizeof(label));
 
 			// "14:32 KATRAD (12)": the time of its newest recording in the item
-			// colour, the folder and how many it holds in the value colour.
-			snprintf(buf, sizeof(buf), "%s %s (%d)", time, label, logRecFolderCount[mNum - 1]);
+			// colour, the folder and how many it holds in the value colour. The
+			// name is cut short so the count always fits on the row's 18 characters:
+			// "KATRAD VHF (31)" ran off the right edge.
+			{
+				char count[8];
+				int room;
+
+				snprintf(count, sizeof(count), "(%d)", logRecFolderCount[mNum - 1]);
+				room = (18 - 6 - 1 - (int) strlen(count));
+				snprintf(buf, sizeof(buf), "%s %.*s %s", time, ((room > 0) ? room : 0), label, count);
+			}
 			menuDisplayEntry(i, mNum, buf, 6, THEME_ITEM_FG_MENU_ITEM, THEME_ITEM_FG_OPTIONS_VALUE, THEME_ITEM_BG);
 		}
 	}

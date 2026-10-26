@@ -470,14 +470,14 @@ static void vfoKHzText(char *buf, size_t len, uint32_t freq)
 // for the direction it is going: 145.500 > 146.500.
 static void vfoDrawScanLimits(const char *low, const char *high, uint32_t textDark, uint32_t textLight)
 {
-	uint16_t bg;
-	uint16_t fg;
+	uint16_t arrow;
 
 	uiChannelModeNsPrint(4, NS_INFO_Y, low, FONT_SIZE_2, TEXT_ALIGN_LEFT, textDark, textLight);
 	uiChannelModeNsPrint((DISPLAY_SIZE_X - 4 - (int16_t)(strlen(high) * 8)), NS_INFO_Y, high, FONT_SIZE_2, TEXT_ALIGN_LEFT, textDark, textLight);
 
-	displayGetForegroundAndBackgroundColours(&fg, &bg);
-	displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0xFFC857U, 0x8A5A00U), bg);
+	// Both colours the arrow's: the filled triangle is drawn in the background colour.
+	arrow = uiUtilityScreenColour(0xFFC857U, 0x8A5A00U);
+	displaySetForegroundAndBackgroundColours(arrow, arrow);
 	if (uiDataGlobal.Scan.direction > 0)
 	{
 		displayFillTriangle(76, (NS_INFO_Y), 84, (NS_INFO_Y + 4), 76, (NS_INFO_Y + 8), false);
@@ -641,8 +641,13 @@ static void drawNewVFOScreen(int txTimeSecs, bool blink)
 					buf, 0x2A2350U, 0xE6DCFAU, 0xC9A7FFU, 0x5A2A9AU);
 		}
 
-		// Which frequency the arrows change.
-		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0xFFC857U, 0x8A5A00U), pad);
+		// Which frequency the arrows change. Both colours set to the marker's:
+		// the filled triangle is drawn in the background colour.
+		{
+			uint16_t marker = uiUtilityScreenColour(0xFFC857U, 0x8A5A00U);
+
+			displaySetForegroundAndBackgroundColours(marker, marker);
+		}
 		if (txFocus)
 		{
 			displayFillTriangle(2, (NS_INFO_Y - 1), 6, (NS_INFO_Y + 3), 2, (NS_INFO_Y + 7), false);
