@@ -31,6 +31,7 @@
 #include "functions/ticks.h"
 #include <interfaces/clockManager.h>
 #include "usb/usb_com.h"
+#include "functions/voiceRecorder.h"
 
 
 #define LOW_SPEED_CLOCK_ECO_THRESHOLD 2
@@ -129,7 +130,11 @@ void rxPowerSavingTick(uiEvent_t *ev, bool hasSignal)
 	{
 		if (USB_DeviceIsResetting() || isCompressingAMBE || hasSignal || trxTransmissionEnabled || trxIsTransmitting ||
 				(menuSystemGetCurrentMenuNumber() == UI_TX_SCREEN) || (menuSystemGetCurrentMenuNumber() == UI_CPS) ||
-				(uiDataGlobal.Scan.active && uiDataGlobal.Scan.scanType == SCAN_TYPE_NORMAL_STEP) || ev->hasEvent)
+				(uiDataGlobal.Scan.active && uiDataGlobal.Scan.scanType == SCAN_TYPE_NORMAL_STEP) || ev->hasEvent ||
+				// A recording being played back goes out through the C6000, which eco
+				// powers down: after its wait long recordings broke up into noise and
+				// beeps until a key press (ev->hasEvent) woke everything up again.
+				voiceRecorderIsPlaying())
 		{
 			if (rxPowerSavingState != ECOPHASE_POWERSAVE_INACTIVE)
 			{
