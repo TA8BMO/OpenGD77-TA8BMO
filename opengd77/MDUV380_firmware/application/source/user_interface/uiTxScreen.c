@@ -2125,6 +2125,39 @@ static const char *aprsLogCompassPoint(int degrees)
 	return APRS_TR(pointsTR, pointsEN, pointsES, pointsRU, pointsDE)[((degrees + 22) / 45) % 8];
 }
 
+// For the DMR screens: "2450km KD" from a station's position (as DMR GPS
+// embedded data delivered it to the Last Heard list), measured from the same
+// place as the APRS log - a GPS fix, else the saved location. False, and
+// nothing written, when the position is unknown or 0,0 or this radio has none.
+bool uiAprsDistanceText(double lat, double lon, char *out, size_t len)
+{
+	const double toRad = 0.017453292519943295;
+	double ownLat;
+	double ownLon;
+	char km[12];
+
+	if (!((lat >= -90.0) && (lat <= 90.0) && (lon >= -180.0) && (lon <= 180.0)) || ((lat == 0.0) && (lon == 0.0)) ||
+			(aprsLogOwnPosition(&ownLat, &ownLon) == false))
+	{
+		return false;
+	}
+
+	double p1 = (ownLat * toRad);
+	double p2 = (lat * toRad);
+	double dl = ((lon - ownLon) * toRad);
+	double a = ((sin((p2 - p1) / 2.0) * sin((p2 - p1) / 2.0)) + (cos(p1) * cos(p2) * sin(dl / 2.0) * sin(dl / 2.0)));
+	double bearing = (atan2((sin(dl) * cos(p2)), ((cos(p1) * sin(p2)) - (sin(p1) * cos(p2) * cos(dl)))) / toRad);
+
+	if (bearing < 0.0)
+	{
+		bearing += 360.0;
+	}
+
+	aprsLogDistanceText(km, sizeof(km), (2.0 * 6371.0 * atan2(sqrt(a), sqrt(1.0 - a))), true);
+	snprintf(out, len, "%s %s", km, aprsLogCompassPoint(((int) (bearing + 0.5)) % 360));
+	return true;
+}
+
 // ---------------------------------------------------------------------------
 // Symbol pictures, 12x12. The common APRS symbols each get a little drawing;
 // anything else gets a diamond. A '#' is a lit pixel.

@@ -54,7 +54,7 @@ Espera un momento y la letra queda aceptada; luego pasa a la siguiente.
 @@ Pantalla canal
 En la pantalla de canal o VFO, en un canal FM analógico:
 - 0 corta: buscador de tonos (muestra el CTCSS/DCS de la estación)
-- 0 larga: pantalla de llamada selectiva de 5 tonos
+- 0 larga: pantalla de llamada selectiva de 5 tonos (en DMR: buscador DMR, lista de TG/TS/CC oídos, con distancia y rumbo de quien envía su posición; Verde pone el elegido en el canal)
 - * corta: pantalla de envío Morse
 - * larga: pantalla de caza del zorro
 - Mantener SK1 + girar el mando de volumen: brillo de pantalla
@@ -471,7 +471,8 @@ Verde o 2: saltar. Mantén 8: agacharse.
 Menú > Info Firmware. Pasa de página con la flecha Abajo:
 - Página 1: versión del firmware, fecha de compilación y procesador
 - Página 2: "Developed by TA8BMO - Special Edition" y la bandera turca
-- Página 3: un mensaje que se desplaza contando la historia de este firmware, que acaba con la foto de TA8BMO
+- Página 3: los desarrolladores de OpenGD77 (Roger VK3KYY, Daniel F1RMB y otros)
+- Página 4: un mensaje que se desplaza contando la historia de este firmware, que acaba con la foto de TA8BMO
 
 Con la radio en español, el mensaje se muestra en español.
 

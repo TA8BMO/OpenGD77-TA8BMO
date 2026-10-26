@@ -38,14 +38,19 @@ enum
 	FIRMWARE_INFO_BUILD_DETAILS = 0 /* then all credits pages */
 };
 
-// I took the OpenGD77 developer-names credits page out of this build, and its
-// text table and helpers with it. The copyright headers in the source files
-// stay exactly as they were - that is what the licence asks for.
+// Three credit pages: page 1 is my "Special Edition" page, page 2 the people who
+// wrote OpenGD77, which this firmware is built on, and page 3 the scrolling
+// message below. The copyright headers in the source files stay exactly as they
+// were - that is what the licence asks for.
+#define FIRMWARE_TEAM_PAGE 2
+#define FIRMWARE_MSG_PAGE  3
+static const int maxCreditsPages = 3; // the manual moved to its own menu (menuUserManual.c)
 
-// Two credit pages: page 1 is my "Special Edition" page, page 2 the scrolling
-// message below.
-#define FIRMWARE_MSG_PAGE 2
-static const int maxCreditsPages = 2; // the manual moved to its own menu (menuUserManual.c)
+// The OpenGD77 developers, as the stock firmware's credits page lists them.
+static const char * const openGD77Credits[] =
+{
+	"Roger VK3KYY", "Daniel F1RMB", "Kai DG4KLU", "Colin G4EML", "Alex DL4LEX", "Jason VK7ZJA (SK)"
+};
 
 // The heartfelt message, shown on page 2 as a slowly scrolling column (like film
 // credits). Two languages: Turkish when the radio's language is Turkish, English
@@ -487,7 +492,7 @@ static void displayCredits(bool playVP, uint32_t pageNumber)
 
 	if (pageNumber == FIRMWARE_MSG_PAGE)
 	{
-		// Page 2: my little message, rolling up like film credits, with my photo
+		// Page 3: my little message, rolling up like film credits, with my photo
 		// at the very end. No title bar here, so the text gets the whole screen
 		// and reads as one piece.
 		const char * const *lines = LANG5(heartfeltTR, heartfeltEN, heartfeltES, heartfeltRU, heartfeltDE);
@@ -534,6 +539,15 @@ static void displayCredits(bool playVP, uint32_t pageNumber)
 		displayPrintCentered(50, "Special Edition", FONT_SIZE_2);
 		// Turkish flag emblem just below the text.
 		drawTurkishFlag((DISPLAY_SIZE_X / 2), 82, 15);
+	}
+	else if (pageNumber == FIRMWARE_TEAM_PAGE)
+	{
+		// Page 2: the OpenGD77 team.
+		displayPrintCentered(18, "OpenGD77", FONT_SIZE_3);
+		for (int i = 0; i < (int) (sizeof(openGD77Credits) / sizeof(openGD77Credits[0])); i++)
+		{
+			displayPrintCentered((40 + (i * 12)), (char *) openGD77Credits[i], FONT_SIZE_2);
+		}
 	}
 
 	if ((maxCreditsPages > 1) && (pageNumber <= maxCreditsPages))

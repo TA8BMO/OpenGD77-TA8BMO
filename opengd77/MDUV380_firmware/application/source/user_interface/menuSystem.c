@@ -125,6 +125,7 @@ menuDataGlobal_t menuDataGlobal =
 				NULL,// APRS e-mail
 				NULL,// User manual
 				NULL,// New channel / zone, delete channel
+				NULL,// DMR finder
 		}
 };
 
@@ -201,6 +202,7 @@ static menuFunctionData_t menuFunctions[] =
 		{ menuAPRSEmail,            NULL, NULL, 0 },
 		{ menuUserManual,           NULL, NULL, 0 },
 		{ menuChannelZone,          NULL, NULL, 0 },
+		{ menuDMRFinder,            NULL, NULL, 0 },
 };
 
 // This table is indexed by the MENU_SCREENS enum, and nothing about a mismatch

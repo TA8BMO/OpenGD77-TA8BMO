@@ -54,7 +54,7 @@ Wait a moment and the letter is accepted, then go on to the next one.
 @@ Channel Screen
 On the channel or VFO screen, on an analog FM channel:
 - 0 short press: tone finder (shows the station's CTCSS/DCS)
-- 0 long press: 5-Tone selective call screen
+- 0 long press: 5-Tone selective call screen (on DMR: DMR finder, a list of the TG/TS/CC heard, with distance and direction for stations that send a position; Green puts the selected one on the channel)
 - * short press: Morse sending screen
 - * long press: fox hunt screen
 - Hold SK1 + turn the volume knob: screen brightness
@@ -471,7 +471,8 @@ Green or 2: jump. Hold 8: duck.
 Menu > Firmware info. Move between the pages with the Down arrow:
 - Page 1: firmware version, build date and processor
 - Page 2: "Developed by TA8BMO - Special Edition" and the Turkish flag
-- Page 3: a scrolling message telling the story of this firmware, ending with TA8BMO's photo
+- Page 3: the developers who wrote OpenGD77 (Roger VK3KYY, Daniel F1RMB and others)
+- Page 4: a scrolling message telling the story of this firmware, ending with TA8BMO's photo
 
 When the radio's language is English, the message is shown in English.
 

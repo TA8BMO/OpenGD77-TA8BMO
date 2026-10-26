@@ -922,8 +922,18 @@ void uiVFOModeUpdateScreen(int txTimeSecs)
 		case QSO_DISPLAY_CALLER_DATA:
 		case QSO_DISPLAY_CALLER_DATA_UPDATE:
 			uiDataGlobal.displayQSOStatePrev = QSO_DISPLAY_CALLER_DATA;
-			uiDataGlobal.isDisplayingQSOData = true;
+			uiDataGlobal.isDisplayingQSOData = true; // kept: SK2 then takes the caller's talkgroup
 			uiDataGlobal.displayChannelSettings = false;
+
+			// The colour screen stays up while a DMR call comes in; the caller is
+			// on its "Last:" line, as the Last Heard list has them.
+			if (uiChannelModeNewScreenActive())
+			{
+				drawNewVFOScreen(txTimeSecs, blink);
+				displayRender();
+				break;
+			}
+
 			uiUtilityRenderQSOData();
 			uiChannelModeDrawRSSIMeterStrip(); // no-op in DMR (analog-only guard)
 			uiChannelModeDrawRxDecodeMarkers();
@@ -1502,6 +1512,13 @@ static void handleEvent(uiEvent_t *ev)
 			{
 				// Long-press 0 (analog FM only): one-shot 5-Tone selective call screen.
 				menuSystemPushNewMenu(UI_SELECTIVE_CALL_5TONE);
+				return;
+			}
+			else if (KEYCHECK_LONGDOWN(ev->keys, KEY_0) && (KEYCHECK_LONGDOWN_REPEAT(ev->keys, KEY_0) == false)
+						&& (BUTTONCHECK_DOWN(ev, BUTTON_SK2) == 0) && (trxGetMode() == RADIO_MODE_DIGITAL) && (settingsUsbMode != USB_MODE_HOTSPOT))
+			{
+				// Long-press 0 on DMR: the DMR finder (talkgroups, timeslot and colour code heard).
+				menuSystemPushNewMenu(UI_DMR_FINDER);
 				return;
 			}
 			else if (KEYCHECK_SHORTUP(ev->keys, KEY_STAR))

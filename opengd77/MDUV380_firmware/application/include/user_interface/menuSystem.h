@@ -349,6 +349,7 @@ enum MENU_SCREENS
 	UI_APRS_EMAIL,
 	UI_USER_MANUAL,
 	UI_CHANNEL_ZONE, // after MENU_GAMES on purpose: PTT is blocked while it writes the codeplug
+	UI_DMR_FINDER,   // after MENU_GAMES on purpose: no TX while the DMR filters are off
 	NUM_MENU_ENTRIES
 };
 
@@ -484,10 +485,12 @@ menuStatus_t menuAPRSWhatsApp(uiEvent_t *event, bool isFirstRun);
 menuStatus_t menuAPRSEmail(uiEvent_t *event, bool isFirstRun);
 menuStatus_t menuUserManual(uiEvent_t *event, bool isFirstRun);
 menuStatus_t menuChannelZone(uiEvent_t *event, bool isFirstRun);
+menuStatus_t menuDMRFinder(uiEvent_t *event, bool isFirstRun); // uiChannelMode.c
 void menuChannelZoneStartDelete(int channelIndex); // opens the delete confirmation for this channel
 const char *menuChannelZoneDeleteLabel(void);     // "Kanali Sil" / "Delete Channel"
 menuStatus_t menuMorseTrain(uiEvent_t *event, bool isFirstRun);
 int16_t menuEntryY(int loopOffset); // y of a list row, as menuDisplayEntry() draws it
+bool uiAprsDistanceText(double lat, double lon, char *out, size_t len); // uiTxScreen.c: "2450km KD" from here to there
 void uiChannelModeDrawRSSIMeterStrip(void);
 void uiChannelModeDrawRxDecodeMarkers(void);
 
@@ -502,7 +505,8 @@ void uiChannelModeDrawRxDecodeMarkers(void);
 #define NS_CALLER_Y  107
 #define NS_FOOT_Y    119
 #define NS_DMR_TG_Y     76 // DMR: the talkgroup band, in place of the labels
-#define NS_DMR_METER_Y  98 // DMR: the S-meter (or the talk time), under it
+#define NS_DMR_LAST_Y   94 // DMR: the last station heard, under it
+#define NS_DMR_METER_Y 103 // DMR: the S-meter (or the talk time), under that
 bool uiChannelModeNewScreenActive(void);
 bool uiVFOModeNewScreenActive(void); // the VFO is in a state the colour screen draws
 void uiChannelModeNsPrint(int16_t x, int16_t y, const char *text, ucFont_t font, ucTextAlign_t align, uint32_t onDark, uint32_t onLight);

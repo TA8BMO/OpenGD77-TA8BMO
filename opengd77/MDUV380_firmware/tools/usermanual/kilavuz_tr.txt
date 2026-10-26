@@ -54,7 +54,7 @@ Biraz beklersen harf yerleşir ve sonraki harfe geçebilirsin.
 @@ Kanal Ekranı
 Kanal veya VFO ekranında, analog FM bir kanaldayken:
 - 0 kısa bas: ton bulucu (yayının CTCSS/DCS tonunu gösterir)
-- 0 uzun bas: 5-Ton seçmeli çağrı ekranı
+- 0 uzun bas: 5-Ton seçmeli çağrı ekranı (DMR kanalda: DMR bulucu, duyulan TG/TS/CC listesi, konum gönderenlerin mesafe ve yönüyle; Yeşil seçileni kanala uygular)
 - * kısa bas: Mors gönderme ekranı
 - * uzun bas: tilki avı ekranı
 - SK1 basılı tut + ses düğmesini çevir: ekran parlaklığı
@@ -471,7 +471,8 @@ Yeşil ya da 2: zıpla. 8'i basılı tut: eğil.
 Menü > Yazılım Bilgisi. Aşağı ok ile sayfalar arasında gezilir:
 - 1. sayfa: yazılım sürümü, derleme tarihi ve işlemci bilgisi
 - 2. sayfa: "Developed by TA8BMO - Special Edition" ve Türk bayrağı
-- 3. sayfa: bu yazılımın hikayesini anlatan kayan bir mesaj ve sonunda TA8BMO'nun fotoğrafı
+- 3. sayfa: OpenGD77'yi yazan geliştiriciler (Roger VK3KYY, Daniel F1RMB ve diğerleri)
+- 4. sayfa: bu yazılımın hikayesini anlatan kayan bir mesaj ve sonunda TA8BMO'nun fotoğrafı
 
 Telsizin dili İngilizce seçilirse mesaj İngilizce görünür.
 

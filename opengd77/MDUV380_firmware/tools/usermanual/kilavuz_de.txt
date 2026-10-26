@@ -54,7 +54,7 @@ Kurz warten, der Buchstabe wird übernommen, dann weiter zum nächsten.
 @@ Kanalbildschirm
 Auf dem Kanal- oder VFO-Bildschirm, auf einem analogen FM-Kanal:
 - 0 kurz: Tonsuche (zeigt CTCSS/DCS der Station)
-- 0 lang: 5-Ton-Selektivruf-Bildschirm
+- 0 lang: 5-Ton-Selektivruf-Bildschirm (bei DMR: DMR-Suche, Liste der gehörten TG/TS/CC, mit Entfernung und Richtung bei Stationen, die ihre Position senden; Grün setzt den gewählten auf den Kanal)
 - * kurz: Morse-Sende-Bildschirm
 - * lang: Fuchsjagd-Bildschirm
 - SK1 halten + Lautstärkeknopf drehen: Bildschirmhelligkeit
@@ -471,7 +471,8 @@ Grün oder 2: springen. 8 halten: ducken.
 Menü > Firmware-Info. Seiten mit Pfeil runter blättern:
 - Seite 1: Firmware-Version, Build-Datum und Prozessor
 - Seite 2: "Developed by TA8BMO - Special Edition" und die türkische Flagge
-- Seite 3: eine laufende Nachricht mit der Geschichte dieser Firmware, am Ende das Foto von TA8BMO
+- Seite 3: die Entwickler von OpenGD77 (Roger VK3KYY, Daniel F1RMB und andere)
+- Seite 4: eine laufende Nachricht mit der Geschichte dieser Firmware, am Ende das Foto von TA8BMO
 
 Ist die Gerätesprache Deutsch, wird die Nachricht auf Deutsch gezeigt.
 

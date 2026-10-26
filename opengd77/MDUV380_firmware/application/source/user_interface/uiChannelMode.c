@@ -743,11 +743,10 @@ void uiChannelModeLoadChannelData(bool useChannelDataInMemory, bool loadVoicePro
 // ---------------------------------------------------------------------------
 static bool nsActive(void)
 {
-	// FM and DMR. Not in hotspot mode, which has a screen of its own, and not
-	// while a DMR caller is being shown: that is still the classic caller screen,
-	// and the S-meter's live update must not draw over it.
-	if ((uiUtilityNewScreen() == false) || uiDataGlobal.displayChannelSettings || uiDataGlobal.isDisplayingQSOData ||
-			(settingsUsbMode == USB_MODE_HOTSPOT))
+	// FM and DMR, a DMR call coming in included: the caller goes on the "Last:"
+	// line rather than onto the classic caller screen. Not in hotspot mode, which
+	// has a screen of its own.
+	if ((uiUtilityNewScreen() == false) || uiDataGlobal.displayChannelSettings || (settingsUsbMode == USB_MODE_HOTSPOT))
 	{
 		return false;
 	}
@@ -1253,6 +1252,81 @@ void uiChannelModeNsFooter(void)
 	nsDrawFooter();
 }
 
+extern LinkItem_t *LinkHead; // uiUtilities.c: the Last Heard list, newest first
+
+// DMR: who was heard last, and how long ago - "Last: TA8BMO Arda   2m". While a
+// call is on, the classic caller screen shows the caller instead; this is what
+// is left on the channel screen afterwards.
+static void nsDrawLastHeard(void)
+{
+	char who[24];
+	char age[8];
+	const char *label = LANG5("Son:", "Last:", "\xDAlt:", "\xCF\xEE\xF1\xEB:", "Zul:");
+	int16_t whoX = (int16_t) (3 + ((strlen(label) + 1) * 6));
+	int maxChars;
+	uint32_t secs;
+
+	nsClear(NS_DMR_LAST_Y, 8);
+	nsPrint(3, NS_DMR_LAST_Y, label, FONT_SIZE_1, TEXT_ALIGN_LEFT, 0x9AA6BDU, 0x404858U);
+
+	if ((LinkHead == NULL) || (LinkHead->id == 0))
+	{
+		nsPrint(whoX, NS_DMR_LAST_Y, "-", FONT_SIZE_1, TEXT_ALIGN_LEFT, 0x9AA6BDU, 0x404858U);
+		return;
+	}
+
+	secs = ((ticksGetMillis() - LinkHead->time) / 1000U);
+	if (secs < 60)
+	{
+		snprintf(age, sizeof(age), "%us", (unsigned) secs);
+	}
+	else if (secs < 3600)
+	{
+		snprintf(age, sizeof(age), "%um", (unsigned) (secs / 60U));
+	}
+	else
+	{
+		snprintf(age, sizeof(age), "%uh", (unsigned) (secs / 3600U));
+	}
+
+	// The name the DMR ID database gives, else the talker alias, else the bare ID;
+	// cut short so the age always fits at the right. An ID the database does not
+	// know comes back as "ID:2864001" (dmrIDLookup) rather than empty, which showed
+	// the number even when the station was sending its callsign as talker alias.
+	// And, when the station sent its position (DMR GPS embedded data) and this
+	// radio knows its own, how far and which way: "EB5IRA  2450km KD  3m".
+	char dist[16];
+	bool haveDist = uiAprsDistanceText(LinkHead->locationLat, LinkHead->locationLon, dist, sizeof(dist));
+	int rightChars = (int) (strlen(age) + 1 + (haveDist ? (strlen(dist) + 1) : 0));
+
+	maxChars = (int) ((152 - whoX - (rightChars * 6)) / 6);
+	if (haveDist)
+	{
+		nsPrint((int16_t) (152 - (rightChars * 6) + 6), NS_DMR_LAST_Y, dist, FONT_SIZE_1, TEXT_ALIGN_LEFT, 0xFFB347U, 0xA05A00U);
+	}
+
+	if ((LinkHead->contact[0] != 0) && (strncmp(LinkHead->contact, "ID:", 3) != 0))
+	{
+		snprintf(who, sizeof(who), "%.*s", maxChars, LinkHead->contact);
+	}
+	else if (LinkHead->talkerAlias[0] != 0)
+	{
+		snprintf(who, sizeof(who), "%.*s", maxChars, LinkHead->talkerAlias);
+	}
+	else if (LinkHead->contact[0] != 0)
+	{
+		snprintf(who, sizeof(who), "%.*s", maxChars, LinkHead->contact);
+	}
+	else
+	{
+		snprintf(who, sizeof(who), "%u", (unsigned) LinkHead->id);
+	}
+
+	nsPrint(whoX, NS_DMR_LAST_Y, who, FONT_SIZE_1, TEXT_ALIGN_LEFT, 0x8FE3B0U, 0x207040U);
+	nsPrint(0, NS_DMR_LAST_Y, age, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0x9AA6BDU, 0x404858U);
+	displayThemeResetToDefault();
+}
+
 // The S-meter and, every two seconds, the footer: drawn and rendered on their
 // own between full redraws.
 static void nsLiveUpdate(uint32_t now)
@@ -1264,6 +1338,13 @@ static void nsLiveUpdate(uint32_t now)
 	{
 		nsDrawFooter();
 		displayRenderRows((NS_FOOT_Y / 8), (DISPLAY_SIZE_Y / 8));
+
+		if ((trxGetMode() == RADIO_MODE_DIGITAL) && (trxTransmissionEnabled == false))
+		{
+			nsDrawLastHeard(); // its age
+			displayRenderRows((NS_DMR_LAST_Y / 8), ((NS_DMR_LAST_Y + 8 + 7) / 8));
+		}
+
 		nsFooterTime = now;
 	}
 }
@@ -1295,17 +1376,18 @@ void uiChannelModeNsLowerHalf(int txTimeSecs)
 		}
 
 		displaySetForegroundAndBackgroundColours(pad, pad);
-		displayFillRoundRect(3, NS_DMR_TG_Y, (DISPLAY_SIZE_X - 6), 18, 3, false);
+		displayFillRoundRect(3, NS_DMR_TG_Y, (DISPLAY_SIZE_X - 6), 16, 3, false);
 		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour((overridden ? 0xFFC857U : 0x7FE3FFU), (overridden ? 0x7A4A00U : 0x0B4A70U)), pad);
-		displayPrintCore(0, (NS_DMR_TG_Y + 1), buf, FONT_SIZE_3, TEXT_ALIGN_CENTER, false);
+		displayPrintCore(0, NS_DMR_TG_Y, buf, FONT_SIZE_3, TEXT_ALIGN_CENTER, false);
 
 		if (trxTransmissionEnabled)
 		{
 			snprintf(buf, sizeof(buf), "%d:%02d", (txTimeSecs / 60), (txTimeSecs % 60));
-			nsPrint(0, (NS_DMR_METER_Y + 1), buf, FONT_SIZE_3, TEXT_ALIGN_CENTER, 0xFFFFFFU, 0x101010U);
+			nsPrint(0, (NS_DMR_LAST_Y + 4), buf, FONT_SIZE_3, TEXT_ALIGN_CENTER, 0xFFFFFFU, 0x101010U);
 		}
 		else
 		{
+			nsDrawLastHeard();
 			nsDrawMeter();
 		}
 	}
@@ -1416,6 +1498,343 @@ static void drawNewChannelScreen(int txTimeSecs)
 	}
 
 	uiChannelModeNsLowerHalf(txTimeSecs);
+}
+
+// ---------------------------------------------------------------------------
+// DMR Finder (TA8BMO): long-press 0 on a DMR channel or the VFO.
+//
+// The DMR counterpart of the tone finder. While it is open the radio hears
+// every talkgroup, private call, timeslot and colour code on the frequency -
+// the destination and CC/TS filters are switched off, and put back by the exit
+// callback however the screen is left - and lists what it heard: TG or PC,
+// timeslot, colour code, the last caller, how many calls and how long ago.
+// Green puts the selected talkgroup and timeslot on the channel, as the Last
+// Heard screen does. PTT is blocked here (it sits after MENU_GAMES).
+//
+// The filters are changed in the live settings without marking them for saving,
+// so nothing reaches the flash unless something else saves while it is open.
+// ---------------------------------------------------------------------------
+#define DF_MAX   12
+#define DF_ROWS  6
+#define DF_ROW_Y 26
+
+typedef struct
+{
+	uint32_t tgOrPc;  // with the PC flag in the top byte for a private call
+	uint32_t lastMs;
+	uint32_t src;     // the last caller's DMR ID, for their position in the Last Heard list
+	uint16_t count;
+	uint8_t  ts;      // 0 or 1
+	uint8_t  cc;
+	char     who[11]; // the last caller, as the DMR ID database names them
+} dfEntry_t;
+
+__attribute__((section(".ccmram"))) static dfEntry_t dfList[DF_MAX]; // CCM is not cleared at start: dfCount says what is valid
+static int dfCount = 0;
+static int dfSel = 0;
+static uint32_t dfActiveTg = 0;
+static uint32_t dfActiveSrc = 0;
+static uint32_t dfLastDraw = 0;
+static uint8_t dfSavedDestination = 0;
+static uint8_t dfSavedCcTs = 0;
+static bool dfFiltersOff = false;
+
+static void dfExitCallback(void *data)
+{
+	(void) data;
+
+	if (dfFiltersOff)
+	{
+		nonVolatileSettings.dmrDestinationFilter = dfSavedDestination;
+		nonVolatileSettings.dmrCcTsFilter = dfSavedCcTs;
+		trxSetDMRColourCode(currentChannelData->txColor); // the CC probe may have moved it
+		dfFiltersOff = false;
+	}
+}
+
+// Most recently heard first.
+static void dfOrder(int order[DF_MAX])
+{
+	for (int i = 0; i < dfCount; i++)
+	{
+		order[i] = i;
+	}
+
+	for (int i = 1; i < dfCount; i++)
+	{
+		int v = order[i];
+		int j = (i - 1);
+
+		while ((j >= 0) && (dfList[order[j]].lastMs < dfList[v].lastMs))
+		{
+			order[j + 1] = order[j];
+			j--;
+		}
+		order[j + 1] = v;
+	}
+}
+
+// Notes the call being heard, if there is one. True when a new call started.
+static bool dfCollect(uint32_t now)
+{
+	uint32_t tg = HRC6000GetReceivedTgOrPcId();
+	uint32_t src = HRC6000GetReceivedSrcId();
+	dfEntry_t *e = NULL;
+	bool newCall;
+	uint8_t ts;
+
+	if ((tg == 0) || (src == 0) || trxTransmissionEnabled)
+	{
+		dfActiveTg = 0;
+		dfActiveSrc = 0;
+		return false;
+	}
+
+	ts = (uint8_t) ((dmrMonitorCapturedTS >= 0) ? dmrMonitorCapturedTS : trxGetDMRTimeSlot());
+
+	for (int i = 0; i < dfCount; i++)
+	{
+		if ((dfList[i].tgOrPc == tg) && (dfList[i].ts == ts))
+		{
+			e = &dfList[i];
+			break;
+		}
+	}
+
+	if (e == NULL)
+	{
+		if (dfCount < DF_MAX)
+		{
+			e = &dfList[dfCount++];
+		}
+		else
+		{
+			e = &dfList[0]; // full: the one heard longest ago makes room
+			for (int i = 1; i < DF_MAX; i++)
+			{
+				if (dfList[i].lastMs < e->lastMs)
+				{
+					e = &dfList[i];
+				}
+			}
+		}
+		memset(e, 0, sizeof(*e));
+		e->tgOrPc = tg;
+		e->ts = ts;
+	}
+
+	newCall = ((tg != dfActiveTg) || (src != dfActiveSrc));
+	if (newCall)
+	{
+		e->count++;
+	}
+
+	// Looked up all through the call: the talker alias only arrives a moment
+	// after the call starts. A name from the DMR ID database first, else the
+	// talker alias, else the ID ("ID:..." is the database saying it does not know).
+	{
+		LinkItem_t *item = lastHeardFindInList(src);
+
+		if ((item != NULL) && (item->contact[0] != 0) && (strncmp(item->contact, "ID:", 3) != 0))
+		{
+			snprintf(e->who, sizeof(e->who), "%s", item->contact);
+		}
+		else if ((item != NULL) && (item->talkerAlias[0] != 0))
+		{
+			snprintf(e->who, sizeof(e->who), "%s", item->talkerAlias);
+		}
+		else
+		{
+			snprintf(e->who, sizeof(e->who), "%u", (unsigned) src);
+		}
+	}
+
+	e->lastMs = now;
+	e->src = src;
+	e->cc = trxGetDMRColourCode();
+	dfActiveTg = tg;
+	dfActiveSrc = src;
+
+	return newCall;
+}
+
+static void dfDraw(void)
+{
+	char buf[24];
+	int order[DF_MAX];
+	int top = ((dfSel < DF_ROWS) ? 0 : ((dfSel - DF_ROWS) + 1));
+	uint32_t now = ticksGetMillis();
+
+	dfOrder(order);
+	displayClearBuf();
+	menuDisplayTitle(LANG5("DMR BULUCU", "DMR FINDER", "BUSCADOR DMR", "\xCF\xCE\xC8\xD1\xCA DMR", "DMR SUCHE"));
+
+	// What the radio hears right now.
+	if (dmrMonitorCapturedTS >= 0)
+	{
+		snprintf(buf, sizeof(buf), "CC%u  TS%d  %ddBm", (unsigned) trxGetDMRColourCode(), (dmrMonitorCapturedTS + 1), trxGetRSSIdBm(RADIO_DEVICE_PRIMARY));
+	}
+	else
+	{
+		snprintf(buf, sizeof(buf), "CC%u  TS-  %ddBm", (unsigned) trxGetDMRColourCode(), trxGetRSSIdBm(RADIO_DEVICE_PRIMARY));
+	}
+	nsPrint(0, 16, buf, FONT_SIZE_1, TEXT_ALIGN_CENTER, 0x7FD0FFU, 0x0B4A88U);
+
+	if (dfCount == 0)
+	{
+		nsPrint(0, 56, LANG5("Dinleniyor...", "Listening...", "Escuchando...", "\xD1\xEB\xF3\xF8\xE0\xFE...", "H\xF6re..."), FONT_SIZE_3, TEXT_ALIGN_CENTER, 0xC8D2E6U, 0x203050U);
+		nsPrint(0, 80, LANG5("Duyulan TG'ler burada", "Heard TGs appear here", "Aqu\xED salen los TG", "\xC7\xE4\xE5\xF1\xFC \xE1\xF3\xE4\xF3\xF2 TG", "Geh\xF6rte TGs hier"), FONT_SIZE_1, TEXT_ALIGN_CENTER, 0x9AA6BDU, 0x404858U);
+	}
+
+	for (int r = 0; r < DF_ROWS; r++)
+	{
+		int k = (top + r);
+		const dfEntry_t *e;
+		int16_t y = (int16_t) (DF_ROW_Y + (r * 16));
+		bool focused;
+		uint16_t bg;
+		uint32_t secs;
+
+		if (k >= dfCount)
+		{
+			break;
+		}
+
+		e = &dfList[order[k]];
+		focused = (k == dfSel);
+		bg = nsThemeBg();
+
+		if (focused)
+		{
+			bg = uiUtilityScreenColour(0x1F4F8FU, 0x1F5FC0U);
+			displaySetForegroundAndBackgroundColours(bg, bg);
+			displayFillRoundRect(3, y, 151, 16, 3, false);
+			displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0x4FD8FFU, 0x0B2A60U), bg);
+			displayFillRect(3, y, 3, 16, false);
+		}
+
+		// TG 91 / PC 2864001, and its timeslot and colour code.
+		snprintf(buf, sizeof(buf), "%s %u", (((e->tgOrPc >> 24) == PC_CALL_FLAG) ? "PC" : "TG"), (unsigned) (e->tgOrPc & 0x00FFFFFFU));
+		displaySetForegroundAndBackgroundColours((focused ? uiUtilityScreenColour(0xFFFFFFU, 0xFFFFFFU) : uiUtilityScreenColour(0x7FE3FFU, 0x0B4A70U)), bg);
+		displayPrintCore(8, y, buf, FONT_SIZE_2, TEXT_ALIGN_LEFT, false);
+
+		snprintf(buf, sizeof(buf), "TS%u CC%u", (unsigned) (e->ts + 1), (unsigned) e->cc);
+		displaySetForegroundAndBackgroundColours((focused ? uiUtilityScreenColour(0xFFD84AU, 0xFFE38AU) : uiUtilityScreenColour(0xFFB347U, 0xA05A00U)), bg);
+		displayPrintCore((int16_t) (152 - (strlen(buf) * 6)), y, buf, FONT_SIZE_1, TEXT_ALIGN_LEFT, false);
+
+		// The last caller - and how far and which way, when they sent a position -
+		// then how many calls and how long ago.
+		{
+			LinkItem_t *item = lastHeardFindInList(e->src);
+			char dist[16];
+			char who[12];
+			bool haveDist = ((item != NULL) && uiAprsDistanceText(item->locationLat, item->locationLon, dist, sizeof(dist)));
+
+			secs = ((now - e->lastMs) / 1000U);
+			if (secs < 60)
+			{
+				snprintf(buf, sizeof(buf), "%ux %us", (unsigned) e->count, (unsigned) secs);
+			}
+			else
+			{
+				snprintf(buf, sizeof(buf), "%ux %um", (unsigned) e->count, (unsigned) (secs / 60U));
+			}
+
+			// The name gets what is left of the line's 24 characters.
+			snprintf(who, sizeof(who), "%.*s", (24 - (int) strlen(buf) - 1 - (haveDist ? ((int) strlen(dist) + 1) : 0)), e->who);
+			displaySetForegroundAndBackgroundColours((focused ? uiUtilityScreenColour(0xFFFFFFU, 0xFFFFFFU) : uiUtilityScreenColour(0xC8D2E6U, 0x203050U)), bg);
+			displayPrintCore(8, (int16_t) (y + 8), who, FONT_SIZE_1, TEXT_ALIGN_LEFT, false);
+
+			if (haveDist)
+			{
+				displaySetForegroundAndBackgroundColours((focused ? uiUtilityScreenColour(0xFFD84AU, 0xFFE38AU) : uiUtilityScreenColour(0xFFB347U, 0xA05A00U)), bg);
+				displayPrintCore((int16_t) (152 - ((strlen(buf) + 1 + strlen(dist)) * 6)), (int16_t) (y + 8), dist, FONT_SIZE_1, TEXT_ALIGN_LEFT, false);
+			}
+		}
+		displaySetForegroundAndBackgroundColours((focused ? uiUtilityScreenColour(0xFFFFFFU, 0xFFFFFFU) : uiUtilityScreenColour(0x9AA6BDU, 0x404858U)), bg);
+		displayPrintCore((int16_t) (152 - (strlen(buf) * 6)), (int16_t) (y + 8), buf, FONT_SIZE_1, TEXT_ALIGN_LEFT, false);
+	}
+
+	displayThemeResetToDefault();
+	displayRender();
+}
+
+menuStatus_t menuDMRFinder(uiEvent_t *ev, bool isFirstRun)
+{
+	bool redraw = false;
+
+	if (isFirstRun)
+	{
+		if (dfFiltersOff == false)
+		{
+			dfSavedDestination = nonVolatileSettings.dmrDestinationFilter;
+			dfSavedCcTs = nonVolatileSettings.dmrCcTsFilter;
+			nonVolatileSettings.dmrDestinationFilter = DMR_DESTINATION_FILTER_NONE;
+			nonVolatileSettings.dmrCcTsFilter = DMR_CCTS_FILTER_NONE;
+			dfFiltersOff = true;
+		}
+
+		dfCount = 0;
+		dfSel = 0;
+		dfActiveTg = 0;
+		dfActiveSrc = 0;
+		menuDataGlobal.numItems = 0;
+		menuSystemRegisterExitCallback(dfExitCallback, NULL);
+
+		dfDraw();
+		dfLastDraw = ticksGetMillis();
+		return MENU_STATUS_SUCCESS;
+	}
+
+	redraw = dfCollect(ev->time);
+
+	if (ev->hasEvent && (ev->events & KEY_EVENT))
+	{
+		if (KEYCHECK_SHORTUP(ev->keys, KEY_RED))
+		{
+			menuSystemPopPreviousMenu();
+			return MENU_STATUS_SUCCESS;
+		}
+		else if ((KEYCHECK_SHORTUP(ev->keys, KEY_DOWN) || KEYCHECK_SHORTUP(ev->keys, KEY_RIGHT)) && (dfCount > 0))
+		{
+			dfSel = ((dfSel + 1) % dfCount);
+			redraw = true;
+		}
+		else if ((KEYCHECK_SHORTUP(ev->keys, KEY_UP) || KEYCHECK_SHORTUP(ev->keys, KEY_LEFT)) && (dfCount > 0))
+		{
+			dfSel = ((dfSel == 0) ? (dfCount - 1) : (dfSel - 1));
+			redraw = true;
+		}
+		else if (KEYCHECK_SHORTUP(ev->keys, KEY_GREEN) && (dfCount > 0))
+		{
+			// The talkgroup (or private call) and timeslot onto the channel, as Last Heard does.
+			int order[DF_MAX];
+			const dfEntry_t *e;
+
+			dfOrder(order);
+			e = &dfList[order[dfSel]];
+
+			setOverrideTGorPC((e->tgOrPc & 0x00FFFFFFU), ((e->tgOrPc >> 24) == PC_CALL_FLAG));
+			if (e->ts != trxGetDMRTimeSlot())
+			{
+				trxSetDMRTimeSlot(e->ts, true);
+				tsSetManualOverride(((menuSystemGetRootMenuNumber() == UI_CHANNEL_MODE) ? CHANNEL_CHANNEL : (CHANNEL_VFO_A + nonVolatileSettings.currentVFONumber)), (e->ts + 1));
+			}
+
+			announceItem(PROMPT_SEQUENCE_CONTACT_TG_OR_PC, PROMPT_THRESHOLD_3);
+			menuSystemPopAllAndDisplayRootMenu();
+			return MENU_STATUS_SUCCESS;
+		}
+	}
+
+	// Once a second as well, for the ages and the live line.
+	if (redraw || ((ev->time - dfLastDraw) > 1000))
+	{
+		dfDraw();
+		dfLastDraw = ev->time;
+	}
+
+	return MENU_STATUS_SUCCESS;
 }
 
 void uiChannelModeUpdateScreen(int txTimeSecs)
@@ -1583,8 +2002,18 @@ void uiChannelModeUpdateScreen(int txTimeSecs)
 		case QSO_DISPLAY_CALLER_DATA:
 		case QSO_DISPLAY_CALLER_DATA_UPDATE:
 			uiDataGlobal.displayQSOStatePrev = QSO_DISPLAY_CALLER_DATA;
-			uiDataGlobal.isDisplayingQSOData = true;
+			uiDataGlobal.isDisplayingQSOData = true; // kept: SK2 then takes the caller's talkgroup
 			uiDataGlobal.displayChannelSettings = false;
+
+			// The colour screen stays up while a DMR call comes in; the caller is
+			// on its "Last:" line, as the Last Heard list has them.
+			if (nsActive())
+			{
+				drawNewChannelScreen(0);
+				displayRender();
+				break;
+			}
+
 			uiUtilityRenderQSOData();
 			if (!trxTransmissionEnabled)
 			{
@@ -1873,6 +2302,13 @@ static void handleEvent(uiEvent_t *ev)
 		{
 			// Long-press 0 (analog FM only): one-shot 5-Tone selective call screen.
 			menuSystemPushNewMenu(UI_SELECTIVE_CALL_5TONE);
+			return;
+		}
+		else if (KEYCHECK_LONGDOWN(ev->keys, KEY_0) && (KEYCHECK_LONGDOWN_REPEAT(ev->keys, KEY_0) == false)
+					&& (BUTTONCHECK_DOWN(ev, BUTTON_SK2) == 0) && (trxGetMode() == RADIO_MODE_DIGITAL) && (settingsUsbMode != USB_MODE_HOTSPOT))
+		{
+			// Long-press 0 on DMR: the DMR finder (talkgroups, timeslot and colour code heard).
+			menuSystemPushNewMenu(UI_DMR_FINDER);
 			return;
 		}
 		else if (KEYCHECK_LONGDOWN(ev->keys, KEY_RED) && (KEYCHECK_LONGDOWN_REPEAT(ev->keys, KEY_RED) == false) && BUTTONCHECK_DOWN(ev, BUTTON_SK1))
