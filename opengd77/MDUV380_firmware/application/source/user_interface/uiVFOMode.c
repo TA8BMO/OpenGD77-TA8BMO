@@ -439,6 +439,223 @@ menuStatus_t uiVFOMode(uiEvent_t *ev, bool isFirstRun)
 	return menuVFOExitStatus;
 }
 
+// The colour screen (TA8BMO) draws the VFO in its normal state and in the range
+// scan (set up or running): dual watch, sweep and tone scan keep their classic
+// screens.
+bool uiVFOModeNewScreenActive(void)
+{
+	if (uiDataGlobal.Scan.toneActive)
+	{
+		return false;
+	}
+
+	switch (screenOperationMode[nonVolatileSettings.currentVFONumber])
+	{
+		case VFO_SCREEN_OPERATION_NORMAL:
+			return (uiDataGlobal.Scan.active == false);
+		case VFO_SCREEN_OPERATION_SCAN:
+			return true;
+		default:
+			return false;
+	}
+}
+
+// "145.500" from 10Hz units.
+static void vfoKHzText(char *buf, size_t len, uint32_t freq)
+{
+	snprintf(buf, len, "%u.%03u", (unsigned) (freq / 100000U), (unsigned) ((freq / 100U) % 1000U));
+}
+
+// The range scan's limits, low on the left and high on the right, with an arrow
+// for the direction it is going: 145.500 > 146.500.
+static void vfoDrawScanLimits(const char *low, const char *high, uint32_t textDark, uint32_t textLight)
+{
+	uint16_t bg;
+	uint16_t fg;
+
+	uiChannelModeNsPrint(4, NS_INFO_Y, low, FONT_SIZE_2, TEXT_ALIGN_LEFT, textDark, textLight);
+	uiChannelModeNsPrint((DISPLAY_SIZE_X - 4 - (int16_t)(strlen(high) * 8)), NS_INFO_Y, high, FONT_SIZE_2, TEXT_ALIGN_LEFT, textDark, textLight);
+
+	displayGetForegroundAndBackgroundColours(&fg, &bg);
+	displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0xFFC857U, 0x8A5A00U), bg);
+	if (uiDataGlobal.Scan.direction > 0)
+	{
+		displayFillTriangle(76, (NS_INFO_Y), 84, (NS_INFO_Y + 4), 76, (NS_INFO_Y + 8), false);
+	}
+	else
+	{
+		displayFillTriangle(84, (NS_INFO_Y), 76, (NS_INFO_Y + 4), 84, (NS_INFO_Y + 8), false);
+	}
+}
+
+// "12.5k", "6.25k", "25k" from a step in 10Hz units.
+static void vfoStepText(char *buf, size_t len, int step)
+{
+	if ((step % 100) == 0)
+	{
+		snprintf(buf, len, "%dk", (step / 100));
+	}
+	else if ((step % 10) == 0)
+	{
+		snprintf(buf, len, "%d.%dk", (step / 100), ((step % 100) / 10));
+	}
+	else
+	{
+		snprintf(buf, len, "%d.%02dk", (step / 100), (step % 100));
+	}
+}
+
+// The top half of the VFO on the colour screen; uiChannelModeNsLowerHalf() does
+// the rest. A small marker shows which frequency the arrows change, and typed
+// digits are shown big with a blinking cursor under the next one.
+static void drawNewVFOScreen(int txTimeSecs, bool blink)
+{
+	char buf[24];
+	char step[8];
+	uint32_t rxFreq = (uiDataGlobal.reverseRepeaterVFO ? currentChannelData->txFreq : currentChannelData->rxFreq);
+	uint32_t txFreq = (uiDataGlobal.reverseRepeaterVFO ? currentChannelData->rxFreq : currentChannelData->txFreq);
+	bool vfoB = (nonVolatileSettings.currentVFONumber == CHANNEL_VFO_B);
+	bool txFocus = (selectedFreq == VFO_SELECTED_FREQUENCY_INPUT_TX);
+	bool entering = (uiDataGlobal.FreqEnter.index != 0);
+	bool scanMode = (screenOperationMode[nonVolatileSettings.currentVFONumber] == VFO_SCREEN_OPERATION_SCAN);
+	uint16_t pad;
+
+	// VFO A in blue, VFO B in purple.
+	pad = uiUtilityScreenColour((vfoB ? 0x3A2466U : 0x123A66U), (vfoB ? 0xE6DCFAU : 0xD6E6F8U));
+	displaySetForegroundAndBackgroundColours(pad, pad);
+	displayFillRoundRect(3, NS_NAME_Y, 46, 12, 2, false);
+	displaySetForegroundAndBackgroundColours(uiUtilityScreenColour((vfoB ? 0xD2C3FFU : 0x9FD0FFU), (vfoB ? 0x4A2A8AU : 0x0B4A88U)), pad);
+	displayPrintCore(6, (NS_NAME_Y + 2), (vfoB ? "VFO B" : "VFO A"), FONT_SIZE_2, TEXT_ALIGN_LEFT, false);
+
+	if (entering && scanMode)
+	{
+		// The scan limits being typed: six digits each, low then high, on the
+		// limits line under the frequency in use.
+		char low[8];
+		char high[8];
+		int idx = uiDataGlobal.FreqEnter.index;
+
+		uiChannelModeNsPrint(0, (NS_NAME_Y + 4), LANG5("SINIR G\x94R\x94\x95", "LIMITS", "L\xCDMITES", "\xC3\xD0\xC0\xCD\xC8\xD6\xDB", "GRENZEN"),
+				FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0xFFC857U, 0x8A5A00U);
+		uiChannelModeNsFrequency(currentChannelData->rxFreq, 0x4FD8FFU, 0x0068A0U);
+
+		snprintf(low, sizeof(low), "%c%c%c.%c%c%c", uiDataGlobal.FreqEnter.digits[0], uiDataGlobal.FreqEnter.digits[1], uiDataGlobal.FreqEnter.digits[2],
+				uiDataGlobal.FreqEnter.digits[3], uiDataGlobal.FreqEnter.digits[4], uiDataGlobal.FreqEnter.digits[5]);
+		snprintf(high, sizeof(high), "%c%c%c.%c%c%c", uiDataGlobal.FreqEnter.digits[6], uiDataGlobal.FreqEnter.digits[7], uiDataGlobal.FreqEnter.digits[8],
+				uiDataGlobal.FreqEnter.digits[9], uiDataGlobal.FreqEnter.digits[10], uiDataGlobal.FreqEnter.digits[11]);
+		vfoDrawScanLimits(low, high, 0xFFFFFFU, 0x101010U);
+
+		if ((idx < FREQ_ENTER_DIGITS_MAX) && blink)
+		{
+			int part = ((idx < 6) ? idx : (idx - 6));
+			int16_t x0 = ((idx < 6) ? 4 : (DISPLAY_SIZE_X - 4 - 48 - 8));
+
+			displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0xFFC857U, 0x8A5A00U), pad);
+			displayFillRect((x0 + ((part + ((part > 2) ? 1 : 0)) * 8)), (NS_INFO_Y + 9), 7, 2, false);
+		}
+	}
+	else if (entering)
+	{
+		snprintf(buf, sizeof(buf), "%s %s", (txFocus ? "TX" : "RX"), LANG5("G\x94R\x94\x95", "ENTRY", "ENTRADA", "\xC2\xC2\xCE\xC4", "EINGABE"));
+		uiChannelModeNsPrint(0, (NS_NAME_Y + 4), buf, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0xFFC857U, 0x8A5A00U);
+
+		snprintf(buf, sizeof(buf), "%c%c%c.%c%c%c%c%c",
+				uiDataGlobal.FreqEnter.digits[0], uiDataGlobal.FreqEnter.digits[1], uiDataGlobal.FreqEnter.digits[2],
+				uiDataGlobal.FreqEnter.digits[3], uiDataGlobal.FreqEnter.digits[4], uiDataGlobal.FreqEnter.digits[5],
+				uiDataGlobal.FreqEnter.digits[6], uiDataGlobal.FreqEnter.digits[7]);
+		uiChannelModeNsPrint(8, NS_FREQ_Y, buf, FONT_SIZE_4, TEXT_ALIGN_LEFT, 0xFFFFFFU, 0x101010U);
+
+		if ((uiDataGlobal.FreqEnter.index < 8) && blink)
+		{
+			int pos = (uiDataGlobal.FreqEnter.index + ((uiDataGlobal.FreqEnter.index > 2) ? 1 : 0));
+
+			displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0xFFC857U, 0x8A5A00U), pad);
+			displayFillRect((8 + (pos * 16) + 1), (NS_FREQ_Y + 31), 14, 2, false);
+		}
+	}
+
+	if (entering)
+	{
+
+		// The keys, as uiVFOMode's handleEvent() has them: Down takes the last digit back.
+		uiChannelModeNsPrint(0, (NS_INFO_Y + (scanMode ? 14 : 6)), LANG5("Ye\x96il:tamam K\x93rm\x93z\x93:iptal", "Green:OK  Red:cancel", "Verde:OK  Rojo:cancelar",
+				"\xC7\xE5\xEB:OK  \xCA\xF0\xE0\xF1:\xEE\xF2\xEC\xE5\xED\xE0", "Gr\xFCn:OK  Rot:Abbruch"), FONT_SIZE_1, TEXT_ALIGN_CENTER, 0x9AA6BDU, 0x404858U);
+		uiChannelModeNsPrint(0, (NS_INFO_Y + (scanMode ? 24 : 16)), LANG5("A\x96""a\x98\x93: sil", "Down: delete", "Abajo: borrar",
+				"\xC2\xED\xE8\xE7: \xF3\xE4\xE0\xEB\xE8\xF2\xFC", "Ab: l\xF6schen"), FONT_SIZE_1, TEXT_ALIGN_CENTER, 0x9AA6BDU, 0x404858U);
+
+		uiChannelModeNsFooter();
+		displayThemeResetToDefault();
+		return;
+	}
+
+	vfoStepText(step, sizeof(step), VFO_FREQ_STEP_TABLE[(currentChannelData->VFOflag5 >> 4)]);
+
+	if (scanMode && (trxTransmissionEnabled == false))
+	{
+		// Range scan: amber while it runs, grey while it is only set up.
+		char low[8];
+		char high[8];
+
+		snprintf(buf, sizeof(buf), "%s %s", LANG5("TARAMA", "SCAN", "ESCANEO", "\xD1\xCA\xC0\xCD", "SCAN"), step);
+		if (uiDataGlobal.Scan.active)
+		{
+			uiChannelModeNsPrint(0, (NS_NAME_Y + 4), buf, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0xFFC857U, 0x8A5A00U);
+		}
+		else
+		{
+			uiChannelModeNsPrint(0, (NS_NAME_Y + 4), buf, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0x9AA6BDU, 0x404858U);
+		}
+
+		uiChannelModeNsFrequency(rxFreq, 0x4FD8FFU, 0x0068A0U);
+		vfoKHzText(low, sizeof(low), nonVolatileSettings.vfoScanLow[nonVolatileSettings.currentVFONumber]);
+		vfoKHzText(high, sizeof(high), nonVolatileSettings.vfoScanHigh[nonVolatileSettings.currentVFONumber]);
+		vfoDrawScanLimits(low, high, 0xC9A7FFU, 0x6A3AAAU);
+
+		uiChannelModeNsLowerHalf(txTimeSecs);
+		return;
+	}
+
+	snprintf(buf, sizeof(buf), "%s %s", LANG5("ADIM", "STEP", "PASO", "\xD8\xC0\xC3", "RASTER"), step);
+	uiChannelModeNsPrint(0, (NS_NAME_Y + 4), buf, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0x9AA6BDU, 0x404858U);
+
+	if (trxTransmissionEnabled)
+	{
+		uiChannelModeNsFrequency(txFreq, 0xFF7A45U, 0xC03000U);
+		snprintf(buf, sizeof(buf), "RX %u.%03u %02u", (unsigned) (rxFreq / 100000U), (unsigned) ((rxFreq / 100U) % 1000U), (unsigned) (rxFreq % 100U));
+		uiChannelModeNsPrint(10, NS_INFO_Y, buf, FONT_SIZE_2, TEXT_ALIGN_LEFT, 0x4FD8FFU, 0x0068A0U);
+	}
+	else
+	{
+		uiChannelModeNsFrequency(rxFreq, 0x4FD8FFU, 0x0068A0U);
+		snprintf(buf, sizeof(buf), "TX %u.%03u %02u", (unsigned) (txFreq / 100000U), (unsigned) ((txFreq / 100U) % 1000U), (unsigned) (txFreq % 100U));
+		uiChannelModeNsPrint(10, NS_INFO_Y, buf, FONT_SIZE_2, TEXT_ALIGN_LEFT, 0xC9A7FFU, 0x6A3AAAU);
+
+		// The repeater shift, when there is one.
+		if (txFreq != rxFreq)
+		{
+			int32_t shift = ((int32_t) txFreq - (int32_t) rxFreq);
+			int32_t mag = ((shift < 0) ? -shift : shift);
+
+			snprintf(buf, sizeof(buf), "%c%d.%03d", ((shift < 0) ? '-' : '+'), (int) (mag / 100000), (int) ((mag % 100000) / 100));
+			(void) uiChannelModeNsChip((DISPLAY_SIZE_X - 3 - (int16_t)((strlen(buf) * 6) + 4)), (NS_INFO_Y - 1), DISPLAY_SIZE_X,
+					buf, 0x2A2350U, 0xE6DCFAU, 0xC9A7FFU, 0x5A2A9AU);
+		}
+
+		// Which frequency the arrows change.
+		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0xFFC857U, 0x8A5A00U), pad);
+		if (txFocus)
+		{
+			displayFillTriangle(2, (NS_INFO_Y - 1), 6, (NS_INFO_Y + 3), 2, (NS_INFO_Y + 7), false);
+		}
+		else
+		{
+			displayFillTriangle(2, (NS_FREQ_Y + 9), 7, (NS_FREQ_Y + 15), 2, (NS_FREQ_Y + 21), false);
+		}
+	}
+
+	uiChannelModeNsLowerHalf(txTimeSecs);
+}
+
 void uiVFOModeUpdateScreen(int txTimeSecs)
 {
 	static bool blink = false;
@@ -490,6 +707,20 @@ void uiVFOModeUpdateScreen(int txTimeSecs)
 				uiDataGlobal.displayQSOStatePrev = QSO_DISPLAY_DEFAULT_SCREEN;
 				uiDataGlobal.isDisplayingQSOData = false;
 				uiDataGlobal.receivedPcId = 0x00;
+
+				if (uiChannelModeNewScreenActive())
+				{
+					drawNewVFOScreen(txTimeSecs, blink);
+
+					if ((uiDataGlobal.FreqEnter.index != 0) && ((ticksGetMillis() - blinkTime) > 500))
+					{
+						blinkTime = ticksGetMillis();
+						blink = !blink;
+					}
+
+					displayRender();
+					break;
+				}
 
 				if (trxGetMode() == RADIO_MODE_DIGITAL)
 				{

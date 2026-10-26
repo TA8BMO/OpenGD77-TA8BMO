@@ -33,6 +33,7 @@
 #include "interfaces/wdog.h"
 #include "utils.h"
 #include "functions/rxPowerSaving.h"
+#include "functions/fiveToneDecode.h"
 #if defined(PLATFORM_MD9600) || defined(PLATFORM_MD380) || defined(PLATFORM_MDUV380) || defined(PLATFORM_RT84_DM1701) || defined(PLATFORM_MD2017)
 #include "interfaces/batteryAndPowerManagement.h"
 #endif
@@ -77,6 +78,7 @@ enum
 #if defined(HAS_GPS)
 	GENERAL_OPTIONS_GPS,
 #endif
+	GENERAL_OPTIONS_FIVE_TONE_STANDARD, // last, so no existing item (or quick key) moves
 	NUM_GENERAL_OPTIONS_MENU_ITEMS
 };
 
@@ -320,6 +322,11 @@ static void updateScreen(bool isFirstRun)
 					}
 					break;
 #endif
+				case GENERAL_OPTIONS_FIVE_TONE_STANDARD:
+					// Not in the language tables: read out with voicePromptsAppendString() below.
+					leftSide = LANG5("5-Ton", "5-Tone", "5 tonos", "5-\xF2\xEE\xED", "5-Ton");
+					snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, "%s", fiveToneStandardName(fiveToneStandardIndex()));
+					break;
 			}
 
 			snprintf(buf, SCREEN_LINE_BUFFER_SIZE, "%s:%s", leftSide, (rightSideVar[0] ? rightSideVar : (rightSideConst ? rightSideConst : "")));
@@ -335,7 +342,14 @@ static void updateScreen(bool isFirstRun)
 
 				if (!wasPlaying || (menuDataGlobal.newOptionSelected || (menuDataGlobal.menuOptionsTimeout > 0)))
 				{
-					voicePromptsAppendLanguageString(leftSide);
+					if (mNum == GENERAL_OPTIONS_FIVE_TONE_STANDARD)
+					{
+						voicePromptsAppendString(leftSide); // not a language table entry
+					}
+					else
+					{
+						voicePromptsAppendLanguageString(leftSide);
+					}
 				}
 
 				if ((rightSideVar[0] != 0) || ((rightSideVar[0] == 0) && (rightSideConst == NULL)))
@@ -614,6 +628,12 @@ static void handleEvent(uiEvent_t *ev)
 					}
 					break;
 #endif
+				case GENERAL_OPTIONS_FIVE_TONE_STANDARD:
+					if (fiveToneStandardIndex() < (FIVETONE_STANDARD_COUNT - 1))
+					{
+						fiveToneSetStandardIndex(fiveToneStandardIndex() + 1);
+					}
+					break;
 			}
 		}
 		else if (KEYCHECK_PRESS(ev->keys, KEY_LEFT)
@@ -741,6 +761,12 @@ static void handleEvent(uiEvent_t *ev)
 					}
 					break;
 #endif
+				case GENERAL_OPTIONS_FIVE_TONE_STANDARD:
+					if (fiveToneStandardIndex() > 0)
+					{
+						fiveToneSetStandardIndex(fiveToneStandardIndex() - 1);
+					}
+					break;
 			}
 		}
 		else if ((ev->keys.event & KEY_MOD_PRESS) && (menuDataGlobal.menuOptionsTimeout > 0))

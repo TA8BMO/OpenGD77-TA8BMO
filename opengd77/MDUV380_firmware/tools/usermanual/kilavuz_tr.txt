@@ -71,6 +71,9 @@ Not: Bu kısayollar yalnızca analog kanalda çalışır. Dijital (DMR) kanalda 
 @@ 5-Ton Gönderme
 5-Ton, Aselsan telsizlerinin de kullandığı CCIR seçmeli çağrı sistemidir. Her kanala 5 haneli bir kimlik kodu (ANI) verilebilir.
 
+[STANDART]
+Menü > Seçenekler > Genel Seçenekler > 5-Ton ile standart seçilir: CCIR (100 ms), CCIR-70, ZVEI-1, ZVEI-2, PZVEI (70 ms) veya EIA (33 ms). Telsiz hem gönderirken hem çözerken bunu kullanır; karşı telsizle aynı standardı seç. Aynı anda tek standart çözülür.
+
 [KOD AYARLAMA]
 Menü > Kanal Ayrıntısı içinde "5T:" satırına gel ve rakam tuşlarıyla 5 haneyi yaz. Baştaki sıfırlar korunur (örnek: 03310). Beşinci hane yazılınca kod kaydedilir ve gönderim "St" moduna geçer. Yazarken Yeşil kaydeder, Kırmızı vazgeçer.
 
@@ -445,7 +448,7 @@ Telsiz Kurulumu > Açılış Parolası. Telsiz açılırken sorulan parolayı ko
 Yeni parolayı unutma: telsiz açılışta onu sorar. Kanal ve zon silerken de aynı parola sorulur.
 
 @@ Oyunlar
-Menü > Oyunlar. Yukarı/Aşağı ok ile seç ve Yeşil ile başlat ya da 1-5 tuşlarıyla oyunu doğrudan aç. Skorlar kalıcı olarak saklanır.
+Menü > Oyunlar. Yukarı/Aşağı ok ile seç ve Yeşil ile başlat ya da 1-3 tuşlarıyla oyunu doğrudan aç. Skorlar kalıcı olarak saklanır.
 
 Bütün oyunlarda:
 - Yeşil: başlat, devam et, yeniden oyna
@@ -460,12 +463,6 @@ Oyun oynarken kanalda konuşma olursa ses hoparlörden gelir.
 
 [TETRİS]
 4/6: sola/sağa, 2: döndür, 8 ya da 0: hemen düşür. Kanal düğmesiyle de kaydırılır. Oyun kapansa da kaldığın yerden devam eder.
-
-[BREAKOUT]
-Yeşil: topu at. 4/6'yı basılı tut: raketi kaydır. Kanal düğmesi ince ayar yapar.
-
-[2048]
-2/8/4/6: taşları kaydır. #: bir hamle geri al.
 
 [DİNOZOR]
 Yeşil ya da 2: zıpla. 8'i basılı tut: eğil.

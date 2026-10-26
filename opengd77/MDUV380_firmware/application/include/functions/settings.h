@@ -139,6 +139,7 @@ typedef enum
 	BIT_LANGUAGE_SPANISH            = (1 << 26), // third built-in language; wins over BIT_SECONDARY_LANGUAGE. Never set before, so nobody's radio changes language
 	BIT_LANGUAGE_RUSSIAN            = (1 << 27), // fourth built-in language; wins over the two above. Never set before either
 	BIT_LANGUAGE_GERMAN             = (1 << 28), // fifth built-in language; wins over the three above. Never set before either
+	BIT_CLASSIC_SCREEN              = (1 << 29), // the stock channel screen instead of the colour one. Never set before, so every radio gets the new screen
 } bitfieldOptions_t;
 
 #if defined(PLATFORM_MD9600)

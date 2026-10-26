@@ -71,6 +71,9 @@ Note: These shortcuts only work on analog channels. On a digital (DMR) channel t
 @@ 5-Tone Sending
 5-Tone is the CCIR selective calling system, also used by Aselsan radios. Each channel can be given a 5-digit identity code (ANI).
 
+[STANDARD]
+Menu > Options > General options > 5-Tone picks the standard: CCIR (100 ms), CCIR-70, ZVEI-1, ZVEI-2, PZVEI (70 ms) or EIA (33 ms). The radio uses it both to send and to decode, so choose the same one as the other radios. Only one standard is decoded at a time.
+
 [SETTING THE CODE]
 In Menu > Channel details, go to the "5T:" row and type the 5 digits with the number keys. Leading zeros are kept (example: 03310). When the fifth digit is typed the code is saved and sending switches to "St" mode. While typing, Green saves and Red cancels.
 
@@ -445,7 +448,7 @@ Radio Setup > Power-on Password. Sets, changes or removes the password asked for
 Do not forget a new password: the radio asks for it at power-on. The same password is asked for when deleting channels and zones.
 
 @@ Games
-Menu > Games. Choose with the Up/Down arrow and start with Green, or open a game directly with keys 1 to 5. Scores are kept permanently.
+Menu > Games. Choose with the Up/Down arrow and start with Green, or open a game directly with keys 1 to 3. Scores are kept permanently.
 
 In every game:
 - Green: start, resume, play again
@@ -460,12 +463,6 @@ If someone talks on the channel while you play, the audio comes from the speaker
 
 [TETRIS]
 4/6: left/right, 2: rotate, 8 or 0: drop at once. The channel knob also moves the piece. If the game is closed it carries on where you left off.
-
-[BREAKOUT]
-Green: launch the ball. Hold 4/6: move the paddle. The channel knob gives fine control.
-
-[2048]
-2/8/4/6: slide the tiles. #: undo one move.
 
 [DINO]
 Green or 2: jump. Hold 8: duck.

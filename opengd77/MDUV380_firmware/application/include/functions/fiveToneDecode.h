@@ -32,6 +32,25 @@
 
 #define FIVETONE_CODE_LEN 5
 
+// The selective calling standards, chosen in General Options. Sending and
+// decoding both use the chosen one; only one is decoded at a time, since the
+// standards give the same frequencies to different digits (2400Hz is CCIR's
+// group tone and ZVEI's 0).
+typedef struct
+{
+	const char *name;
+	uint16_t    toneFreq[16];    // [0..9] digits, [10..15] A..F; E (14) is the repeat tone
+	uint16_t    toneDurationMs;  // each tone, sent back to back
+	uint16_t    decodeBlockN;    // samples per analysis block: two blocks must fit in a tone
+} fiveToneStandard_t;
+
+#define FIVETONE_STANDARD_COUNT 6
+
+const fiveToneStandard_t *fiveToneStandard(void); // the one in use
+const char *fiveToneStandardName(int index);
+int fiveToneStandardIndex(void);
+void fiveToneSetStandardIndex(int index);
+
 // Number of decoded tones kept for the test/monitor display.
 #define FIVETONE_TRACE_LEN 8
 

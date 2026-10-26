@@ -37,6 +37,7 @@
 #include "functions/morseDecode.h"
 #include "functions/toneFinder.h"
 #include "functions/voiceRecorder.h"
+#include "interfaces/adc.h"
 #if defined(PLATFORM_MD9600) || defined(PLATFORM_MD380) || defined(PLATFORM_MDUV380) || defined(PLATFORM_RT84_DM1701) || defined(PLATFORM_MD2017)
 #include "hardware/radioHardwareInterface.h"
 #endif
@@ -109,6 +110,8 @@ static void scanning(void);
 static void drawChannelRSSIMeter(void);
 static void drawLastFiveToneCall(void);
 static void drawMorseWaitingMarker(void);
+static bool nsActive(void);
+static void nsLiveUpdate(uint32_t now);
 static void scanStart(bool longPressBeep);
 static void scanSearchForNextChannel(void);
 static void scanApplyNextChannel(void);
@@ -118,6 +121,8 @@ static void initSortedChannels(void);
 
 static char currentZoneName[SCREEN_LINE_BUFFER_SIZE];
 static int directChannelNumber = 0;
+
+static uint32_t nsFooterTime = 0; // the colour screen's rows (NS_*) are in menuSystem.h
 
 static struct_codeplugChannel_t scanNextChannelData = { .rxFreq = 0 };
 static bool scanNextChannelReady = false;
@@ -313,7 +318,14 @@ menuStatus_t uiChannelMode(uiEvent_t *ev, bool isFirstRun)
 						else
 						{
 							uiUtilityDrawRSSIBarGraph();
-							drawChannelRSSIMeter(); // designed coloured S-meter + numeric S-value (rows 2-3)
+							if (nsActive())
+							{
+								nsLiveUpdate(ev->time);
+							}
+							else
+							{
+								drawChannelRSSIMeter(); // designed coloured S-meter + numeric S-value (rows 2-3)
+							}
 						}
 
 						// Render the header bar row plus our meter rows (2-3) so both update live,
@@ -712,6 +724,80 @@ void uiChannelModeLoadChannelData(bool useChannelDataInMemory, bool loadVoicePro
 	}
 }
 
+// ---------------------------------------------------------------------------
+// The colour channel screen (TA8BMO).
+//
+// FM only, on channels and on the VFO in its normal state (uiVFOMode.c draws the
+// top half there, with these pieces below it): DMR, the VFO's scans and the SK1
+// details overlay keep the classic layout, and Display options > Screen >
+// Classic brings the old one back everywhere. Every colour goes through uiUtilityScreenColour(), which shows
+// the same hue on the glass in normal and in inverse video. Rows:
+//    0-13   header and its thin RSSI / mic bar (uiUtilityRenderHeader)
+//   15-30   channel name
+//   33-64   frequency, 16x32, the last two digits small
+//   67-74   zone and channel number | the other frequency
+//   77-86   tone, ANI, CW and REC labels | squelch
+//   89-104  S-meter while receiving, talk time from 84 while transmitting
+//  107-114  last 5-Tone / DTMF caller
+//  119-126  clock (or power, transmitting) | battery voltage | temperature
+// ---------------------------------------------------------------------------
+static bool nsActive(void)
+{
+	// FM and DMR. Not in hotspot mode, which has a screen of its own, and not
+	// while a DMR caller is being shown: that is still the classic caller screen,
+	// and the S-meter's live update must not draw over it.
+	if ((uiUtilityNewScreen() == false) || uiDataGlobal.displayChannelSettings || uiDataGlobal.isDisplayingQSOData ||
+			(settingsUsbMode == USB_MODE_HOTSPOT))
+	{
+		return false;
+	}
+
+	switch (menuSystemGetRootMenuNumber())
+	{
+		case UI_CHANNEL_MODE:
+			return true;
+		case UI_VFO_MODE:
+			return uiVFOModeNewScreenActive();
+		default:
+			return false;
+	}
+}
+
+bool uiChannelModeNewScreenActive(void)
+{
+	return nsActive();
+}
+
+static uint16_t nsThemeBg(void)
+{
+	uint16_t fg, bg;
+
+	displayThemeResetToDefault();
+	displayGetForegroundAndBackgroundColours(&fg, &bg);
+	return bg;
+}
+
+static void nsColour(uint32_t onDark, uint32_t onLight)
+{
+	uint16_t c = uiUtilityScreenColour(onDark, onLight);
+
+	displaySetForegroundAndBackgroundColours(c, nsThemeBg());
+}
+
+static void nsPrint(int16_t x, int16_t y, const char *text, ucFont_t font, ucTextAlign_t align, uint32_t onDark, uint32_t onLight)
+{
+	nsColour(onDark, onLight);
+	displayPrintCore(x, y, text, font, align, false);
+}
+
+static void nsClear(int16_t y, int16_t h)
+{
+	uint16_t bg = nsThemeBg();
+
+	displaySetForegroundAndBackgroundColours(bg, bg);
+	displayFillRect(0, y, DISPLAY_SIZE_X, h, false);
+}
+
 // Always-on coloured S-meter + numeric S-value for the main channel screen.
 // (The stock header RSSI bar was not visible on the MD-UV390; this draws an
 // explicit meter in the header/bar row.) Green up to S9, red above S9. The
@@ -726,7 +812,7 @@ void uiChannelModeLoadChannelData(bool useChannelDataInMemory, bool loadVoicePro
 static void drawMorseWaitingMarker(void)
 {
 	if ((trxGetMode() != RADIO_MODE_ANALOG) || uiDataGlobal.displayChannelSettings ||
-			(morseDecodeHasTextForCurrentChannel() == false))
+			(morseDecodeHasTextForCurrentChannel() == false) || nsActive()) // the new screen shows a CW label instead
 	{
 		return;
 	}
@@ -793,6 +879,14 @@ static void drawLastFiveToneCall(void)
 			shown = name;
 		}
 		snprintf(buf, sizeof(buf), "%s %s", prefix, shown);
+	}
+
+	if (nsActive())
+	{
+		nsClear(NS_CALLER_Y, 8);
+		nsPrint(0, NS_CALLER_Y, buf, FONT_SIZE_2, TEXT_ALIGN_CENTER, 0xD2C3FFU, 0x5A2A9AU);
+		displayThemeResetToDefault();
+		return;
 	}
 
 	// The channel screen has free space below the channel name, but on the VFO
@@ -915,10 +1009,21 @@ static void drawChannelRSSIMeter(void)
 #endif
 }
 
-// Shared entry point so the VFO screen can draw the same meter strip.
+// Shared entry point so the VFO screen can draw the same meter strip. On the
+// colour screen this is its live update instead, rendering its own rows.
 void uiChannelModeDrawRSSIMeterStrip(void)
 {
-	drawChannelRSSIMeter();
+	if (nsActive())
+	{
+		if (uiDataGlobal.FreqEnter.index == 0) // the VFO's digit entry has this part of the screen
+		{
+			nsLiveUpdate(ticksGetMillis());
+		}
+	}
+	else
+	{
+		drawChannelRSSIMeter();
+	}
 }
 
 // Local time, centred in the free band under the S-meter / contact line
@@ -926,17 +1031,16 @@ void uiChannelModeDrawRSSIMeterStrip(void)
 // needs no minding: a hardware interrupt counts the seconds and GPS re-syncs it
 // automatically whenever it has a fix (gps.c), so unlike a hand-set clock it
 // does not drift. This only makes it visible without opening a menu.
-static void drawClockLine(void)
+static bool clockText(char *buf, size_t len)
 {
 	struct tm t;
-	char buf[8];
 	time_t_custom local;
 
 	// Nothing until the clock has been set to something plausible - a radio
 	// that has never had GPS or the CPS would otherwise show 1970.
-	if (uiDataGlobal.displayChannelSettings || (uiDataGlobal.dateTimeSecs < 1577836800U /* 2020-01-01 */))
+	if (uiDataGlobal.dateTimeSecs < 1577836800U /* 2020-01-01 */)
 	{
-		return;
+		return false;
 	}
 
 	// The same timezone arithmetic the Radio Infos screen uses.
@@ -947,7 +1051,18 @@ static void drawClockLine(void)
 			((nonVolatileSettings.timezone & 0x80) ? (((nonVolatileSettings.timezone & 0x7F) - 64) * (15 * 60)) : (3 * 60 * 60));
 
 	gmtime_r_Custom(&local, &t);
-	snprintf(buf, sizeof(buf), "%02u:%02u", (unsigned int) t.tm_hour, (unsigned int) t.tm_min);
+	snprintf(buf, len, "%02u:%02u", (unsigned int) t.tm_hour, (unsigned int) t.tm_min);
+	return true;
+}
+
+static void drawClockLine(void)
+{
+	char buf[8];
+
+	if (uiDataGlobal.displayChannelSettings || nsActive() || (clockText(buf, sizeof(buf)) == false)) // the colour screen has it in its footer
+	{
+		return;
+	}
 
 	displayThemeApply(THEME_ITEM_FG_CHANNEL_NAME, THEME_ITEM_BG);
 	displayPrintCore(0, 40, buf, FONT_SIZE_2, TEXT_ALIGN_CENTER, false);
@@ -966,6 +1081,341 @@ void uiChannelModeDrawRxDecodeMarkers(void)
 	{
 		drawClockLine();
 	}
+}
+
+// --- The colour channel screen, continued (see nsActive) ---
+
+void uiChannelModeNsPrint(int16_t x, int16_t y, const char *text, ucFont_t font, ucTextAlign_t align, uint32_t onDark, uint32_t onLight)
+{
+	nsPrint(x, y, text, font, align, onDark, onLight);
+}
+
+// A small label on a coloured pad. Returns where the next one goes, or x
+// unchanged when it would not fit before maxX.
+int16_t uiChannelModeNsChip(int16_t x, int16_t y, int16_t maxX, const char *text, uint32_t padDark, uint32_t padLight, uint32_t textDark, uint32_t textLight)
+{
+	int16_t w = (int16_t)((strlen(text) * 6) + 4);
+	uint16_t pad;
+
+	if ((x + w) > maxX)
+	{
+		return x;
+	}
+
+	pad = uiUtilityScreenColour(padDark, padLight);
+	displaySetForegroundAndBackgroundColours(pad, pad);
+	displayFillRoundRect(x, y, w, 10, 2, false);
+	displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(textDark, textLight), pad);
+	displayPrintCore((x + 2), (y + 1), text, FONT_SIZE_1, TEXT_ALIGN_LEFT, false);
+
+	return (x + w + 3);
+}
+
+static int16_t nsChip(int16_t x, int16_t maxX, const char *text, uint32_t padDark, uint32_t padLight, uint32_t textDark, uint32_t textLight)
+{
+	return uiChannelModeNsChip(x, NS_CHIPS_Y, maxX, text, padDark, padLight, textDark, textLight);
+}
+
+// The big frequency: 439.237 in 16x32, then MHz over a small 50, in 10Hz units.
+void uiChannelModeNsFrequency(uint32_t freq, uint32_t onDark, uint32_t onLight)
+{
+	const int16_t freqX = 14; // 7 big digits (112) + the small ones / MHz (18), centred
+	char buf[12];
+
+	snprintf(buf, sizeof(buf), "%u.%03u", (unsigned) (freq / 100000U), (unsigned) ((freq / 100U) % 1000U));
+	nsPrint(freqX, NS_FREQ_Y, buf, FONT_SIZE_4, TEXT_ALIGN_LEFT, onDark, onLight);
+	nsPrint((freqX + 114), (NS_FREQ_Y + 2), "MHz", FONT_SIZE_1, TEXT_ALIGN_LEFT, 0x7FA8C9U, 0x506070U);
+	snprintf(buf, sizeof(buf), "%02u", (unsigned) (freq % 100U));
+	nsPrint((freqX + 114), (NS_FREQ_Y + 16), buf, FONT_SIZE_3, TEXT_ALIGN_LEFT, onDark, onLight);
+}
+
+static void nsToneText(char *buf, size_t len, char prefix, uint16_t tone)
+{
+	if (codeplugGetCSSType(tone) & CSS_TYPE_DCS)
+	{
+		char p[2] = { prefix, 0 };
+
+		dcsPrintf(buf, len, p, tone);
+	}
+	else
+	{
+		snprintf(buf, len, "%c%d.%d", prefix, (tone / 10), (tone % 10));
+	}
+}
+
+// The S-meter sits lower in DMR, under the talkgroup band.
+static int16_t nsMeterY(void)
+{
+	return ((trxGetMode() == RADIO_MODE_DIGITAL) ? NS_DMR_METER_Y : NS_METER_Y);
+}
+
+// S-value, dBm and a 15 step bar: green to S9, orange to S9+30, red above.
+// Redrawn on its own by the RSSI tick, so it clears its rows first.
+static void nsDrawMeter(void)
+{
+	int dbm = trxGetRSSIdBm(RADIO_DEVICE_PRIMARY);
+	int s = 0;
+	char buf[12];
+	const int16_t meterY = nsMeterY();
+
+	nsClear(meterY, 16);
+
+	if (uiDataGlobal.Scan.toneActive) // the tone scan has this band
+	{
+		return;
+	}
+
+	for (int i = 15; i >= 0; i--)
+	{
+		if (dbm >= DBM_LEVELS[i])
+		{
+			s = i;
+			break;
+		}
+	}
+
+	uint32_t valDark = ((s <= 9) ? 0x3BD16FU : ((s <= 12) ? 0xFF9F40U : 0xFF4A3DU));
+	uint32_t valLight = ((s <= 9) ? 0x107A30U : ((s <= 12) ? 0xA05A00U : 0xB01010U));
+
+	if (s <= 9)
+	{
+		snprintf(buf, sizeof(buf), "S%d", s);
+	}
+	else
+	{
+		snprintf(buf, sizeof(buf), "S9+%d", ((s - 9) * 10));
+	}
+	nsPrint(3, meterY, buf, FONT_SIZE_2, TEXT_ALIGN_LEFT, valDark, valLight);
+
+	snprintf(buf, sizeof(buf), "%ddBm", dbm);
+	nsPrint(0, meterY, buf, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0xB9C6DEU, 0x404858U);
+
+	for (int i = 0; i < 15; i++)
+	{
+		if (i < s)
+		{
+			if (i <= 8)
+			{
+				nsColour(0x3BD16FU, 0x109A40U);
+			}
+			else if (i <= 11)
+			{
+				nsColour(0xFF9F40U, 0xD07000U);
+			}
+			else
+			{
+				nsColour(0xFF4A3DU, 0xD01818U);
+			}
+		}
+		else
+		{
+			nsColour(0x24302AU, 0xD4D8DCU); // unlit
+		}
+		displayFillRect((5 + (i * 10)), (meterY + 9), 9, 6, false);
+	}
+
+	displayThemeResetToDefault();
+}
+
+// Clock (power while transmitting), battery voltage, temperature.
+static void nsDrawFooter(void)
+{
+	char buf[16];
+	int volts, mvolts;
+	int temperature = getTemperature();
+
+	nsClear(NS_FOOT_Y, 8);
+
+	if (trxTransmissionEnabled)
+	{
+		uint8_t powerLevel = trxGetPowerLevel();
+
+		snprintf(buf, sizeof(buf), "PWR %s%s", getPowerLevel(powerLevel), getPowerLevelUnit(powerLevel));
+		nsPrint(3, NS_FOOT_Y, buf, FONT_SIZE_1, TEXT_ALIGN_LEFT, 0xFFB347U, 0xA05A00U);
+	}
+	else if (clockText(buf, sizeof(buf)))
+	{
+		nsPrint(3, NS_FOOT_Y, buf, FONT_SIZE_1, TEXT_ALIGN_LEFT, 0x9AA6BDU, 0x404858U);
+	}
+
+	getBatteryVoltage(&volts, &mvolts);
+	snprintf(buf, sizeof(buf), "%d.%dV", volts, mvolts);
+	nsPrint(0, NS_FOOT_Y, buf, FONT_SIZE_1, TEXT_ALIGN_CENTER, 0xFFD84AU, 0x806000U);
+
+	snprintf(buf, sizeof(buf), "%d\xB0""C", (temperature / 10));
+	nsPrint(0, NS_FOOT_Y, buf, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0x9AA6BDU, 0x404858U);
+
+	displayThemeResetToDefault();
+}
+
+void uiChannelModeNsFooter(void)
+{
+	nsDrawFooter();
+}
+
+// The S-meter and, every two seconds, the footer: drawn and rendered on their
+// own between full redraws.
+static void nsLiveUpdate(uint32_t now)
+{
+	nsDrawMeter();
+	displayRenderRows((nsMeterY() / 8), ((nsMeterY() + 16 + 7) / 8));
+
+	if ((now - nsFooterTime) > 2000)
+	{
+		nsDrawFooter();
+		displayRenderRows((NS_FOOT_Y / 8), (DISPLAY_SIZE_Y / 8));
+		nsFooterTime = now;
+	}
+}
+
+// Everything below the frequency lines, shared with the VFO: the talk time
+// while transmitting, otherwise the labels, S-meter and last caller; then the
+// footer.
+void uiChannelModeNsLowerHalf(int txTimeSecs)
+{
+	char buf[SCREEN_LINE_BUFFER_SIZE];
+	char other[16];
+
+	if (trxGetMode() == RADIO_MODE_DIGITAL)
+	{
+		// DMR: the talkgroup or contact on a band of its own - amber when it is a
+		// manual override, as the classic screen frames it - then the S-meter, or
+		// the talk time while transmitting. The timeslot and colour code are in
+		// the header.
+		bool overridden = (nonVolatileSettings.overrideTG != 0);
+		uint16_t pad = uiUtilityScreenColour((overridden ? 0x4A3410U : 0x0F3A4DU), (overridden ? 0xF8E6C0U : 0xD0E8F4U));
+
+		if (overridden)
+		{
+			uiUtilityBuildTgOrPCDisplayName(buf, SCREEN_LINE_BUFFER_SIZE);
+		}
+		else
+		{
+			codeplugUtilConvertBufToString(currentContactData.name, buf, 16);
+		}
+
+		displaySetForegroundAndBackgroundColours(pad, pad);
+		displayFillRoundRect(3, NS_DMR_TG_Y, (DISPLAY_SIZE_X - 6), 18, 3, false);
+		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour((overridden ? 0xFFC857U : 0x7FE3FFU), (overridden ? 0x7A4A00U : 0x0B4A70U)), pad);
+		displayPrintCore(0, (NS_DMR_TG_Y + 1), buf, FONT_SIZE_3, TEXT_ALIGN_CENTER, false);
+
+		if (trxTransmissionEnabled)
+		{
+			snprintf(buf, sizeof(buf), "%d:%02d", (txTimeSecs / 60), (txTimeSecs % 60));
+			nsPrint(0, (NS_DMR_METER_Y + 1), buf, FONT_SIZE_3, TEXT_ALIGN_CENTER, 0xFFFFFFU, 0x101010U);
+		}
+		else
+		{
+			nsDrawMeter();
+		}
+	}
+	else if (trxTransmissionEnabled)
+	{
+		// Talk time, big. The mic level is the thin bar under the header.
+		snprintf(buf, sizeof(buf), "%d:%02d", (txTimeSecs / 60), (txTimeSecs % 60));
+		nsPrint(0, NS_TIMER_Y, buf, FONT_SIZE_4, TEXT_ALIGN_CENTER, 0xFFFFFFU, 0x101010U);
+	}
+	else
+	{
+		// Labels, as many as fit before the squelch.
+		int16_t x = 3;
+		const int16_t maxX = 112;
+		uint8_t digits[5];
+
+		if (currentChannelData->txTone != CODEPLUG_CSS_TONE_NONE)
+		{
+			nsToneText(other, sizeof(other), 'T', currentChannelData->txTone);
+			x = nsChip(x, maxX, other, 0x0F4D4AU, 0xCDEFEAU, 0x7FF2DFU, 0x0A5A52U);
+		}
+		if ((currentChannelData->rxTone != CODEPLUG_CSS_TONE_NONE) && (currentChannelData->rxTone != currentChannelData->txTone))
+		{
+			nsToneText(other, sizeof(other), 'R', currentChannelData->rxTone);
+			x = nsChip(x, maxX, other, 0x0F4D4AU, 0xCDEFEAU, 0x7FF2DFU, 0x0A5A52U);
+		}
+		if (codeplugChannelGetFiveTone(currentChannelData, digits) != ANI_MODE_OFF)
+		{
+			x = nsChip(x, maxX, "ANI", 0x3A2A66U, 0xE2DAFAU, 0xD2C3FFU, 0x4A2A8AU);
+		}
+		if (morseDecodeHasTextForCurrentChannel())
+		{
+			x = nsChip(x, maxX, "CW", 0x4A1416U, 0xF8D4D4U, 0xFF8080U, 0xA01010U);
+		}
+		if (voiceRecorderGetEnabled() && (voiceRecorderGetStatus() == VOICE_RECORDER_STATUS_OK))
+		{
+			int16_t recX = x;
+
+			x = nsChip(x, maxX, (voiceRecorderIsRecording() ? "  REC" : "REC"), 0x4A1416U, 0xF8D4D4U, 0xFFB3B3U, 0xA01010U);
+			if ((x != recX) && voiceRecorderIsRecording())
+			{
+				nsColour(0xFF4D4DU, 0xD01010U);
+				displayFillCircle((recX + 6), (NS_CHIPS_Y + 4), 2, false);
+			}
+		}
+
+		snprintf(buf, sizeof(buf), "SQL %d%%", (5 * (((currentChannelData->sql == 0) ? nonVolatileSettings.squelchDefaults[currentRadioDevice->trxCurrentBand[TRX_RX_FREQ_BAND]] : currentChannelData->sql) - 1)));
+		nsPrint(0, (NS_CHIPS_Y + 1), buf, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0x8FE3B0U, 0x207040U);
+
+		nsDrawMeter();
+		drawLastFiveToneCall();
+	}
+
+	nsDrawFooter();
+	displayThemeResetToDefault();
+}
+
+static void drawNewChannelScreen(int txTimeSecs)
+{
+	char buf[SCREEN_LINE_BUFFER_SIZE];
+	char other[16];
+	uint32_t rxFreq = (uiDataGlobal.reverseRepeaterChannel ? currentChannelData->txFreq : currentChannelData->rxFreq);
+	uint32_t txFreq = (uiDataGlobal.talkaround ? rxFreq : (uiDataGlobal.reverseRepeaterChannel ? currentChannelData->rxFreq : currentChannelData->txFreq));
+
+	// Channel name, inverted for a reversed repeater channel as on the classic screen.
+	codeplugUtilConvertBufToString(currentChannelData->name, buf, 16);
+	nsColour(0xFFC857U, 0x8A5A00U);
+	displayPrintCore(0, NS_NAME_Y, buf, FONT_SIZE_3, TEXT_ALIGN_CENTER, uiDataGlobal.reverseRepeaterChannel);
+
+	if (trxTransmissionEnabled)
+	{
+		uiChannelModeNsFrequency(txFreq, 0xFF7A45U, 0xC03000U);
+	}
+	else
+	{
+		uiChannelModeNsFrequency(rxFreq, 0x4FD8FFU, 0x0068A0U);
+	}
+
+	// Zone and channel number (or the channel being typed in), and the other frequency.
+	if (directChannelNumber > 0)
+	{
+		snprintf(buf, sizeof(buf), "%.10s %d", currentLanguage->gotoChannel, directChannelNumber);
+	}
+	else if (settingsIsOptionBitSet(BIT_DISPLAY_CHANNEL_DISTANCE) && (currentChannelData->NOT_IN_CODEPLUG_CALCULATED_DISTANCE_X10 != -1))
+	{
+		snprintf(buf, sizeof(buf), "%.8s %d.%dkm", currentZoneName,
+				(currentChannelData->NOT_IN_CODEPLUG_CALCULATED_DISTANCE_X10 / 10), (currentChannelData->NOT_IN_CODEPLUG_CALCULATED_DISTANCE_X10 % 10));
+	}
+	else if (CODEPLUG_ZONE_IS_ALLCHANNELS(currentZone))
+	{
+		snprintf(buf, sizeof(buf), "%.10s %d", currentLanguage->all_channels, codeplugGetLastUsedChannelInCurrentZone());
+	}
+	else
+	{
+		snprintf(buf, sizeof(buf), "%.8s %d/%d", currentZoneName, (codeplugGetLastUsedChannelInCurrentZone() + 1), currentZone.NOT_IN_CODEPLUGDATA_numChannelsInZone);
+	}
+	nsPrint(3, NS_INFO_Y, buf, FONT_SIZE_1, TEXT_ALIGN_LEFT, 0x9AA6BDU, 0x404858U);
+
+	if (trxTransmissionEnabled)
+	{
+		snprintf(other, sizeof(other), "RX %u.%03u", (unsigned) (rxFreq / 100000U), (unsigned) ((rxFreq / 100U) % 1000U));
+		nsPrint(0, NS_INFO_Y, other, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0x4FD8FFU, 0x0068A0U);
+	}
+	else if (txFreq != rxFreq)
+	{
+		snprintf(other, sizeof(other), "TX %u.%03u", (unsigned) (txFreq / 100000U), (unsigned) ((txFreq / 100U) % 1000U));
+		nsPrint(0, NS_INFO_Y, other, FONT_SIZE_1, TEXT_ALIGN_RIGHT, 0xC9A7FFU, 0x6A3AAAU);
+	}
+
+	uiChannelModeNsLowerHalf(txTimeSecs);
 }
 
 void uiChannelModeUpdateScreen(int txTimeSecs)
@@ -1002,6 +1452,14 @@ void uiChannelModeUpdateScreen(int txTimeSecs)
 			uiDataGlobal.displayQSOStatePrev = QSO_DISPLAY_DEFAULT_SCREEN;
 			uiDataGlobal.isDisplayingQSOData = false;
 			uiDataGlobal.receivedPcId = 0x00;
+
+			if (nsActive())
+			{
+				drawNewChannelScreen(txTimeSecs);
+				displayRender();
+				break;
+			}
+
 			if (trxTransmissionEnabled)
 			{
 				snprintf(buffer, SCREEN_LINE_BUFFER_SIZE, " %d ", txTimeSecs);

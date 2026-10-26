@@ -1795,6 +1795,62 @@ void uiUtilityRenderQSOData(void)
 	displayThemeResetToDefault();
 }
 
+bool uiUtilityNewScreen(void)
+{
+#if defined(HAS_COLOURS)
+	return (settingsIsOptionBitSet(BIT_CLASSIC_SCREEN) == false);
+#else
+	return false;
+#endif
+}
+
+// A colour for the new screen, chosen for what the glass really shows.
+//
+// In inverse video the panel itself flips every pixel (INVON), so a theme with a
+// white background is black on the glass, and a plain RGB value comes out as its
+// opposite: green turns magenta, yellow turns blue. So: decide from the theme
+// background, as seen on the glass, which of the two colours is wanted - the
+// bright one for a dark glass, the deep one for a light glass - and then
+// pre-invert it in inverse video, so the glass ends up showing exactly that
+// colour. Same hues in both modes, and readable on any theme.
+uint16_t uiUtilityScreenColour(uint32_t onDark, uint32_t onLight)
+{
+	uint16_t fg, bg, themeFg, themeBg;
+	bool inverse = settingsIsOptionBitSet(BIT_INVERSE_VIDEO);
+	uint32_t rgb;
+
+	displayGetForegroundAndBackgroundColours(&fg, &bg);
+	displayThemeResetToDefault();
+	displayGetForegroundAndBackgroundColours(&themeFg, &themeBg);
+	displaySetForegroundAndBackgroundColours(fg, bg);
+	(void) themeFg;
+
+	{
+		uint16_t c = PLATFORM_COLOUR_FORMAT_SWAP_BYTES(themeBg);
+		int luma = ((((int)(((c >> 11) & 0x1FU) << 3) * 30) + ((int)(((c >> 5) & 0x3FU) << 2) * 59) + ((int)((c & 0x1FU) << 3) * 11)) / 100);
+
+		rgb = (((luma < 128) != inverse) ? onDark : onLight);
+	}
+
+	if (inverse)
+	{
+		rgb ^= 0x00FFFFFFU;
+	}
+
+	return PLATFORM_COLOUR_FORMAT_SWAP_BYTES(RGB888_TO_PLATFORM_COLOUR_FORMAT(rgb));
+}
+
+// Header item colour on the new screen; nothing on the classic one.
+static void headerSetColour(bool newScreen, uint16_t bg, uint32_t onDark, uint32_t onLight)
+{
+	if (newScreen)
+	{
+		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(onDark, onLight), bg);
+	}
+}
+
+#define HEADER_TEXT_COLOURS  0xC8D2E6U, 0x203050U
+
 void uiUtilityRenderHeader(bool isVFODualWatchScanning, bool isVFOSweepScanning)
 {
 	const int MODE_TEXT_X_OFFSET = 1;
@@ -1866,7 +1922,22 @@ void uiUtilityRenderHeader(bool isVFODualWatchScanning, bool isVFOSweepScanning)
 		}
 	}
 
-	displayThemeApply(THEME_ITEM_FG_HEADER_TEXT, THEME_ITEM_BG_HEADER_TEXT);
+	// New screen: a band of its own colour, red while transmitting, with each
+	// item coloured below. The classic screen keeps the theme's header colours.
+	const bool newScreen = uiUtilityNewScreen();
+	uint16_t headerBg = 0;
+	uint32_t modeDark = (trxTransmissionEnabled ? 0xFF4A3DU : ((trxGetMode() == RADIO_MODE_ANALOG) ? 0x3BD16FU : 0x4FB8FFU));
+	uint32_t modeLight = (trxTransmissionEnabled ? 0xB01010U : ((trxGetMode() == RADIO_MODE_ANALOG) ? 0x107A30U : 0x0B5FA8U));
+
+	if (newScreen)
+	{
+		headerBg = (trxTransmissionEnabled ? uiUtilityScreenColour(0x5A1414U, 0xF6CFCFU) : uiUtilityScreenColour(0x14233FU, 0xD8E4F4U));
+		headerSetColour(true, headerBg, HEADER_TEXT_COLOURS);
+	}
+	else
+	{
+		displayThemeApply(THEME_ITEM_FG_HEADER_TEXT, THEME_ITEM_BG_HEADER_TEXT);
+	}
 #if defined(HAS_COLOURS)
 	displayFillRect(0, 0, DISPLAY_SIZE_X, DISPLAY_Y_POS_BAR, true);
 #endif
@@ -1917,8 +1988,14 @@ void uiUtilityRenderHeader(bool isVFODualWatchScanning, bool isVFOSweepScanning)
 					displayFillRect(1, 1, modePixelLen, 8 + 1, false);
 				}
 
+				headerSetColour(newScreen, headerBg, modeDark, modeLight);
+				if (newScreen && uiDataGlobal.talkaround)
+				{
+					displayFillRect(1, 1, modePixelLen, 8 + 1, false); // again, in the mode colour
+				}
 				displayPrintCore(MODE_TEXT_X_OFFSET, DISPLAY_Y_POS_HEADER, buffer,
 						(((nonVolatileSettings.hotspotType != HOTSPOT_TYPE_OFF) && (uiDataGlobal.dmrDisabled == false)) ? FONT_SIZE_1_BOLD : FONT_SIZE_1), TEXT_ALIGN_LEFT, isInverted);
+				headerSetColour(newScreen, headerBg, HEADER_TEXT_COLOURS);
 
 
 				if (currentChannelData->aprsConfigIndex != 0)
@@ -2002,7 +2079,9 @@ void uiUtilityRenderHeader(bool isVFODualWatchScanning, bool isVFOSweepScanning)
 							displayFillRect(1, 1, (3 * 6), 8 + 1, false);
 						}
 
+						headerSetColour(newScreen, headerBg, modeDark, modeLight);
 						displayPrintCore(MODE_TEXT_X_OFFSET, DISPLAY_Y_POS_HEADER, isVFODualWatchScanning ? "[DW]" : "DMR", ((nonVolatileSettings.hotspotType != HOTSPOT_TYPE_OFF) ? FONT_SIZE_1_BOLD : FONT_SIZE_1), TEXT_ALIGN_LEFT, isInverted);
+						headerSetColour(newScreen, headerBg, HEADER_TEXT_COLOURS);
 					}
 
 					if (isVFODualWatchScanning == false)
@@ -2037,6 +2116,7 @@ void uiUtilityRenderHeader(bool isVFODualWatchScanning, bool isVFOSweepScanning)
 
 	// Power
 	sprintf(buffer, "%s%s", getPowerLevel(powerLevel), getPowerLevelUnit(powerLevel));
+	headerSetColour(newScreen, headerBg, 0xFFB347U, 0xA05A00U);
 
 	if (isVFOSweepScanning) // Need to shift to the right due to sweep span
 	{
@@ -2047,6 +2127,8 @@ void uiUtilityRenderHeader(bool isVFODualWatchScanning, bool isVFOSweepScanning)
 		displayPrintCore(((POWER_X_CENTER + (itemOffset * 2)) - ((strlen(buffer) * 6) >> 1)), DISPLAY_Y_POS_HEADER, buffer,
 				((isPerChannelPower && (nonVolatileSettings.extendedInfosOnScreen & (INFO_ON_SCREEN_PWR & INFO_ON_SCREEN_BOTH))) ? FONT_SIZE_1_BOLD : FONT_SIZE_1), TEXT_ALIGN_LEFT, false);
 	}
+
+	headerSetColour(newScreen, headerBg, HEADER_TEXT_COLOURS);
 
 	// In hotspot mode the CC is show as part of the rest of the display and in Analog mode the CC is meaningless
 	if((isVFODualWatchScanning == false) && (isVFOSweepScanning == false) && (((settingsUsbMode == USB_MODE_HOTSPOT) || (trxGetMode() == RADIO_MODE_ANALOG)) == false))
@@ -2070,13 +2152,46 @@ void uiUtilityRenderHeader(bool isVFODualWatchScanning, bool isVFOSweepScanning)
 #if defined(PLATFORM_MD380) || defined(PLATFORM_MDUV380) || defined(PLATFORM_RT84_DM1701) || defined(PLATFORM_MD2017)
 	if (nonVolatileSettings.gps >= GPS_MODE_ON)
 	{
-		displayPrintCore(DISPLAY_SIZE_X - 50, DISPLAY_Y_POS_HEADER, currentLanguage->gps, ((gpsData.Status & GPS_STATUS_HAS_FIX) ? FONT_SIZE_1_BOLD : FONT_SIZE_1), TEXT_ALIGN_LEFT, false);
+		bool hasFix = ((gpsData.Status & GPS_STATUS_HAS_FIX) == GPS_STATUS_HAS_FIX);
+
+		// Green once there is a fix, on both screens.
+		if (hasFix)
+		{
+			uint16_t fg, bg;
+
+			displayGetForegroundAndBackgroundColours(&fg, &bg);
+			displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0x3BD16FU, 0x107A30U), bg);
+			displayPrintCore(DISPLAY_SIZE_X - 50, DISPLAY_Y_POS_HEADER, currentLanguage->gps, FONT_SIZE_1_BOLD, TEXT_ALIGN_LEFT, false);
+			displaySetForegroundAndBackgroundColours(fg, bg);
+		}
+		else
+		{
+			displayPrintCore(DISPLAY_SIZE_X - 50, DISPLAY_Y_POS_HEADER, currentLanguage->gps, FONT_SIZE_1, TEXT_ALIGN_LEFT, false);
+		}
 	}
 #endif
 #endif
 
 	// Display battery percentage/voltage
 	bool apoEnabled = (nonVolatileSettings.apo > 0);
+
+	if (newScreen)
+	{
+		int pct = ((batteryPercentage >= 0) ? batteryPercentage : getBatteryPercentage());
+
+		if (batteryIsLow || (pct <= 20))
+		{
+			headerSetColour(true, headerBg, 0xFF4A3DU, 0xB01010U);
+		}
+		else if (pct <= 50)
+		{
+			headerSetColour(true, headerBg, 0xFFD84AU, 0x806000U);
+		}
+		else
+		{
+			headerSetColour(true, headerBg, 0x3BD16FU, 0x107A30U);
+		}
+	}
 	if (settingsIsOptionBitSet(BIT_BATTERY_VOLTAGE_IN_HEADER))
 	{
 		int16_t xV = (DISPLAY_SIZE_X - ((4 * 6) + 3));

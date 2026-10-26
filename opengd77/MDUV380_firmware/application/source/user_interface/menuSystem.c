@@ -189,8 +189,8 @@ static menuFunctionData_t menuFunctions[] =
 		{ menuGames,                NULL, NULL, 0 },
 		{ menuGameSnake,            NULL, NULL, 0 },
 		{ menuGameTetris,           NULL, NULL, 0 },
-		{ menuGameBreakout,         NULL, NULL, 0 },
-		{ menuGame2048,             NULL, NULL, 0 },
+		{ menuGames,                NULL, NULL, 0 }, // UI_GAME_BREAKOUT: the game was removed, the slot is kept so no menu number moves
+		{ menuGames,                NULL, NULL, 0 }, // UI_GAME_2048: likewise
 		{ menuGameDino,             NULL, NULL, 0 },
 		{ menuGameScores,           NULL, NULL, 0 },
 		{ menuMorseLog,             NULL, NULL, 0 },
@@ -757,11 +757,30 @@ const menuItemsList_t menuDataOptions =
 	.items = optionsMenuItems
 };
 
+// The colour menus (TA8BMO), with the colour channel screen: every list that
+// goes through menuDisplayTitle() and menuDisplayEntry() takes this look. Colours
+// come from uiUtilityScreenColour(), so they show the same in inverse video, and
+// "Screen: Classic" brings back the theme's own menu colours.
 void menuDisplayTitle(const char *title)
 {
 	themeItem_t fgItem, bgItem;
 
 	displayThemeGetForegroundAndBackgroundItems(&fgItem, &bgItem);
+
+	if (uiUtilityNewScreen())
+	{
+		uint16_t band = uiUtilityScreenColour(0x14233FU, 0xD8E4F4U);
+
+		displaySetForegroundAndBackgroundColours(band, band);
+		displayFillRect(0, 0, DISPLAY_SIZE_X, 13, false);
+		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0x2E6BD0U, 0x0068A0U), band);
+		displayFillRect(0, 13, DISPLAY_SIZE_X, 1, false);
+		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0x7FD0FFU, 0x0B4A88U), band);
+		displayPrintCore(0, 3, title, FONT_SIZE_2, TEXT_ALIGN_CENTER, false);
+
+		displayThemeApply(fgItem, bgItem);
+		return;
+	}
 
 #if defined(HAS_COLOURS)
 	displayThemeApply(THEME_ITEM_BG_MENU_NAME, THEME_ITEM_COLOUR_NONE);
@@ -777,12 +796,126 @@ void menuDisplayTitle(const char *title)
 	displayThemeApply(fgItem, bgItem);
 }
 
+// A thin scroll bar at the right edge, for lists longer than the screen. Only
+// lists that keep menuDataGlobal.numItems get one; it is 0 in the screens that
+// count their rows themselves (it is reset whenever a menu is entered).
+static void menuDisplayScrollBar(void)
+{
+	const int16_t top = 16;
+	const int16_t h = (DISPLAY_SIZE_Y - top);
+	int n = menuDataGlobal.numItems;
+	int idx = menuDataGlobal.currentItemIndex;
+	int16_t th;
+	uint16_t bg;
+	uint16_t fg;
+
+	if (n <= MENU_MAX_DISPLAYED_ENTRIES)
+	{
+		return;
+	}
+
+	idx = ((idx < 0) ? 0 : ((idx >= n) ? (n - 1) : idx));
+	th = (int16_t) ((h * MENU_MAX_DISPLAYED_ENTRIES) / n);
+	th = ((th < 8) ? 8 : th);
+
+	displayThemeResetToDefault();
+	displayGetForegroundAndBackgroundColours(&fg, &bg);
+	displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0x1A2236U, 0xE0E4EAU), bg);
+	displayFillRect(157, top, 2, h, false);
+	displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0x4FD8FFU, 0x0068A0U), bg);
+	displayFillRect(157, (top + (((h - th) * idx) / (n - 1))), 2, th, false);
+}
+
+// One row of a list on the colour menus. "Label:Value" rows (the settings
+// lists, where optStart points just past the colon) get the value pushed to
+// the right edge in its own colour; rows with a layout of their own - the APRS
+// list, the logs - keep it, only recoloured. optStart < 0 rows are told apart
+// by colour (the channels of a zone, for one), so they keep a colour of their own.
+static void menuDisplayEntryColour(int loopOffset, bool focused, const char *entryText, int32_t optStart)
+{
+	const int16_t y = menuEntryY(loopOffset);
+	const int16_t textX = DISPLAY_X_POS_MENU_TEXT_OFFSET;
+	char part[SCREEN_LINE_BUFFER_SIZE];
+	int len = (int) strlen(entryText);
+	// Not in the contact details: the TG/ID number is typed into its row with a
+	// cursor placed by character count from the start of the row (menuUpdateCursor),
+	// which a value moved to the right edge would leave behind.
+	bool split = ((optStart > 0) && (optStart < len) && (entryText[optStart - 1] == ':') &&
+			(menuSystemGetCurrentMenuNumber() != MENU_CONTACT_DETAILS));
+	uint16_t fg, bg, labelColour, valueColour;
+
+	displayThemeResetToDefault();
+	displayGetForegroundAndBackgroundColours(&fg, &bg);
+
+	if (focused)
+	{
+		// On a white screen the pale blue of the first version hardly showed; a
+		// solid blue bar with white text reads in both.
+		bg = uiUtilityScreenColour(0x1F4F8FU, 0x1F5FC0U);
+		displaySetForegroundAndBackgroundColours(bg, bg);
+		displayFillRoundRect(3, y, 151, MENU_ENTRY_HEIGHT, 3, false);
+		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0x4FD8FFU, 0x0B2A60U), bg);
+		displayFillRect(3, y, 3, MENU_ENTRY_HEIGHT, false);
+		labelColour = uiUtilityScreenColour(0xFFFFFFU, 0xFFFFFFU);
+		valueColour = uiUtilityScreenColour(0xFFD84AU, 0xFFE38AU);
+	}
+	else
+	{
+		labelColour = ((optStart < 0) ? uiUtilityScreenColour(0x7FD0FFU, 0x0B5FA8U) : uiUtilityScreenColour(0xC8D2E6U, 0x203050U));
+		valueColour = uiUtilityScreenColour(0xFFB347U, 0xA05A00U);
+	}
+
+	if (optStart > 0)
+	{
+		int labelLen = (split ? (optStart - 1) : optStart); // a split row loses its colon
+		const char *value = (entryText + optStart);
+		int16_t valueX = (int16_t) (textX + (optStart * 8));
+
+		snprintf(part, (((labelLen + 1) < (int) sizeof(part)) ? (labelLen + 1) : (int) sizeof(part)), "%s", entryText);
+		displaySetForegroundAndBackgroundColours(labelColour, bg);
+		displayPrintCore(textX, y, part, FONT_SIZE_3, TEXT_ALIGN_LEFT, false);
+
+		if (split)
+		{
+			int16_t rightX = (int16_t) (152 - ((int) strlen(value) * 8));
+
+			valueX = ((rightX > valueX) ? rightX : valueX); // at the right edge, unless it does not fit there
+		}
+
+		displaySetForegroundAndBackgroundColours(valueColour, bg);
+		displayPrintCore(valueX, y, value, FONT_SIZE_3, TEXT_ALIGN_LEFT, false);
+	}
+	else
+	{
+		displaySetForegroundAndBackgroundColours(labelColour, bg);
+		displayPrintCore(textX, y, entryText, FONT_SIZE_3, TEXT_ALIGN_LEFT, false);
+	}
+
+	if (focused)
+	{
+		menuDisplayScrollBar();
+	}
+	else
+	{
+		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0x1A2236U, 0xE0E4EAU), bg);
+		displayFillRect(6, (y + MENU_ENTRY_HEIGHT - 1), 148, 1, false);
+	}
+
+	displayThemeResetToDefault();
+}
+
 // optStart:
 //  - if less than 0, entryText will use fgOptItem colour
 //  - if equal to 0, no coloured option will be handled
 void menuDisplayEntry(int loopOffset, int focusedItem, const char *entryText, int32_t optStart, themeItem_t fgItem, themeItem_t fgOptItem, themeItem_t bgItem)
 {
 	bool focused = (focusedItem == menuDataGlobal.currentItemIndex);
+
+	if (uiUtilityNewScreen())
+	{
+		menuDisplayEntryColour(loopOffset, focused, entryText, optStart);
+		return;
+	}
 
 	if (focused)
 	{
@@ -823,9 +956,77 @@ void menuDisplayEntry(int loopOffset, int focusedItem, const char *entryText, in
 	displayThemeResetToDefault();
 }
 
+// The colour menus scroll like an ordinary list: the rows stay put and the
+// highlight moves, the list only moving on when it reaches the top or the
+// bottom. The menus all draw "the selected item at loopOffset 0, its neighbours
+// around it" - and use loopOffset 0 as the selected item for voice prompts and
+// the quick key panel - so that is kept: loopOffset is only mapped to a row
+// differently. The selected item sits on row nsListSelRow, and offset n on the
+// row n further on, wrapping round the screen, so every row gets exactly one
+// item and the rows hold nsListTop, nsListTop + 1, ... from the top down.
+static int nsListTop = 0;
+static int nsListSelRow = 0;
+static int nsListMenu = -1;   // the menu these were worked out for
+static int nsListCount = -1;
+
+static int nsListRow(int loopOffset)
+{
+	return ((((nsListSelRow + loopOffset) % MENU_MAX_DISPLAYED_ENTRIES) + MENU_MAX_DISPLAYED_ENTRIES) % MENU_MAX_DISPLAYED_ENTRIES);
+}
+
+// Where a list row is drawn: what menuDisplayEntry() uses, for anything drawn
+// on a row beside it.
+int16_t menuEntryY(int loopOffset)
+{
+	if (uiUtilityNewScreen() && (nsListMenu == menuSystemGetCurrentMenuNumber()))
+	{
+		return (DISPLAY_Y_POS_MENU_ENTRY_HIGHLIGHT + ((nsListRow(loopOffset) + MENU_START_ITERATION_VALUE) * MENU_ENTRY_HEIGHT));
+	}
+
+	return (DISPLAY_Y_POS_MENU_ENTRY_HIGHLIGHT + (loopOffset * MENU_ENTRY_HEIGHT));
+}
+
 // Returns menu offset, -1 if the line is before the first menu item, -2 if the line is after the last menu item
 int menuGetMenuOffset(int maxMenuItems, int loopOffset)
 {
+	if (uiUtilityNewScreen() && (maxMenuItems > 0))
+	{
+		int sel = menuDataGlobal.currentItemIndex;
+		int menu = menuSystemGetCurrentMenuNumber();
+		int item;
+
+		if ((menu != nsListMenu) || (maxMenuItems != nsListCount))
+		{
+			nsListMenu = menu;
+			nsListCount = maxMenuItems;
+			nsListTop = 0;
+		}
+
+		sel = ((sel < 0) ? 0 : ((sel >= maxMenuItems) ? (maxMenuItems - 1) : sel));
+
+		if (sel < nsListTop)
+		{
+			nsListTop = sel;
+		}
+		else if (sel >= (nsListTop + MENU_MAX_DISPLAYED_ENTRIES))
+		{
+			nsListTop = ((sel - MENU_MAX_DISPLAYED_ENTRIES) + 1);
+		}
+
+		if (nsListTop > (maxMenuItems - MENU_MAX_DISPLAYED_ENTRIES))
+		{
+			nsListTop = (((maxMenuItems - MENU_MAX_DISPLAYED_ENTRIES) > 0) ? (maxMenuItems - MENU_MAX_DISPLAYED_ENTRIES) : 0);
+		}
+
+		nsListSelRow = (sel - nsListTop);
+		item = (nsListTop + nsListRow(loopOffset));
+
+		// A short list leaves rows empty at the bottom. "Before the first" makes
+		// the callers skip the row and go on, where "after the last" would stop
+		// the loop with rows still to draw.
+		return ((item < maxMenuItems) ? item : MENU_OFFSET_BEFORE_FIRST_ENTRY);
+	}
+
 	int offset = menuDataGlobal.currentItemIndex + loopOffset;
 	int startOffset = 0;
 	int iter = (loopOffset + (MENU_MAX_DISPLAYED_ENTRIES / 2) + ((MENU_MAX_DISPLAYED_ENTRIES & 0x01) ? 1 : 0));
@@ -1028,6 +1229,33 @@ void menuSystemMenuDecrement(int32_t *currentItem, int32_t numItems)
 // For QuickKeys
 void menuDisplaySettingOption(const char *entryText, const char *valueText)
 {
+#if ! defined(PLATFORM_RD5R)
+	if (uiUtilityNewScreen())
+	{
+		// The same card, in the colour menus' blues: the setting on a band, its value below.
+		const int16_t y0 = (DISPLAY_Y_POS_MENU_ENTRY_HIGHLIGHT - MENU_ENTRY_HEIGHT - 2);
+		uint16_t card = uiUtilityScreenColour(0x14233FU, 0xD8E4F4U);
+		uint16_t band = uiUtilityScreenColour(0x1F4F8FU, 0xCFE0F7U);
+
+		displaySetForegroundAndBackgroundColours(card, card);
+		displayFillRoundRect(2, y0, (DISPLAY_SIZE_X - 4), ((MENU_ENTRY_HEIGHT * 2) + 4), 3, false);
+		displaySetForegroundAndBackgroundColours(band, band);
+		displayFillRoundRect(2, y0, (DISPLAY_SIZE_X - 4), MENU_ENTRY_HEIGHT, 3, false);
+
+		if (entryText)
+		{
+			displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0xFFFFFFU, 0x0B2A50U), band);
+			displayPrintCore(0, (DISPLAY_Y_POS_MENU_START - MENU_ENTRY_HEIGHT + DISPLAY_V_OFFSET + 2), entryText, FONT_SIZE_2, TEXT_ALIGN_CENTER, false);
+		}
+
+		displaySetForegroundAndBackgroundColours(uiUtilityScreenColour(0xFFD84AU, 0x8A4A00U), card);
+		displayPrintCore(0, (DISPLAY_Y_POS_MENU_START + DISPLAY_V_OFFSET), valueText, FONT_SIZE_3, TEXT_ALIGN_CENTER, false);
+
+		displayThemeResetToDefault();
+		return;
+	}
+#endif
+
 	displayThemeApply(THEME_ITEM_FG_DECORATION, THEME_ITEM_BG);
 
 #if defined(PLATFORM_RD5R)

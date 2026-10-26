@@ -96,6 +96,7 @@ enum
 	DISPLAY_TIMEZONE_VALUE,
 	DISPLAY_TIME_UTC_OR_LOCAL,
 	DISPLAY_SHOW_DISTANCE,
+	DISPLAY_CLASSIC_SCREEN, // last, so no existing item (or quick key) moves
 	NUM_DISPLAY_MENU_ITEMS
 };
 
@@ -301,6 +302,15 @@ static void updateScreen(bool isFirstRun)
 					leftSide = currentLanguage->show_distance;
 					rightSideConst = settingsIsOptionBitSet(BIT_DISPLAY_CHANNEL_DISTANCE) ? currentLanguage->on : currentLanguage->off;
 					break;
+
+				case DISPLAY_CLASSIC_SCREEN:
+					// Not in the language tables: the value goes in rightSideVar, and the
+					// label is read out with voicePromptsAppendString() below, as text.
+					leftSide = LANG5("Ekran", "Screen", "Pantalla", "\xDD\xEA\xF0\xE0\xED", "Anzeige");
+					snprintf(rightSideVar, SCREEN_LINE_BUFFER_SIZE, "%s", (settingsIsOptionBitSet(BIT_CLASSIC_SCREEN) ?
+							LANG5("Klasik", "Classic", "Cl\xE1sico", "\xCE\xE1\xFB\xF7\xED\xFB\xE9", "Klassisch") :
+							LANG5("Renkli", "Colour", "Color", "\xD6\xE2\xE5\xF2\xED\xEE\xE9", "Farbig")));
+					break;
 			}
 
 			// workaround for non standard format of line for colour display
@@ -317,7 +327,14 @@ static void updateScreen(bool isFirstRun)
 
 				if (!wasPlaying || (menuDataGlobal.newOptionSelected || (menuDataGlobal.menuOptionsTimeout > 0)))
 				{
-					voicePromptsAppendLanguageString(leftSide);
+					if (mNum == DISPLAY_CLASSIC_SCREEN)
+					{
+						voicePromptsAppendString(leftSide); // not a language table entry
+					}
+					else
+					{
+						voicePromptsAppendLanguageString(leftSide);
+					}
 				}
 
 				if ((rightSideVar[0] != 0) || ((rightSideVar[0] == 0) && (rightSideConst == NULL)))
@@ -654,6 +671,12 @@ static void handleEvent(uiEvent_t *ev)
 						settingsSetOptionBit(BIT_DISPLAY_CHANNEL_DISTANCE, true);
 					}
 					break;
+				case DISPLAY_CLASSIC_SCREEN:
+					if (settingsIsOptionBitSet(BIT_CLASSIC_SCREEN) == false)
+					{
+						settingsSetOptionBit(BIT_CLASSIC_SCREEN, true);
+					}
+					break;
 			}
 		}
 		else if (KEYCHECK_PRESS(ev->keys, KEY_LEFT)
@@ -828,6 +851,12 @@ static void handleEvent(uiEvent_t *ev)
 					if (settingsIsOptionBitSet(BIT_DISPLAY_CHANNEL_DISTANCE))
 					{
 						settingsSetOptionBit(BIT_DISPLAY_CHANNEL_DISTANCE, false);
+					}
+					break;
+				case DISPLAY_CLASSIC_SCREEN:
+					if (settingsIsOptionBitSet(BIT_CLASSIC_SCREEN))
+					{
+						settingsSetOptionBit(BIT_CLASSIC_SCREEN, false);
 					}
 					break;
 			}
@@ -1007,6 +1036,11 @@ static void exitCallback(void *data)
 		if (settingsIsOptionBitSet(DISPLAY_SHOW_DISTANCE) != settingsIsOptionBitSetFromSettings(&originalNonVolatileSettings, DISPLAY_SHOW_DISTANCE))
 		{
 			settingsSetOptionBit(DISPLAY_SHOW_DISTANCE, settingsIsOptionBitSetFromSettings(&originalNonVolatileSettings, DISPLAY_SHOW_DISTANCE));
+		}
+
+		if (settingsIsOptionBitSet(BIT_CLASSIC_SCREEN) != settingsIsOptionBitSetFromSettings(&originalNonVolatileSettings, BIT_CLASSIC_SCREEN))
+		{
+			settingsSetOptionBit(BIT_CLASSIC_SCREEN, settingsIsOptionBitSetFromSettings(&originalNonVolatileSettings, BIT_CLASSIC_SCREEN));
 		}
 
 		settingsSaveIfNeeded(true);

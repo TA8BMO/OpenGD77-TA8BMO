@@ -389,7 +389,7 @@ static void updateBrowerScreen(bool isFirstRun)
 
 		// Draw the color rectangle
 		int16_t x = (DISPLAY_X_POS_MENU_TEXT_OFFSET + (16 * 8) + 2);
-		int16_t y = DISPLAY_Y_POS_MENU_ENTRY_HIGHLIGHT + (i * MENU_ENTRY_HEIGHT) + 2;
+		int16_t y = menuEntryY(i) + 2; // the row menuDisplayEntry() drew, which moves on the colour menus
 		uint16_t fgColour, bgColour;
 
 		displayGetForegroundAndBackgroundColours(&fgColour, &bgColour);

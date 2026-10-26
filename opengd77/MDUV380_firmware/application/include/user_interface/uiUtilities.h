@@ -204,6 +204,8 @@ bool contactIDLookup(uint32_t id, uint32_t calltype, char *buffer);
 void uiUtilityRenderQSOData(void);
 void uiUtilityRenderHeader(bool isVFODualWatchScanning, bool isVFOSweepScanning);
 void uiUtilityRedrawHeaderOnly(bool isVFODualWatchScanning, bool isVFOSweepScanning);
+bool uiUtilityNewScreen(void); // the colour channel screen (TA8BMO), unless the classic one is chosen
+uint16_t uiUtilityScreenColour(uint32_t onDark, uint32_t onLight);
 LinkItem_t *lastHeardFindInList(uint32_t id);
 void lastHeardInitList(void);
 void lastHeardClearWorkingTAData(void);

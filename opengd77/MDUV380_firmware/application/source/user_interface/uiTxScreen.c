@@ -39,6 +39,7 @@
 #include "functions/aprsDecode.h"
 #include "functions/callLog.h"
 #include "functions/voiceRecorder.h"
+#include "functions/fiveToneDecode.h"
 #include <math.h>
 #if defined(HAS_GPS)
 #include "interfaces/gps.h"
@@ -67,66 +68,11 @@ uint32_t xmitErrorTimer = 0;
 static bool isSatelliteScreen;
 
 // ---------------------------------------------------------------------------
-// 5-Tone ANI encoder (table-based, extensible to other standards).
-// CCIR is the default standard. Additional standards (ZVEI1/ZVEI2/EEA...) can
-// be appended to FIVE_TONE_STANDARDS[] with the same structure and later be
-// made user-selectable; the encoder itself is standard-agnostic.
+// 5-Tone ANI encoder. The standards (CCIR, ZVEI...) and the choice between
+// them live in fiveToneDecode.c, so that sending and decoding always agree;
+// General Options picks one. The encoder itself is standard-agnostic.
 // ---------------------------------------------------------------------------
-typedef struct
-{
-	const char *name;
-	uint16_t    toneFreq[16];    // [0..9] = digits, [10..15] = A..F / special tones
-	uint16_t    toneDurationMs;  // duration of each tone
-	uint16_t    gapMs;           // silence between tones (0 = continuous)
-	uint8_t     repeatToneIndex; // tone used when a digit repeats the previous one
-} fiveToneStandard_t;
-
-static const fiveToneStandard_t FIVE_TONE_STANDARDS[] =
-{
-	// [0] CCIR-1, 100 ms  (default / first working profile).
-	//   Digit freqs 0-9 per CCIR-1. A(index 10)=2400 Hz is the GROUP tone; the
-	//   REPEAT tone is E(index 14)=2110 Hz. Repeated digits use the E repeat tone
-	//   (see fiveToneSend); tones are contiguous (0 ms gap).
-	{
-		"CCIR 100",
-		{
-			1981, 1124, 1197, 1275, 1358, 1446, 1540, 1640, 1747, 1860, // 0-9
-			2400,  930, 2247,  991, 2110, 2600                          // A(group),B,C,D,E(repeat),F
-		},
-		100, 0, 14
-	},
-	// [1] CCIR-1, 70 ms  (same frequencies, shorter tone period).
-	{
-		"CCIR 70",
-		{
-			1981, 1124, 1197, 1275, 1358, 1446, 1540, 1640, 1747, 1860,
-			2400,  930, 2247,  991, 2110, 2600
-		},
-		70, 0, 14
-	},
-	// [2] CCIR-1, 20 ms  (fast).
-	{
-		"CCIR 20",
-		{
-			1981, 1124, 1197, 1275, 1358, 1446, 1540, 1640, 1747, 1860,
-			2400,  930, 2247,  991, 2110, 2600
-		},
-		20, 0, 14
-	},
-	// [3] EEA, 40 ms. Same digit frequencies as CCIR; E(14)=2110 repeat tone.
-	//     NOTE: A/B/C/D/F extra tones + timing to be verified against a reference
-	//     decoder before this profile is relied on in the field.
-	{
-		"EEA",
-		{
-			1981, 1124, 1197, 1275, 1358, 1446, 1540, 1640, 1747, 1860,
-			1055,  930, 2247,  991, 2110, 2400
-		},
-		40, 0, 14
-	},
-	// ZVEI1 / ZVEI2 to be added once their exact frequency tables are confirmed.
-};
-#define FIVE_TONE_STANDARD_DEFAULT 0 // CCIR 100
+#define FIVE_TONE_REPEAT_IDX 14 // E, the repeat tone, in every standard
 
 // Delay after key-up before the first tone, so the PLL/PA settle. It is also how
 // long after PTT the 5-Tone burst starts - 250ms is what felt right to me.
@@ -175,7 +121,7 @@ static void fiveToneDelayMs(uint32_t ms)
 //                                          the RF signal does not depend on it).
 static void fiveToneSend(const uint8_t digits[5])
 {
-	const fiveToneStandard_t *std = &FIVE_TONE_STANDARDS[FIVE_TONE_STANDARD_DEFAULT];
+	const fiveToneStandard_t *std = fiveToneStandard();
 	static int16_t sideToneMelody[(5 * 2) + 2]; // static: stays valid while it plays
 	uint16_t emitFreq[5];
 	int prevFreq = -1;
@@ -187,7 +133,7 @@ static void fiveToneSend(const uint8_t digits[5])
 		uint16_t f = std->toneFreq[d];
 		if ((int) f == prevFreq)
 		{
-			f = std->toneFreq[std->repeatToneIndex]; // CCIR repeat tone E
+			f = std->toneFreq[FIVE_TONE_REPEAT_IDX]; // the repeat tone E
 		}
 		emitFreq[i] = f;
 		prevFreq = (int) f;
@@ -1819,10 +1765,16 @@ menuStatus_t menuMorseLog(uiEvent_t *ev, bool isFirstRun)
 // stays plain ASCII and cannot be broken by a re-encoding. The display font maps
 // them itself: 0x93 i-dotless, 0x94 I-dot, 0x95/0x96 S-cedilla, 0x98 g-breve,
 // 0xC7/0xE7 C-cedilla, 0xD6/0xF6 O-umlaut, 0xDC/0xFC U-umlaut.
+// Stand-ins for symbols from the alternate table (see aprsLogLocate): never a
+// real symbol character, and in no icon's list, so both draw as the diamond.
+#define APRS_SYMBOL_FLAG   '\x01'
+#define APRS_SYMBOL_OTHER  '\x02'
+
 static const char *aprsSymbolName(char code)
 {
 	switch (code)
 	{
+		case APRS_SYMBOL_FLAG: return LANG5("Bayrak", "Flag", "Bandera", "\xD4\xEB\xE0\xE3", "Flagge");
 		case '#': return "Digipeater";
 		case '&': return "Gateway";
 		case 'I': return "IGate";
@@ -1976,11 +1928,13 @@ static bool aprsFindCompressedPosition(const char *info, int *latDeg, int *latFr
 		*lonFrac = (int)((lon - (double) *lonDeg) * 10000.0);
 	}
 
-	*symCode = info[p + 9];
+	symCode[0] = info[p + 9];
+	symCode[1] = info[p]; // its table
 	*commentAt = (p + 13);
 	return true;
 }
 
+// symCode gets two characters: the symbol, then the table it is from.
 static bool aprsFindPosition(const char *info, int *latDeg, int *latFrac, char *latHemi,
 		int *lonDeg, int *lonFrac, char *lonHemi, char *symCode, int *commentAt)
 {
@@ -2027,7 +1981,8 @@ static bool aprsFindPosition(const char *info, int *latDeg, int *latFrac, char *
 		*lonDeg = dd2;
 		*lonFrac = aprsMinutesToFrac(mm2, hh2);
 		*lonHemi = info[p + 17];
-		*symCode = info[p + 18];
+		symCode[0] = info[p + 18];
+		symCode[1] = info[p + 8]; // its table, between latitude and longitude
 		*commentAt = (p + 19);
 		return true;
 	}
@@ -2089,15 +2044,28 @@ static void aprsLogLocate(const char *info, aprsStation_t *s)
 	double ownLat;
 	double ownLon;
 
+	char sym[2] = { 0, 0 };
+
 	memset(s, 0, sizeof(*s));
 
 	if (aprsFindPosition(info, &s->latDeg, &s->latFrac, &s->latHemi, &s->lonDeg, &s->lonFrac, &s->lonHemi,
-			&s->symbol, &s->commentAt) == false)
+			sym, &s->commentAt) == false)
 	{
 		s->state = APRS_POS_NONE;
 		s->symbol = 0;
 		s->commentAt = 0;
 		return;
+	}
+
+	// The same character means something else in the alternate table ('\', or an
+	// overlay letter or digit): "\<" is a red flag, not a motorcycle, and was
+	// being shown as one. Only the few that keep their meaning there - digi,
+	// gateway, car, house, usually with an overlay - stay as they are; the flag
+	// gets its own name, and anything else is drawn as the plain diamond.
+	s->symbol = sym[0];
+	if ((sym[1] != '/') && (strchr("#&>-", sym[0]) == NULL))
+	{
+		s->symbol = ((sym[0] == '<') ? APRS_SYMBOL_FLAG : APRS_SYMBOL_OTHER);
 	}
 
 	if ((s->latDeg == 0) && (s->latFrac == 0) && (s->lonDeg == 0) && (s->lonFrac == 0))
@@ -3645,6 +3613,12 @@ menuStatus_t menuAPRSLog(uiEvent_t *ev, bool isFirstRun)
 		{
 			menuDataGlobal.currentItemIndex = 0;
 		}
+
+		// This menu has no item list of its own, so the menu system takes it to
+		// have none and, right after this first run, puts any row above 0 back to
+		// 0: the highlight showed the row it was left on (Morse log, say) while
+		// Green opened the APRS log. Telling it the real count keeps the two together.
+		menuDataGlobal.numItems = LOG_ITEM_COUNT;
 
 		if (logMode == LOG_MODE_APRS)
 		{

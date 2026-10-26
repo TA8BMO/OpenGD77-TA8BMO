@@ -71,6 +71,9 @@ Nota: estos atajos solo funcionan en canales analógicos. En un canal digital (D
 @@ Envío 5 tonos
 5 tonos es el sistema de llamada selectiva CCIR, que también usan las radios Aselsan. Cada canal puede tener un código de identidad de 5 cifras (ANI).
 
+[ESTÁNDAR]
+Menú > Opciones > Opciones Grales. > 5 tonos elige el estándar: CCIR (100 ms), CCIR-70, ZVEI-1, ZVEI-2, PZVEI (70 ms) o EIA (33 ms). La radio lo usa para enviar y para decodificar, así que elige el mismo que las demás radios. Solo se decodifica un estándar a la vez.
+
 [PONER EL CÓDIGO]
 En Menú > Detalles Canal, ve a la fila "5T:" y escribe las 5 cifras con el teclado. Los ceros a la izquierda se conservan (ejemplo: 03310). Al escribir la quinta cifra el código se guarda y el envío pasa al modo "St". Mientras escribes, Verde guarda y Rojo cancela.
 
@@ -445,7 +448,7 @@ Config. radio > Clave de encendido. Pone, cambia o quita la clave que se pide al
 No olvides una clave nueva: la radio la pide al encender. La misma clave se pide al borrar canales y zonas.
 
 @@ Juegos
-Menú > Juegos. Elige con la flecha Arriba/Abajo y empieza con Verde, o abre un juego directamente con las teclas 1 a 5. Los récords se guardan para siempre.
+Menú > Juegos. Elige con la flecha Arriba/Abajo y empieza con Verde, o abre un juego directamente con las teclas 1 a 3. Los récords se guardan para siempre.
 
 En todos los juegos:
 - Verde: empezar, seguir, jugar otra vez
@@ -460,12 +463,6 @@ Si alguien habla en el canal mientras juegas, el audio sale por el altavoz.
 
 [TETRIS]
 4/6: izquierda/derecha, 2: girar, 8 o 0: soltar del todo. El mando de canal también mueve la pieza. Si cierras el juego, sigue donde lo dejaste.
-
-[LADRILLOS]
-Verde: lanzar la bola. Mantén 4/6: mover la pala. El mando de canal da control fino.
-
-[2048]
-2/8/4/6: deslizar las fichas. #: deshacer un movimiento.
 
 [DINO]
 Verde o 2: saltar. Mantén 8: agacharse.

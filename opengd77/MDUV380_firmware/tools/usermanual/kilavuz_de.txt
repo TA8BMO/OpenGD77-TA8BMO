@@ -71,6 +71,9 @@ Hinweis: Diese Tastenkürzel gelten nur auf analogen Kanälen. Auf einem digital
 @@ 5-Ton senden
 5-Ton ist das CCIR-Selektivrufsystem, das auch Aselsan-Geräte nutzen. Jeder Kanal kann einen 5-stelligen Identcode (ANI) bekommen.
 
+[STANDARD]
+Menü > Einstellungen > Einstellungen > 5-Ton wählt den Standard: CCIR (100 ms), CCIR-70, ZVEI-1, ZVEI-2, PZVEI (70 ms) oder EIA (33 ms). Das Funkgerät nutzt ihn zum Senden und zum Dekodieren, also denselben wie die anderen Geräte wählen. Es wird immer nur ein Standard dekodiert.
+
 [CODE SETZEN]
 In Menü > Kanal die Zeile "5T:" aufrufen und die 5 Ziffern eingeben. Führende Nullen bleiben erhalten (Beispiel: 03310). Nach der fünften Ziffer wird der Code gespeichert und das Senden wechselt auf "St". Beim Eingeben speichert Grün, Rot bricht ab.
 
@@ -445,7 +448,7 @@ Funk-Setup > Einschaltpasswort. Setzt, ändert oder entfernt das Passwort, das b
 Vergiss kein neues Passwort: das Gerät fragt es beim Einschalten. Dasselbe Passwort wird beim Löschen von Kanälen und Zonen gefragt.
 
 @@ Spiele
-Menü > Spiele. Mit Pfeil hoch/runter wählen und mit Grün starten, oder ein Spiel direkt mit den Tasten 1-5 öffnen. Rekorde bleiben dauerhaft.
+Menü > Spiele. Mit Pfeil hoch/runter wählen und mit Grün starten, oder ein Spiel direkt mit den Tasten 1-3 öffnen. Rekorde bleiben dauerhaft.
 
 In jedem Spiel:
 - Grün: Start, weiter, nochmal spielen
@@ -460,12 +463,6 @@ Spricht jemand auf dem Kanal während des Spiels, kommt das Audio aus dem Lautsp
 
 [TETRIS]
 4/6: links/rechts, 2: drehen, 8 oder 0: ganz fallen. Der Kanalknopf bewegt das Teil auch. Beim Schließen geht das Spiel weiter, wo du warst.
-
-[BREAKOUT]
-Grün: Ball starten. 4/6 halten: Schläger bewegen. Der Kanalknopf gibt Feinsteuerung.
-
-[2048]
-2/8/4/6: Kacheln schieben. #: einen Zug zurück.
 
 [DINO]
 Grün oder 2: springen. 8 halten: ducken.

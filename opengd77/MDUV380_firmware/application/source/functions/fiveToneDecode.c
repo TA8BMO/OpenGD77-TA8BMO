@@ -76,25 +76,72 @@
 
 #define FT_SAMPLE_RATE       8000.0f
 #define FT_TONE_COUNT        16
-#define FT_BLOCK_N           256
-#define FT_REPEAT_TONE_IDX   14     // CCIR 'E', 2110Hz, sent in place of a repeated digit
+#define FT_REPEAT_TONE_IDX   14     // 'E' in every standard, sent in place of a repeated digit
 
-#define FT_MIN_BLOCKS        2      // a tone must hold for 2 blocks (64ms) to count
+#define FT_MIN_BLOCKS        2      // a tone must hold for 2 blocks to count
 #define FT_BURST_GAP_MS      250    // silence this long ends a burst
 #define FT_WS_PROBE_MS       6      // I2S word clock check, one frame is 125us
 
-// CCIR-1, the same table fiveToneSend() transmits from.
-static const uint16_t ftToneFreq[FT_TONE_COUNT] =
+// The standards, in the order General Options lists them. Frequencies as the
+// Wikipedia selcall table and the Signal Identification Wiki agree on them
+// (ZVEI-3 and DZVEI are left out: the two disagree on their digits, and EEA's
+// 40ms tones on CCIR's 73Hz spacing are too much for this decoder).
+//
+// The block size has to let two blocks fit inside one tone even when the tone
+// starts half way through a block, so roughly a third of the tone or less: 32ms
+// for CCIR's 100ms, 20ms for CCIR-70 (still fine enough for its 73Hz spacing),
+// 16ms for the ZVEI family (100Hz apart), 10ms for EIA's 33ms tones (141Hz apart).
+static const fiveToneStandard_t FIVE_TONE_STANDARDS[FIVETONE_STANDARD_COUNT] =
 {
-	1981, 1124, 1197, 1275, 1358, 1446, 1540, 1640, 1747, 1860, // digits 0-9
-	2400,  930, 2247,  991, 2110, 2600                          // A(group) B C D E(repeat) F
+	{ "CCIR",    { 1981, 1124, 1197, 1275, 1358, 1446, 1540, 1640, 1747, 1860,  2400,  930, 2247,  991, 2110, 1055 }, 100, 256 },
+	{ "CCIR-70", { 1981, 1124, 1197, 1275, 1358, 1446, 1540, 1640, 1747, 1860,  2400,  930, 2247,  991, 2110, 1055 },  70, 160 },
+	{ "ZVEI-1",  { 2400, 1060, 1160, 1270, 1400, 1530, 1670, 1830, 2000, 2200,  2800,  810,  970,  885, 2600,  680 },  70, 128 },
+	{ "ZVEI-2",  { 2400, 1060, 1160, 1270, 1400, 1530, 1670, 1830, 2000, 2200,   885,  825,  740,  680,  970, 2600 },  70, 128 },
+	{ "PZVEI",   { 2400, 1060, 1160, 1270, 1400, 1530, 1670, 1830, 2000, 2200,   970,  810, 2800,  885, 2600,  680 },  70, 128 },
+	{ "EIA",     {  600,  741,  882, 1023, 1164, 1305, 1446, 1587, 1728, 1869,  2151, 2433, 2010, 2292,  459, 1091 },  33,  80 },
 };
+
+// Kept in the settings' spare UNUSED_1 field as 0xA500 + index: older firmware
+// may have left something there, so anything without the 0xA5 mark means CCIR.
+#define FT_STANDARD_MARK     0xA500
+
+int fiveToneStandardIndex(void)
+{
+	uint16_t v = (uint16_t) nonVolatileSettings.UNUSED_1;
+
+	return ((((v & 0xFF00) == FT_STANDARD_MARK) && ((v & 0x00FF) < FIVETONE_STANDARD_COUNT)) ? (v & 0x00FF) : 0);
+}
+
+const fiveToneStandard_t *fiveToneStandard(void)
+{
+	return &FIVE_TONE_STANDARDS[fiveToneStandardIndex()];
+}
+
+const char *fiveToneStandardName(int index)
+{
+	return FIVE_TONE_STANDARDS[((index >= 0) && (index < FIVETONE_STANDARD_COUNT)) ? index : 0].name;
+}
+
+void fiveToneSetStandardIndex(int index)
+{
+	if ((index >= 0) && (index < FIVETONE_STANDARD_COUNT))
+	{
+		settingsSet(nonVolatileSettings.UNUSED_1, (int16_t) (FT_STANDARD_MARK | index));
+	}
+}
+
 static const char ftToneChar[FT_TONE_COUNT + 1] = "0123456789ABCDEF";
+
+// Taken from the chosen standard each time the capture starts (ftStart), so a
+// new choice applies from the next opening of the squelch.
+static const uint16_t *ftToneFreq = FIVE_TONE_STANDARDS[0].toneFreq;
+static int     ftBlockN = 256;
+static float   ftMinMag = 5.0e8f; // the silence floor, which grows with the square of the block size
 
 static float   ftCoeff[FT_TONE_COUNT];
 static float   ftS1[FT_TONE_COUNT];
 static float   ftS2[FT_TONE_COUNT];
-static bool    ftCoeffReady = false;
+static int     ftCoeffStandard = -1; // which standard ftCoeff[] was worked out for
 static int     ftBlockPos = 0;
 
 static volatile int   ftBestIdx = -1;
@@ -277,7 +324,7 @@ static void ftEndBlock(void)
 	// Nothing counts while DTMF is on the air: 1209, 1477 and 1633Hz are within
 	// a bin of the CCIR tones for 2, 5 and 7, so a DTMF string would otherwise
 	// leave a false five-tone code behind it.
-	if ((bestIdx >= 0) && (bestMag > 5.0e8f) && (bestMag > (secondMag * 5.0f)) && (dtmfDecodeToneRecentlyActive() == false))
+	if ((bestIdx >= 0) && (bestMag > ftMinMag) && (bestMag > (secondMag * 5.0f)) && (dtmfDecodeToneRecentlyActive() == false))
 	{
 		detected = bestIdx;
 	}
@@ -337,7 +384,7 @@ static void ftAudioTap(uint32_t bufNum)
 				ftS1[t] = s0;
 			}
 
-			if (++ftBlockPos >= FT_BLOCK_N)
+			if (++ftBlockPos >= ftBlockN)
 			{
 				ftBlockPos = 0;
 				ftEndBlock();
@@ -393,13 +440,19 @@ static void ftStart(void)
 		return;
 	}
 
-	if (!ftCoeffReady)
+	if (ftCoeffStandard != fiveToneStandardIndex())
 	{
+		const fiveToneStandard_t *std = fiveToneStandard();
+
+		ftToneFreq = std->toneFreq;
+		ftBlockN = std->decodeBlockN;
+		ftMinMag = (5.0e8f * (((float) ftBlockN * (float) ftBlockN) / (256.0f * 256.0f))); // 5e8 was set for 256 samples
 		for (int i = 0; i < FT_TONE_COUNT; i++)
 		{
 			ftCoeff[i] = 2.0f * cosf((2.0f * (float) M_PI * (float) ftToneFreq[i]) / FT_SAMPLE_RATE);
 		}
-		ftCoeffReady = true;
+		ftCoeffStandard = fiveToneStandardIndex();
+		ftResetDetector();
 	}
 
 	if (SPI0ReadPageRegByte(FT_C6000_PAGE, FT_C6000_CODEC_REG, &cur) != 0)
