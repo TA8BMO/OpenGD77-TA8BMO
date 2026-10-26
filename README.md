@@ -16,6 +16,48 @@ several, and then a whole menu of things I wanted on my own radio.
 
 There is no extra hardware. Everything below is software.
 
+## Screenshots
+
+Taken from the radio itself over USB, in English. They show the **next
+version**, coming soon: the colour channel, VFO and DMR screens, the colour
+menus and the 5-Tone standard setting are not in v1.0 yet (v1.0 has the
+classic screens and CCIR only). Everything else here is in v1.0.
+
+<table>
+<tr>
+<td align="center"><img src="docs/screenshots/01_channel.png" width="240"><br>Channel screen (FM)</td>
+<td align="center"><img src="docs/screenshots/14_dmr_channel.png" width="240"><br>Channel screen (DMR)</td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/02_vfo.png" width="240"><br>VFO</td>
+<td align="center"><img src="docs/screenshots/03_vfo_entry.png" width="240"><br>VFO frequency entry</td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/04_vfo_scan.png" width="240"><br>VFO range scan</td>
+<td align="center"><img src="docs/screenshots/13_main_menu.png" width="240"><br>Colour menus</td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/05_channel_details.png" width="240"><br>Per-channel 5-Tone ANI</td>
+<td align="center"><img src="docs/screenshots/06_general_options.png" width="240"><br>5-Tone standard: CCIR, ZVEI, EIA</td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/07_call_log.png" width="240"><br>Call log (5-Tone and DTMF)</td>
+<td align="center"><img src="docs/screenshots/08_morse_send.png" width="240"><br>Morse sender</td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/09_aprs_list.png" width="240"><br>APRS stations heard</td>
+<td align="center"><img src="docs/screenshots/10_aprs_card.png" width="240"><br>APRS station: distance, bearing, compass</td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/11_rx_recorder.png" width="240"><br>RX recorder</td>
+<td align="center"><img src="docs/screenshots/12_fox_hunt.png" width="240"><br>Fox hunt</td>
+</tr>
+<tr>
+<td align="center"><img src="docs/screenshots/15_language.png" width="240"><br>Five languages</td>
+<td align="center"><img src="docs/screenshots/16_user_manual.png" width="240"><br>Built-in user manual</td>
+</tr>
+</table>
+
 ## What it adds
 
 **Decoding FM audio inside the radio** (analogue FM channels only)
