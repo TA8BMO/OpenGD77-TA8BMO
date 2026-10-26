@@ -1915,11 +1915,15 @@ static bool aprsFindCompressedPosition(const char *info, int *latDeg, int *latFr
 		return false;
 	}
 
-	// The symbol table is '/', '\', or an overlay character.
+	// The symbol table is '/', '\', or an overlay character. In the compressed
+	// form an overlay digit 0-9 is sent as 'a'-'j', never as the digit itself:
+	// a digit here is the first latitude digit of an uncompressed report
+	// ("!3734.56N/..."), which digipeaters send, and decoding that as base-91
+	// put the station thousands of kilometres away.
 	{
 		char tab = info[p];
 
-		if ((tab != '/') && (tab != '\\') && (((tab < 'A') || (tab > 'Z')) && ((tab < '0') || (tab > '9'))))
+		if ((tab != '/') && (tab != '\\') && (((tab < 'A') || (tab > 'Z')) && ((tab < 'a') || (tab > 'j'))))
 		{
 			return false;
 		}
