@@ -18,10 +18,8 @@ There is no extra hardware. Everything below is software.
 
 ## Screenshots
 
-Taken from the radio itself over USB, in English. They show the **next
-version**, coming soon: the colour channel, VFO and DMR screens, the colour
-menus and the 5-Tone standard setting are not in v1.0 yet (v1.0 has the
-classic screens and CCIR only). Everything else here is in v1.0.
+Taken from the radio itself over USB, in English, on v1.1. Prefer the stock
+look? Display options > Screen > Classic brings it back.
 
 <table>
 <tr>
@@ -60,6 +58,14 @@ classic screens and CCIR only). Everything else here is in v1.0.
 
 ## What it adds
 
+**New in v1.1**
+- Colour channel and VFO screens for FM and DMR, colour menus, and a Classic option for the stock look
+- 5-Tone standards: CCIR, CCIR-70, ZVEI-1, ZVEI-2, PZVEI and EIA, for sending and decoding
+- DMR finder (long-press 0 on DMR): every talkgroup, timeslot and colour code heard, Green to use one
+- The last DMR station heard on the channel screen, with distance and direction when it sends a position
+- Fixes: APRS digipeater distances, APRS alternate symbols, long RX recordings breaking up, the Logs menu
+- Breakout and 2048 removed to make room
+
 **Decoding FM audio inside the radio** (analogue FM channels only)
 - 5-Tone (CCIR) receive and send, per-channel ANI, selective call, automatic reply
 - DTMF receive, including the very fast PTT-ID / ANI bursts that sound like a single beep
@@ -84,7 +90,7 @@ classic screens and CCIR only). Everything else here is in v1.0.
 - Fox hunt screen, spectrum sweep that stops on speech
 - Clock set from GPS, very quiet volume range for night listening, brightness on SK1 + volume knob
 - New channels, new zones, zone editing, channel delete and a power-on password, all on the radio
-- A built-in user manual (Turkish, English, Spanish and Russian) and a few games for the long nets :)
+- A built-in user manual (Turkish, English, Spanish, Russian and German) and a few games for the long nets :)
 
 ## Before you flash it
 
@@ -169,6 +175,14 @@ bu yol sadece boşta duruyor. O sese ulaşınca bir çözücü birkaç çözüc�
 da kendi telsizimde görmek istediğim bir sürü özellik.
 
 Ek donanım yok, hepsi yazılım.
+
+**v1.1'de yeni**
+- FM ve DMR için renkli kanal ve VFO ekranları, renkli menüler; eskisini isteyen için Klasik seçeneği
+- 5-Ton standartları: CCIR, CCIR-70, ZVEI-1, ZVEI-2, PZVEI ve EIA (gönderme ve çözme)
+- DMR bulucu (DMR'da 0'a uzun bas): duyulan bütün TG, TS ve CC'ler, Yeşil ile kanala uygulama
+- Kanal ekranında son duyulan DMR istasyonu; konum gönderiyorsa mesafe ve yön
+- Düzeltmeler: APRS digipeater mesafeleri, APRS sembolleri, uzun kayıtların bozulması, Kayıtlar menüsü
+- Yer açmak için Tuğla Kırma ve 2048 kaldırıldı
 
 **Neler var**
 - 5-Ton alma/gönderme, kanal başına ANI, seçmeli çağrı, otomatik cevap
